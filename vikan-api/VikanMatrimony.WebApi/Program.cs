@@ -93,7 +93,11 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors(policy => policy
-    .WithOrigins("http://localhost:3000") // Matches standard frontend Next.js URL
+    .SetIsOriginAllowed(origin => 
+    {
+        var uri = new Uri(origin);
+        return uri.Host == "localhost" || uri.Host == "vikan-seven.vercel.app" || uri.Host.EndsWith(".vercel.app");
+    })
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());
