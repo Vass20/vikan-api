@@ -12,6 +12,13 @@ using VikanMatrimony.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Disable reloadOnChange to prevent inotify exhaustion in container/cloud environments
+builder.Configuration.Sources.Clear();
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+    .AddEnvironmentVariables();
+
 // Register PostgreSQL Database Context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

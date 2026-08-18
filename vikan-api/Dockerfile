@@ -22,4 +22,5 @@ COPY --from=publish /app/publish .
 # Expose port and start the application
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 ENTRYPOINT ["dotnet", "VikanMatrimony.WebApi.dll"]
