@@ -110,8 +110,12 @@ app.MapHub<ChatHub>("/chathub");
 // Seed Admin User
 using (var scope = app.Services.CreateScope())
 {
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    
+    // Automatically apply any pending EF migrations on startup
+    context.Database.Migrate();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
     var adminEmail = "admin@vikan.com";
     var adminUser = userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
