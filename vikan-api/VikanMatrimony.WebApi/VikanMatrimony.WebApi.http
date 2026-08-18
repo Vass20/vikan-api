@@ -1,0 +1,6 @@
+@VikanMatrimony.WebApi_HostAddress = http://localhost:5176
+
+GET {{VikanMatrimony.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

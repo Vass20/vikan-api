@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "VikanMatrimony.WebApi/VikanMatrimony.WebApi.csproj",
+      "use": "@vercel/dotnet"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "VikanMatrimony.WebApi/VikanMatrimony.WebApi.csproj"
+    }
+  ]
+}
