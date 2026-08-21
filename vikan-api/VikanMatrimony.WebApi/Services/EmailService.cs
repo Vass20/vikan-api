@@ -21,7 +21,7 @@ namespace VikanMatrimony.WebApi.Services
             _logger = logger;
         }
 
-        private async Task<bool> TrySendViaRestApiAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail)
+        private async Task<(bool success, string? errorMessage)> TrySendViaRestApiAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail)
         {
             var brevoApiKey = _configuration["Brevo:ApiKey"];
             var resendApiKey = _configuration["Resend:ApiKey"];
@@ -45,14 +45,16 @@ namespace VikanMatrimony.WebApi.Services
                     if (response.IsSuccessStatusCode)
                     {
                         _logger.LogInformation("Email sent successfully via Brevo REST API.");
-                        return true;
+                        return (true, null);
                     }
                     var error = await response.Content.ReadAsStringAsync();
                     _logger.LogError("Brevo API returned error: {Error}", error);
+                    return (false, $"Brevo API error: {response.StatusCode} - {error}");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to send email via Brevo API.");
+                    return (false, $"Brevo exception: {ex.Message}");
                 }
             }
             else if (!string.IsNullOrEmpty(resendApiKey))
@@ -74,18 +76,20 @@ namespace VikanMatrimony.WebApi.Services
                     if (response.IsSuccessStatusCode)
                     {
                         _logger.LogInformation("Email sent successfully via Resend REST API.");
-                        return true;
+                        return (true, null);
                     }
                     var error = await response.Content.ReadAsStringAsync();
                     _logger.LogError("Resend API returned error: {Error}", error);
+                    return (false, $"Resend API error: {response.StatusCode} - {error}");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to send email via Resend API.");
+                    return (false, $"Resend exception: {ex.Message}");
                 }
             }
 
-            return false;
+            return (false, "REST API not configured");
         }
 
         private async Task SendEmailCoreAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail, string host, int port, string appPassword, bool enableSsl)
@@ -97,10 +101,10 @@ namespace VikanMatrimony.WebApi.Services
             // 1. Try sending via REST API first
             if (isRestApiConfigured)
             {
-                var success = await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail);
+                var (success, errorMsg) = await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail);
                 if (!success)
                 {
-                    throw new Exception("Failed to send email via REST API. Check the credentials and verification settings.");
+                    throw new Exception($"Failed to send email via REST API: {errorMsg}");
                 }
                 return;
             }
