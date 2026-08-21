@@ -270,6 +270,43 @@ namespace VikanMatrimony.WebApi.Migrations
                     b.ToTable("Messages");
                 });
 
+            modelBuilder.Entity("VikanMatrimony.WebApi.Models.Notification", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProfileId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("VikanMatrimony.WebApi.Models.PartnerPreferences", b =>
                 {
                     b.Property<string>("Id")
@@ -732,6 +769,17 @@ namespace VikanMatrimony.WebApi.Migrations
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("VikanMatrimony.WebApi.Models.Notification", b =>
+                {
+                    b.HasOne("VikanMatrimony.WebApi.Models.Profile", "Profile")
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("VikanMatrimony.WebApi.Models.PartnerPreferences", b =>

@@ -10,7 +10,7 @@ import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
 import { logout as reduxLogout } from "@/lib/redux/slices/authSlice";
-import { useGetMyProfileQuery } from "@/lib/redux/api";
+import { useGetMyProfileQuery, useGetNotificationsQuery, useMarkNotificationReadMutation, useMarkAllNotificationsReadMutation } from "@/lib/redux/api";
 
 export const VikanLogo = ({ className = "", imgClassName = "h-13 md:h-16" }) => {
   return (
@@ -32,12 +32,31 @@ export const Navbar: React.FC = () => {
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const { data: myProfile } = useGetMyProfileQuery(undefined, { skip: !currentUser });
 
+  const { data: apiNotifications = [] } = useGetNotificationsQuery(undefined, { skip: !currentUser });
+  const [markReadApi] = useMarkNotificationReadMutation();
+  const [markAllReadApi] = useMarkAllNotificationsReadMutation();
+
+  const notifications = apiNotifications;
+
+  const markNotificationRead = async (id: string) => {
+    try {
+      await markReadApi(id).unwrap();
+    } catch (err) {
+      console.error("Failed to mark notification read", err);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await markAllReadApi().unwrap();
+    } catch (err) {
+      console.error("Failed to mark all notifications read", err);
+    }
+  };
+
   const {
-    notifications,
     chats,
     logout: zustandLogout,
-    markNotificationRead,
-    markAllNotificationsRead,
     themeMode,
     toggleTheme
   } = useAppStore();

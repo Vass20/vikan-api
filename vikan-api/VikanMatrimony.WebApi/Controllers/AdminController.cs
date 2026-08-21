@@ -86,6 +86,20 @@ namespace VikanMatrimony.WebApi.Controllers
 
             await _context.SaveChangesAsync();
 
+            // Create database notification for user
+            var approvalNotification = new Notification
+            {
+                ProfileId = id,
+                Title = "Profile Approved",
+                Body = "Congratulations! Your profile has been reviewed and approved by the Superadmin moderation team.",
+                Type = "verification",
+                Link = "/dashboard",
+                IsRead = false,
+                Timestamp = DateTime.UtcNow
+            };
+            _context.Notifications.Add(approvalNotification);
+            await _context.SaveChangesAsync();
+
             // Send approval email via Gmail SMTP
             if (!string.IsNullOrEmpty(profile.User?.Email))
             {
@@ -116,6 +130,20 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.IsApproved = false;
             profile.ApprovalStatus = "Rejected";
 
+            await _context.SaveChangesAsync();
+
+            // Create database notification for user
+            var rejectionNotification = new Notification
+            {
+                ProfileId = id,
+                Title = "Profile Review Update",
+                Body = "Your profile registration could not be approved at this time. Please check your email for the reason and further details.",
+                Type = "system",
+                Link = "/verification",
+                IsRead = false,
+                Timestamp = DateTime.UtcNow
+            };
+            _context.Notifications.Add(rejectionNotification);
             await _context.SaveChangesAsync();
 
             // Send rejection notification email via Gmail SMTP

@@ -14,7 +14,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Profile", "Interest", "Message", "AdminMetrics", "Verification", "SafetyReport", "Visitors", "Shortlist"],
+  tagTypes: ["Profile", "Interest", "Message", "AdminMetrics", "Verification", "SafetyReport", "Visitors", "Shortlist", "Notification"],
   endpoints: (builder) => ({
     // Auth
     login: builder.mutation<any, any>({
@@ -270,6 +270,31 @@ export const api = createApi({
         body,
       }),
     }),
+    getNotifications: builder.query<any[], void>({
+      query: () => "/notification",
+      providesTags: ["Notification"],
+    }),
+    markNotificationRead: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/notification/${id}/read`,
+        method: "PUT",
+      }),
+      invalidatesTags: ["Notification"],
+    }),
+    markAllNotificationsRead: builder.mutation<any, void>({
+      query: () => ({
+        url: "/notification/read-all",
+        method: "PUT",
+      }),
+      invalidatesTags: ["Notification"],
+    }),
+    deleteNotification: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/notification/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Notification"],
+    }),
   }),
 });
 
@@ -315,4 +340,8 @@ export const {
   useSuspendMemberMutation,
   useGetMyVerificationsQuery,
   useSubmitVerificationMutation,
+  useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
+  useMarkAllNotificationsReadMutation,
+  useDeleteNotificationMutation,
 } = api;

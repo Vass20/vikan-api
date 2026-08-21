@@ -58,6 +58,20 @@ namespace VikanMatrimony.WebApi.Controllers
                     existing.SentAt = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
 
+                    // Create database notification for receiver on re-sent
+                    var resentNotification = new Notification
+                    {
+                        ProfileId = receiverId,
+                        Title = "New Interest Request",
+                        Body = $"{sender.Name} has expressed interest in your profile.",
+                        Type = "interest",
+                        Link = $"/profile/{senderId}",
+                        IsRead = false,
+                        Timestamp = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(resentNotification);
+                    await _context.SaveChangesAsync();
+
                     if (!string.IsNullOrEmpty(receiver.User?.Email))
                     {
                         try { await _emailService.SendInterestReceivedEmailAsync(receiver.User.Email, receiver.Name, sender.Name); } catch {}
@@ -77,6 +91,20 @@ namespace VikanMatrimony.WebApi.Controllers
             };
 
             _context.Interests.Add(interest);
+            await _context.SaveChangesAsync();
+
+            // Create database notification for receiver
+            var newNotification = new Notification
+            {
+                ProfileId = receiverId,
+                Title = "New Interest Request",
+                Body = $"{sender.Name} has expressed interest in your profile.",
+                Type = "interest",
+                Link = $"/profile/{senderId}",
+                IsRead = false,
+                Timestamp = DateTime.UtcNow
+            };
+            _context.Notifications.Add(newNotification);
             await _context.SaveChangesAsync();
 
             // Send notification email to the receiver
@@ -113,6 +141,20 @@ namespace VikanMatrimony.WebApi.Controllers
             interest.Status = "Accepted";
             interest.RespondedAt = DateTime.UtcNow;
 
+            await _context.SaveChangesAsync();
+
+            // Create database notification for sender
+            var acceptNotification = new Notification
+            {
+                ProfileId = senderId,
+                Title = "Interest Accepted",
+                Body = $"{interest.Receiver.Name} accepted your interest request!",
+                Type = "interest",
+                Link = $"/profile/{receiverId}",
+                IsRead = false,
+                Timestamp = DateTime.UtcNow
+            };
+            _context.Notifications.Add(acceptNotification);
             await _context.SaveChangesAsync();
 
             // Send acceptance notification email to the sender

@@ -22,6 +22,7 @@ namespace VikanMatrimony.WebApi.Data
         public DbSet<EmailOtp> EmailOtps { get; set; } = null!;
         public DbSet<ProfileView> ProfileViews { get; set; } = null!;
         public DbSet<ShortlistedProfile> ShortlistedProfiles { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,13 @@ namespace VikanMatrimony.WebApi.Data
             modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>().ToTable("UserLogins");
             modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>>().ToTable("RoleClaims");
             modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>().ToTable("UserTokens");
+
+            // Notification relationships
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Profile)
+                .WithMany()
+                .HasForeignKey(n => n.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // User - Profile (1:1)
             modelBuilder.Entity<Profile>()
