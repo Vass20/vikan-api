@@ -1,6 +1,8 @@
 using System;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,11 +13,107 @@ namespace VikanMatrimony.WebApi.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
+        private static readonly HttpClient _httpClient = new HttpClient();
 
         public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
             _configuration = configuration;
             _logger = logger;
+        }
+
+        private async Task<bool> TrySendViaRestApiAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail)
+        {
+            var brevoApiKey = _configuration["Brevo:ApiKey"];
+            var resendApiKey = _configuration["Resend:ApiKey"];
+
+            if (!string.IsNullOrEmpty(brevoApiKey))
+            {
+                try
+                {
+                    _logger.LogInformation("Attempting to send email to {Email} via Brevo REST API...", toEmail);
+                    using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+                    request.Headers.Add("api-key", brevoApiKey);
+                    request.Content = JsonContent.Create(new
+                    {
+                        sender = new { name = senderName, email = senderEmail },
+                        to = new[] { new { email = toEmail } },
+                        subject = subject,
+                        htmlContent = htmlBody
+                    });
+                    
+                    var response = await _httpClient.SendAsync(request);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Email sent successfully via Brevo REST API.");
+                        return true;
+                    }
+                    var error = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Brevo API returned error: {Error}", error);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send email via Brevo API.");
+                }
+            }
+            else if (!string.IsNullOrEmpty(resendApiKey))
+            {
+                try
+                {
+                    _logger.LogInformation("Attempting to send email to {Email} via Resend REST API...", toEmail);
+                    using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", resendApiKey);
+                    request.Content = JsonContent.Create(new
+                    {
+                        from = $"{senderName} <onboarding@resend.dev>", // Or verified domain email
+                        to = new[] { toEmail },
+                        subject = subject,
+                        html = htmlBody
+                    });
+
+                    var response = await _httpClient.SendAsync(request);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Email sent successfully via Resend REST API.");
+                        return true;
+                    }
+                    var error = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Resend API returned error: {Error}", error);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send email via Resend API.");
+                }
+            }
+
+            return false;
+        }
+
+        private async Task SendEmailCoreAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail, string host, int port, string appPassword, bool enableSsl)
+        {
+            // 1. Try sending via REST API first (if Brevo or Resend keys are set)
+            if (await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail))
+            {
+                return;
+            }
+
+            // 2. Fall back to standard SMTP if REST API is not configured
+            using var client = new SmtpClient(host, port)
+            {
+                Credentials = new NetworkCredential(senderEmail, appPassword),
+                EnableSsl = enableSsl
+            };
+
+            using var mailMessage = new MailMessage
+            {
+                From = new MailAddress(senderEmail, senderName),
+                Subject = subject,
+                Body = htmlBody,
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(toEmail);
+
+            await client.SendMailAsync(mailMessage);
         }
 
         public async Task SendOtpEmailAsync(string toEmail, string otp)
@@ -63,23 +161,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                using var client = new SmtpClient(host, port)
-                {
-                    Credentials = new NetworkCredential(senderEmail, appPassword),
-                    EnableSsl = enableSsl
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderName),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
-
-                mailMessage.To.Add(toEmail);
-
-                await client.SendMailAsync(mailMessage);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword, enableSsl);
                 _logger.LogInformation("OTP email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -122,7 +204,7 @@ namespace VikanMatrimony.WebApi.Services
         <div class='badge'>✓ Profile Approved &amp; Verified</div>
         <div class='title'>Welcome, {userName}!</div>
         <p class='subtitle'>
-            We are pleased to inform you that your profile has been successfully verified and approved by the Superadmin team.
+            We are pleased to inform you that your profile has been successfully verified and approved by the Superadmin moderation team.
             <br><br>
             You can now log in to your account, browse curated matches, send interests, and begin your journey to finding your ideal life partner.
         </p>
@@ -139,23 +221,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                using var client = new SmtpClient(host, port)
-                {
-                    Credentials = new NetworkCredential(senderEmail, appPassword),
-                    EnableSsl = enableSsl
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderName),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
-
-                mailMessage.To.Add(toEmail);
-
-                await client.SendMailAsync(mailMessage);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword, enableSsl);
                 _logger.LogInformation("Approval email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -225,23 +291,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                using var client = new SmtpClient(host, port)
-                {
-                    Credentials = new NetworkCredential(senderEmail, appPassword),
-                    EnableSsl = enableSsl
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderName),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
-
-                mailMessage.To.Add(toEmail);
-
-                await client.SendMailAsync(mailMessage);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword, enableSsl);
                 _logger.LogInformation("Rejection email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -302,23 +352,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                using var client = new SmtpClient(host, port)
-                {
-                    Credentials = new NetworkCredential(senderEmail, appPassword),
-                    EnableSsl = enableSsl
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderNameConfig),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
-
-                mailMessage.To.Add(toEmail);
-
-                await client.SendMailAsync(mailMessage);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderNameConfig, senderEmail, host, port, appPassword, enableSsl);
                 _logger.LogInformation("Interest received email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -378,23 +412,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                using var client = new SmtpClient(host, port)
-                {
-                    Credentials = new NetworkCredential(senderEmail, appPassword),
-                    EnableSsl = enableSsl
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderNameConfig),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
-
-                mailMessage.To.Add(toEmail);
-
-                await client.SendMailAsync(mailMessage);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderNameConfig, senderEmail, host, port, appPassword, enableSsl);
                 _logger.LogInformation("Interest accepted email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
