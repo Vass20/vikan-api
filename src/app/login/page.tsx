@@ -265,41 +265,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Toggle Login Option */}
-          {!otpSent && loginMethod !== "forgot" && (
-            <div className="flex bg-[#081626]/40 rounded-full p-1 border border-brand-gold/15 mb-6 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginMethod("password");
-                  setError("");
-                  setSuccessMessage("");
-                }}
-                className={`flex-1 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer ${
-                  loginMethod === "password"
-                    ? "bg-brand-gold text-brand-navy shadow-sm"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white"
-                }`}
-              >
-                Email & Password
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginMethod("otp");
-                  setError("");
-                  setSuccessMessage("");
-                }}
-                className={`flex-1 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer ${
-                  loginMethod === "otp"
-                    ? "bg-brand-gold text-brand-navy shadow-sm"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white"
-                }`}
-              >
-                Mobile OTP
-              </button>
-            </div>
-          )}
+
 
           {/* Password Form */}
           {loginMethod === "password" && (
@@ -440,69 +406,7 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* OTP Send Form */}
-          {loginMethod === "otp" && !otpSent && (
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              <Input
-                label="Registered Mobile Number"
-                type="tel"
-                required
-                placeholder="Enter 10-digit number"
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                className="!border-brand-gold !rounded-full !bg-[#081626]/40 text-white placeholder-[#E5DCD0]/40 font-support px-6"
-              />
 
-              <p className="text-[10px] text-muted-foreground font-support leading-tight">
-                By clicking send, we will verify your registration through a mock SMS text indicator.
-              </p>
-
-              <Button type="submit" variant="gold" className="w-full mt-6" isLoading={isLoading}>
-                Send One-Time OTP
-              </Button>
-            </form>
-          )}
-
-          {/* OTP Verify Form */}
-          {loginMethod === "otp" && otpSent && (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="text-center p-3.5 bg-brand-gold/5 border border-brand-gold/20 rounded-lg text-xs font-support text-brand-gold mb-4">
-                We sent a mock code to **+91 {mobileNumber}**. <br />
-                Enter **1234** to log in automatically.
-              </div>
-
-              <Input
-                label="Enter 4-Digit OTP"
-                type="text"
-                required
-                placeholder="1234"
-                maxLength={4}
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-              />
-
-              <div className="flex justify-between items-center text-xs font-support">
-                <button
-                  type="button"
-                  onClick={() => setOtpSent(false)}
-                  className="text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
-                >
-                  Change Mobile
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setError("Demo feature: OTP resend has simulated another trigger.")}
-                  className="text-brand-gold hover:underline cursor-pointer font-semibold"
-                >
-                  Resend OTP Code
-                </button>
-              </div>
-
-              <Button type="submit" variant="gold" className="w-full mt-6" isLoading={isLoading}>
-                Verify & Log In
-              </Button>
-            </form>
-          )}
 
 
 
