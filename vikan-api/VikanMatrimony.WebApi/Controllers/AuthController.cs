@@ -78,7 +78,11 @@ namespace VikanMatrimony.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Failed to send verification email. Please check your email configuration." });
+                return StatusCode(500, new { 
+                    Message = "Failed to send verification email. Please check your email configuration.",
+                    Details = ex.Message,
+                    InnerException = ex.InnerException?.Message
+                });
             }
 
             return Ok(new { Message = "Verification OTP has been sent to your email.", ExpiresInMinutes = 10 });
@@ -156,7 +160,11 @@ namespace VikanMatrimony.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Failed to send reset code. Please try again." });
+                return StatusCode(500, new { 
+                    Message = "Failed to send reset code. Please try again.",
+                    Details = ex.Message,
+                    InnerException = ex.InnerException?.Message
+                });
             }
 
             return Ok(new { Message = "Password reset code sent to your email.", ExpiresInMinutes = 10 });
