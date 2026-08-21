@@ -90,13 +90,22 @@ namespace VikanMatrimony.WebApi.Services
 
         private async Task SendEmailCoreAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail, string host, int port, string appPassword, bool enableSsl)
         {
-            // 1. Try sending via REST API first (if Brevo or Resend keys are set)
-            if (await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail))
+            var brevoApiKey = _configuration["Brevo:ApiKey"];
+            var resendApiKey = _configuration["Resend:ApiKey"];
+            var isRestApiConfigured = !string.IsNullOrEmpty(brevoApiKey) || !string.IsNullOrEmpty(resendApiKey);
+
+            // 1. Try sending via REST API first
+            if (isRestApiConfigured)
             {
+                var success = await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail);
+                if (!success)
+                {
+                    throw new Exception("Failed to send email via REST API. Check the credentials and verification settings.");
+                }
                 return;
             }
 
-            // 2. Fall back to standard SMTP if REST API is not configured
+            // 2. Fall back to standard SMTP only if REST API is not configured
             using var client = new SmtpClient(host, port)
             {
                 Credentials = new NetworkCredential(senderEmail, appPassword),
