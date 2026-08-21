@@ -19,6 +19,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Install system dependencies for .NET Core features (GSSAPI/Kerberos SMTP and Globalization)
+RUN apk add --no-cache krb5-libs icu-libs
+
 # Expose port and start the application
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
