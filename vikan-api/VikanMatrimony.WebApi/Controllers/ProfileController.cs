@@ -237,7 +237,8 @@ namespace VikanMatrimony.WebApi.Controllers
             var query = _context.Profiles
                 .AsNoTracking()
                 .Include(p => p.Photos)
-                .Where(p => p.IsApproved)
+                .Include(p => p.User)
+                .Where(p => p.IsApproved && p.User.Email != "admin@vikan.com")
                 .AsQueryable();
 
             var currentProfileId = GetCurrentProfileId();
