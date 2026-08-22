@@ -236,7 +236,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var fileUrl = $"http://localhost:5176/uploads/{fileName}";
+            var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             return Ok(new { Url = fileUrl });
         }
 
@@ -266,6 +266,9 @@ namespace VikanMatrimony.WebApi.Controllers
                 City = request.City,
                 State = request.State,
                 Diet = request.Diet,
+                Smoking = request.Smoking?.Trim() ?? "No",
+                Drinking = request.Drinking?.Trim() ?? "No",
+                ParentsNumber = request.ParentsNumber?.Trim() ?? string.Empty,
                 Education = request.Education,
                 Occupation = request.Occupation,
                 Salary = request.Salary,
@@ -399,6 +402,9 @@ namespace VikanMatrimony.WebApi.Controllers
         public string City { get; set; } = null!;
         public string State { get; set; } = null!;
         public string Diet { get; set; } = "Vegetarian";
+        public string Smoking { get; set; } = "No";
+        public string Drinking { get; set; } = "No";
+        public string ParentsNumber { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Education { get; set; } = string.Empty;
         public string Occupation { get; set; } = string.Empty;

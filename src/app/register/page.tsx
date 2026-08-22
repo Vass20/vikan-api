@@ -89,6 +89,10 @@ export default function RegisterPage() {
   const [draftSal, setDraftSal] = useState(registrationDraft.salary || "18 LPA");
   const [draftState, setDraftState] = useState(registrationDraft.state || "Maharashtra");
   const [draftCity, setDraftCity] = useState(registrationDraft.city || "Mumbai");
+  const [draftDiet, setDraftDiet] = useState(registrationDraft.diet || "Vegetarian");
+  const [draftSmoking, setDraftSmoking] = useState(registrationDraft.smoking || "No");
+  const [draftDrinking, setDraftDrinking] = useState(registrationDraft.drinking || "No");
+  const [draftParentsNumber, setDraftParentsNumber] = useState(registrationDraft.parentsNumber || "");
 
   // Step 4
   const [draftFamType, setDraftFamType] = useState(registrationDraft.familyType || "Nuclear");
@@ -185,6 +189,10 @@ export default function RegisterPage() {
       salary: draftSal,
       state: draftState,
       city: draftCity,
+      diet: draftDiet,
+      smoking: draftSmoking as any,
+      drinking: draftDrinking as any,
+      parentsNumber: draftParentsNumber,
       familyType: draftFamType as any,
       familyStatus: draftFamStatus as any,
       familyValues: draftFamValues as any,
@@ -222,6 +230,11 @@ export default function RegisterPage() {
     }
     if (registrationStep === 3) {
       if (!draftCity.trim()) stepErrors.city = "City is required.";
+    }
+    if (registrationStep === 4) {
+      if (draftParentsNumber.trim() && draftParentsNumber.length < 10) {
+        stepErrors.parentsNumber = "Parents contact number must be a 10-digit number.";
+      }
     }
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
@@ -274,6 +287,10 @@ export default function RegisterPage() {
           city: draftCity,
           state: draftState,
           phoneNumber: draftMobile,
+          diet: draftDiet,
+          smoking: draftSmoking,
+          drinking: draftDrinking,
+          parentsNumber: draftParentsNumber,
           education: draftEdu,
           occupation: draftOcc,
           salary: draftSal,
@@ -665,6 +682,41 @@ export default function RegisterPage() {
                         error={errors.city}
                       />
                     </div>
+
+                    <Select
+                      label="Diet / Food Habit"
+                      value={draftDiet}
+                      onChange={(e) => setDraftDiet(e.target.value)}
+                      options={[
+                        { value: "Vegetarian", label: "Vegetarian" },
+                        { value: "Non-Vegetarian", label: "Non-Vegetarian" },
+                        { value: "Eggetarian", label: "Eggetarian" },
+                        { value: "Vegan", label: "Vegan" }
+                      ]}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Select
+                        label="Smoking Habit"
+                        value={draftSmoking}
+                        onChange={(e) => setDraftSmoking(e.target.value)}
+                        options={[
+                          { value: "No", label: "No" },
+                          { value: "Yes", label: "Yes" },
+                          { value: "Occasionally", label: "Occasionally" }
+                        ]}
+                      />
+                      <Select
+                        label="Drinking Habit"
+                        value={draftDrinking}
+                        onChange={(e) => setDraftDrinking(e.target.value)}
+                        options={[
+                          { value: "No", label: "No" },
+                          { value: "Yes", label: "Yes" },
+                          { value: "Occasionally", label: "Occasionally" }
+                        ]}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -702,6 +754,15 @@ export default function RegisterPage() {
                         { value: "Traditional", label: "Traditional" },
                         { value: "Liberal", label: "Liberal / Modern" }
                       ]}
+                    />
+
+                    <Input
+                      label="Parents Contact Number"
+                      type="tel"
+                      placeholder="Enter 10-digit number"
+                      value={draftParentsNumber}
+                      onChange={(e) => setDraftParentsNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      error={errors.parentsNumber}
                     />
 
                     <Textarea

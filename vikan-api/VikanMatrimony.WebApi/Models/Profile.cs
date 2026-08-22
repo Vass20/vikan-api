@@ -23,6 +23,9 @@ namespace VikanMatrimony.WebApi.Models
         public string State { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string Diet { get; set; } = "Vegetarian";
+        public string Smoking { get; set; } = "No";
+        public string Drinking { get; set; } = "No";
+        public string ParentsNumber { get; set; } = string.Empty;
         public string MembershipType { get; set; } = "Free";
 
         public string FamilyType { get; set; } = "Nuclear";

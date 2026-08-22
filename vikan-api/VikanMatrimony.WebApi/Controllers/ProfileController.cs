@@ -63,6 +63,9 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.State = request.State?.Trim() ?? string.Empty;
             profile.City = request.City?.Trim() ?? string.Empty;
             profile.Diet = request.Diet?.Trim() ?? "Vegetarian";
+            profile.Smoking = request.Smoking?.Trim() ?? "No";
+            profile.Drinking = request.Drinking?.Trim() ?? "No";
+            profile.ParentsNumber = request.ParentsNumber?.Trim() ?? string.Empty;
             profile.FamilyType = request.FamilyType?.Trim() ?? "Nuclear";
             profile.FamilyStatus = request.FamilyStatus?.Trim() ?? "Middle Class";
             profile.FamilyValues = request.FamilyValues?.Trim() ?? "Moderate";
@@ -193,7 +196,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var fileUrl = $"http://localhost:5176/uploads/{fileName}";
+            var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
 
             var photo = new ProfilePhoto
             {
@@ -512,6 +515,9 @@ namespace VikanMatrimony.WebApi.Controllers
         public string State { get; set; } = null!;
         public string City { get; set; } = null!;
         public string Diet { get; set; } = "Vegetarian";
+        public string Smoking { get; set; } = "No";
+        public string Drinking { get; set; } = "No";
+        public string ParentsNumber { get; set; } = string.Empty;
         public string FamilyType { get; set; } = "Nuclear";
         public string FamilyStatus { get; set; } = "Middle Class";
         public string FamilyValues { get; set; } = "Moderate";

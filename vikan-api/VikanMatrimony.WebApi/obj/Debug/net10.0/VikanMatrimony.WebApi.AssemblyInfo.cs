@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VikanMatrimony.WebApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f30e9aed9bf71a34c6ca894d0117b4142284b817")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf7335996f32ce694687d1ea2f108e4e0df3cf9f")]
 [assembly: System.Reflection.AssemblyProductAttribute("VikanMatrimony.WebApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VikanMatrimony.WebApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

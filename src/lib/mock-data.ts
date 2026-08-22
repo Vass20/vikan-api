@@ -48,6 +48,7 @@ export interface Profile {
   partnerPreferences: PartnerPreferences;
   email?: string;
   mobile?: string;
+  parentsNumber?: string;
 }
 
 const BRIDE_PHOTOS = [
