@@ -699,7 +699,7 @@ export default function RegisterPage() {
                       <Select
                         label="Smoking Habit"
                         value={draftSmoking}
-                        onChange={(e) => setDraftSmoking(e.target.value)}
+                        onChange={(e) => setDraftSmoking(e.target.value as any)}
                         options={[
                           { value: "No", label: "No" },
                           { value: "Yes", label: "Yes" },
@@ -709,7 +709,7 @@ export default function RegisterPage() {
                       <Select
                         label="Drinking Habit"
                         value={draftDrinking}
-                        onChange={(e) => setDraftDrinking(e.target.value)}
+                        onChange={(e) => setDraftDrinking(e.target.value as any)}
                         options={[
                           { value: "No", label: "No" },
                           { value: "Yes", label: "Yes" },
