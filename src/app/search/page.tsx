@@ -710,9 +710,6 @@ function SearchContent() {
                           <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground">
                             {p.name}
                           </h3>
-                          <span className="text-[10px] text-muted-foreground font-support">
-                            ID: {p.id}
-                          </span>
                         </div>
 
                         <p className="text-xs text-muted-foreground font-support mt-1">
