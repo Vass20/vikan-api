@@ -315,7 +315,7 @@ export default function ChatPage() {
                       <ArrowLeft className="h-5 w-5" />
                     </button>
                     <img
-                      src={activePartner.photos[0]}
+                      src={activePartner.photos?.[0] || "/avatar-placeholder.png"}
                       alt={activePartner.name}
                       className="h-10 w-10 rounded-full object-cover border border-border"
                     />
