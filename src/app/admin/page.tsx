@@ -68,6 +68,38 @@ export default function AdminPortalPage() {
   const verifiedCount = metrics?.verifiedMembers || 0;
   const simulatedRevenue = premiumCount * 4999;
 
+  const trendData = metrics?.registrationTrend || [];
+  const maxCount = Math.max(5, ...trendData.map((d: any) => d.count || 0));
+
+  const getSvgPath = () => {
+    if (trendData.length === 0) return "";
+    return trendData.map((d: any, i: number) => {
+      const x = 50 + (i * (420 / 6));
+      const y = 150 - ((d.count || 0) * 120 / maxCount);
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+  };
+
+  const getAreaPath = () => {
+    const linePath = getSvgPath();
+    if (!linePath) return "";
+    const firstX = 50;
+    const lastX = 50 + ((trendData.length - 1) * (420 / 6));
+    return `${linePath} L ${lastX} 150 L ${firstX} 150 Z`;
+  };
+
+  const maleCount = metrics?.demographics?.maleCount || 0;
+  const femaleCount = metrics?.demographics?.femaleCount || 0;
+  const totalDemographics = maleCount + femaleCount;
+  const malePercentage = totalDemographics > 0 ? (maleCount * 100 / totalDemographics) : 50;
+  const femalePercentage = totalDemographics > 0 ? (femaleCount * 100 / totalDemographics) : 50;
+  const dashOffset = 219.9 - (219.9 * malePercentage / 100);
+
+  const premiumUsersCount = metrics?.premiumMembers || 0;
+  const freeUsersCount = Math.max(0, totalUsers - premiumUsersCount);
+  const premiumPercentage = totalUsers > 0 ? (premiumUsersCount * 100 / totalUsers) : 0;
+  const freePercentage = totalUsers > 0 ? (freeUsersCount * 100 / totalUsers) : 100;
+
   const [activeTab, setActiveTab] = useState<"approvals" | "verification" | "cms" | "reports" | "metrics">("approvals");
   const [processingProfileId, setProcessingProfileId] = useState<string | null>(null);
   const [rejectingProfile, setRejectingProfile] = useState<any | null>(null);
@@ -565,6 +597,149 @@ export default function AdminPortalPage() {
                     <strong className="text-2xl font-bold font-sans block mt-0.5">
                       {Math.max(0, (totalUsers * 2) - 8)}
                     </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Report Analytics Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Line Chart: Registration Trend */}
+                <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm text-left">
+                  <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground mb-1 border-b border-border/40 pb-2 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-brand-gold" />
+                    New User Registrations (7-Day Trend)
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground font-support mb-4">
+                    Daily signup count for the last 7 days.
+                  </p>
+                  
+                  <div className="w-full h-48 flex items-center justify-center relative">
+                    {trendData.length === 0 ? (
+                      <span className="text-xs text-muted-foreground font-support">No registration data available.</span>
+                    ) : (
+                      <svg viewBox="0 0 500 180" className="w-full h-full overflow-visible">
+                        {/* Gradients */}
+                        <defs>
+                          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--brand-gold, #D4AF37)" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="var(--brand-gold, #D4AF37)" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        
+                        {/* Horizontal Grid lines */}
+                        <line x1="50" y1="30" x2="470" y2="30" stroke="currentColor" strokeOpacity="0.1" strokeDasharray="3" />
+                        <line x1="50" y1="90" x2="470" y2="90" stroke="currentColor" strokeOpacity="0.1" strokeDasharray="3" />
+                        <line x1="50" y1="150" x2="470" y2="150" stroke="currentColor" strokeOpacity="0.2" />
+                        
+                        {/* Grid labels */}
+                        <text x="35" y="35" className="fill-muted-foreground text-[9px] font-mono text-right" textAnchor="end">{maxCount}</text>
+                        <text x="35" y="95" className="fill-muted-foreground text-[9px] font-mono text-right" textAnchor="end">{Math.round(maxCount / 2)}</text>
+                        <text x="35" y="155" className="fill-muted-foreground text-[9px] font-mono text-right" textAnchor="end">0</text>
+                        
+                        {/* Trend Area */}
+                        <path d={getAreaPath()} fill="url(#chartGradient)" />
+                        
+                        {/* Trend Line */}
+                        <path d={getSvgPath()} fill="none" stroke="var(--brand-gold, #D4AF37)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        
+                        {/* Data Points / Circles */}
+                        {trendData.map((d: any, i: number) => {
+                          const x = 50 + (i * (420 / 6));
+                          const y = 150 - ((d.count || 0) * 120 / maxCount);
+                          return (
+                            <g key={i} className="group cursor-pointer">
+                              <circle cx={x} cy={y} r="4" fill="var(--brand-gold, #D4AF37)" stroke="var(--background)" strokeWidth="1.5" />
+                              <circle cx={x} cy={y} r="8" fill="var(--brand-gold, #D4AF37)" fillOpacity="0.15" className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                              {/* Simple hover tooltip */}
+                              <title>{`${d.date}: ${d.count} signups`}</title>
+                            </g>
+                          );
+                        })}
+                        
+                        {/* X-Axis labels */}
+                        {trendData.map((d: any, i: number) => {
+                          const x = 50 + (i * (420 / 6));
+                          return (
+                            <text key={i} x={x} y="170" className="fill-muted-foreground text-[9px] font-sans text-center" textAnchor="middle">
+                              {d.label}
+                            </text>
+                          );
+                        })}
+                      </svg>
+                    )}
+                  </div>
+                </div>
+
+                {/* Donut Chart & Membership Ratio */}
+                <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm text-left">
+                  <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground mb-1 border-b border-border/40 pb-2 flex items-center gap-2">
+                    <Users className="h-5 w-5 text-brand-gold" />
+                    Member Demographics & Plans
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground font-support mb-4">
+                    Gender split ratio and active user subscription levels.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-48 items-center">
+                    {/* SVG Donut Chart */}
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-24 h-24 flex items-center justify-center">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                          {/* Background Track */}
+                          <circle cx="50" cy="50" r="35" fill="none" stroke="var(--brand-gold, #D4AF37)" strokeWidth="10" strokeOpacity="0.15" />
+                          {/* Colored Segments */}
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="35"
+                            fill="none"
+                            stroke="var(--brand-gold, #D4AF37)"
+                            strokeWidth="10"
+                            strokeDasharray="219.9"
+                            strokeDashoffset={dashOffset}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute flex flex-col items-center justify-center">
+                          <span className="text-lg font-bold font-sans">{Math.round(malePercentage)}%</span>
+                          <span className="text-[8px] text-muted-foreground uppercase font-support">Male Ratio</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-4 mt-3 text-[10px] font-support">
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-brand-gold" />
+                          <span>Male ({Math.round(malePercentage)}%)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-brand-gold/15" />
+                          <span>Female ({Math.round(femalePercentage)}%)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar: Free vs Premium */}
+                    <div className="flex flex-col justify-center space-y-4 text-xs font-support">
+                      <div>
+                        <div className="flex justify-between mb-1 font-semibold">
+                          <span>Free Package</span>
+                          <span>{freeUsersCount} ({Math.round(freePercentage)}%)</span>
+                        </div>
+                        <div className="w-full bg-muted/60 h-2 rounded-full overflow-hidden">
+                          <div className="bg-muted-foreground/35 h-full rounded-full" style={{ width: `${freePercentage}%` }} />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between mb-1 font-semibold text-brand-gold">
+                          <span>Premium Plus</span>
+                          <span>{premiumUsersCount} ({Math.round(premiumPercentage)}%)</span>
+                        </div>
+                        <div className="w-full bg-brand-gold/15 h-2 rounded-full overflow-hidden">
+                          <div className="bg-brand-gold h-full rounded-full" style={{ width: `${premiumPercentage}%` }} />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

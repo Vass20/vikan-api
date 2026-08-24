@@ -177,6 +177,33 @@ namespace VikanMatrimony.WebApi.Controllers
             var maleCount = await _context.Profiles.CountAsync(p => p.Gender.ToLower() == "male");
             var femaleCount = await _context.Profiles.CountAsync(p => p.Gender.ToLower() == "female");
 
+            // Registrations over the last 7 days (pre-filled with zero-counts for inactive days)
+            var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
+            var registrationTrend = await _context.Profiles
+                .Where(p => p.CreatedAt >= sevenDaysAgo)
+                .GroupBy(p => p.CreatedAt.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+
+            var trendDict = registrationTrend.ToDictionary(t => t.Date, t => t.Count);
+            var last7Days = Enumerable.Range(0, 7)
+                .Select(offset => DateTime.UtcNow.Date.AddDays(-6 + offset))
+                .Select(date => new
+                {
+                    Date = date.ToString("yyyy-MM-dd"),
+                    Label = date.ToString("ddd"), // "Mon", "Tue" etc.
+                    Count = trendDict.TryGetValue(date, out var count) ? count : 0
+                })
+                .ToList();
+
+            // Plan counts
+            var freeCount = await _context.Profiles.CountAsync(p => !p.IsPremium);
+            var premiumCount = await _context.Profiles.CountAsync(p => p.IsPremium);
+
             return Ok(new
             {
                 TotalMembers = totalUsers,
@@ -190,6 +217,12 @@ namespace VikanMatrimony.WebApi.Controllers
                     FemaleCount = femaleCount,
                     MalePercentage = totalUsers > 0 ? (maleCount * 100.0 / totalUsers) : 0,
                     FemalePercentage = totalUsers > 0 ? (femaleCount * 100.0 / totalUsers) : 0
+                },
+                RegistrationTrend = last7Days,
+                PlanDistribution = new[]
+                {
+                    new { Plan = "Free Plan", Count = freeCount },
+                    new { Plan = "Premium Plus", Count = premiumCount }
                 }
             });
         }
