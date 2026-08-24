@@ -235,7 +235,14 @@ namespace VikanMatrimony.WebApi.Controllers
             [FromQuery] string? state,
             [FromQuery] string? city,
             [FromQuery] int? minAge,
-            [FromQuery] int? maxAge)
+            [FromQuery] int? maxAge,
+            [FromQuery] string? motherTongue,
+            [FromQuery] string? maritalStatus,
+            [FromQuery] string? diet,
+            [FromQuery] string? familyStatus,
+            [FromQuery] int? minIncome,
+            [FromQuery] bool? onlyVerified,
+            [FromQuery] bool? onlyPremium)
         {
             var query = _context.Profiles
                 .AsNoTracking()
@@ -277,17 +284,52 @@ namespace VikanMatrimony.WebApi.Controllers
 
             if (minAge.HasValue)
             {
-                var minDob = DateTime.UtcNow.AddYears(-minAge.Value);
+                var minDob = DateTime.UtcNow.Date.AddYears(-minAge.Value);
                 query = query.Where(p => p.DateOfBirth <= minDob);
             }
 
             if (maxAge.HasValue)
             {
-                var maxDob = DateTime.UtcNow.AddYears(-maxAge.Value);
+                var maxDob = DateTime.UtcNow.Date.AddYears(-(maxAge.Value + 1));
                 query = query.Where(p => p.DateOfBirth >= maxDob);
             }
 
-            var results = await query.Take(100).ToListAsync();
+            var results = await query.ToListAsync();
+
+            if (!string.IsNullOrEmpty(motherTongue))
+            {
+                results = results.Where(p => p.MotherTongue?.ToLower() == motherTongue.ToLower()).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(maritalStatus))
+            {
+                results = results.Where(p => p.MaritalStatus?.ToLower() == maritalStatus.ToLower()).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(diet))
+            {
+                results = results.Where(p => p.Diet?.ToLower() == diet.ToLower()).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(familyStatus))
+            {
+                results = results.Where(p => p.FamilyStatus?.ToLower() == familyStatus.ToLower()).ToList();
+            }
+
+            if (onlyVerified.HasValue && onlyVerified.Value)
+            {
+                results = results.Where(p => p.IsVerified).ToList();
+            }
+
+            if (onlyPremium.HasValue && onlyPremium.Value)
+            {
+                results = results.Where(p => p.IsPremium).ToList();
+            }
+
+            if (minIncome.HasValue && minIncome.Value > 0)
+            {
+                results = results.Where(p => ParseSalaryToNumber(p.Salary) >= minIncome.Value).ToList();
+            }
 
             return Ok(results.Select(profile => new
             {
@@ -314,6 +356,25 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.OnlineStatus,
                 Photos = profile.Photos.Select(ph => ph.Url).ToList()
             }));
+        }
+
+        private static int ParseSalaryToNumber(string? salaryStr)
+        {
+            if (string.IsNullOrEmpty(salaryStr)) return 0;
+            var clean = new string(salaryStr.Where(c => char.IsDigit(c) || c == '.').ToArray());
+            if (!double.TryParse(clean, out var num)) return 0;
+
+            if (salaryStr.Contains("crore", StringComparison.OrdinalIgnoreCase) || 
+                salaryStr.Contains("cr", StringComparison.OrdinalIgnoreCase))
+            {
+                return (int)(num * 10000000);
+            }
+            if (salaryStr.Contains("lpa", StringComparison.OrdinalIgnoreCase) || 
+                salaryStr.Contains("lakh", StringComparison.OrdinalIgnoreCase))
+            {
+                return (int)(num * 100000);
+            }
+            return (int)num;
         }
 
         [HttpGet("my/verification")]

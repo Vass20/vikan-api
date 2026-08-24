@@ -79,7 +79,17 @@ function SearchContent() {
 
   const { data: dbProfiles, isLoading: isProfilesLoading } = useSearchProfilesQuery({
     gender: gender === "male" ? "Male" : "Female",
-    religion: religion !== "all" ? religion : undefined
+    religion: religion !== "all" ? religion : undefined,
+    community: community !== "all" ? community : undefined,
+    motherTongue: motherTongue !== "all" ? motherTongue : undefined,
+    maritalStatus: maritalStatus !== "all" ? maritalStatus : undefined,
+    diet: diet !== "all" ? diet : undefined,
+    familyStatus: familyStatus !== "all" ? familyStatus : undefined,
+    minAge: ageMin,
+    maxAge: ageMax,
+    minIncome: minIncome || undefined,
+    onlyVerified: onlyVerified ? true : undefined,
+    onlyPremium: onlyPremium ? true : undefined
   }, { skip: !currentUser });
 
   const { data: sentInterests } = useGetSentInterestsQuery(undefined, { skip: !currentUser });
