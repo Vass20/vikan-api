@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -19,9 +22,33 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
     .AddEnvironmentVariables();
 
-// Register PostgreSQL Database Context
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// Register PostgreSQL Database Context with Connection Pooling
+builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Configure Response Compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
+
+// Configure Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown-client";
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        {
+            AutoReplenishment = true,
+            PermitLimit = 150, // allow 150 requests per 10 seconds per IP
+            QueueLimit = 10,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            Window = TimeSpan.FromSeconds(10)
+        });
+    });
+});
 
 // Configure ASP.NET Core Identity with flexible password rules for demo environments
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -85,6 +112,15 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Enable Forwarded Headers first to support reverse proxy load balancing
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Enable Response Compression
+app.UseResponseCompression();
+
 // Enable Swagger in all environments
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -101,6 +137,9 @@ app.UseCors(policy => policy
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());
+
+// Apply global rate limiting before auth to protect resources
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
