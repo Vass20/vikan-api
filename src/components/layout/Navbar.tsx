@@ -266,7 +266,7 @@ export const Navbar: React.FC = () => {
                   >
                     {myProfile?.photos?.[0] && !avatarError ? (
                       <img
-                        src={myProfile.photos[0]}
+                        src={typeof myProfile.photos[0] === 'string' ? myProfile.photos[0] : (myProfile.photos[0].url || "")}
                         alt={currentUser.name}
                         onError={() => setAvatarError(true)}
                         className="h-8 w-8 rounded-full object-cover"
