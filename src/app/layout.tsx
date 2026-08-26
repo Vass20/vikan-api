@@ -3,6 +3,7 @@ import { Playfair_Display, Manrope, Lato } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/components/providers/ReduxProvider";
 import { Toast } from "@/components/ui/toast";
+import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 
 const playfair = Playfair_Display({
   variable: "--font-serif",
@@ -57,6 +58,7 @@ export default function RootLayout({
         <ReduxProvider>
           {children}
           <Toast />
+          <CookieConsentBanner />
         </ReduxProvider>
       </body>
     </html>

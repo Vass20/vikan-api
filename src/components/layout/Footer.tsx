@@ -8,6 +8,13 @@ import { ShieldCheck, Lock, Heart, Award } from "lucide-react";
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
+  const openCookiePreferences = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("open-cookie-preferences"));
+    }
+  };
+
   return (
     <footer className="w-full bg-brand-navy text-[#E5DCD0] border-t border-brand-gold/20 pt-16 pb-8 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -135,8 +142,8 @@ export const Footer: React.FC = () => {
           <div className="flex gap-4 mt-4 md:mt-0">
             <Link href="/" className="hover:text-brand-gold">Terms of Service</Link>
             <Link href="/" className="hover:text-brand-gold">Privacy Policy</Link>
-            <Link href="/" className="hover:text-brand-gold">Cookie Preferences</Link>
-            <Link href="/" className="hover:text-brand-gold">Contact Support</Link>
+            <a href="#" onClick={openCookiePreferences} className="hover:text-brand-gold cursor-pointer">Cookie Preferences</a>
+            <Link href="/contact" className="hover:text-brand-gold">Contact Support</Link>
           </div>
         </div>
       </div>
