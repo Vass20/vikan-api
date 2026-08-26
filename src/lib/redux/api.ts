@@ -242,6 +242,13 @@ export const api = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    submitSupportTicket: builder.mutation<{ ticketNumber: string; message: string }, { name: string; email: string; subject: string; message: string }>({
+      query: (body) => ({
+        url: "/support/ticket",
+        method: "POST",
+        body,
+      }),
+    }),
     uploadPhotoFile: builder.mutation<any, FormData>({
       query: (formData) => ({
         url: "/profile/my/photos/upload",
@@ -325,6 +332,7 @@ export const {
   useUpgradeMembershipMutation,
   useCreatePaymentOrderMutation,
   useVerifyPaymentMutation,
+  useSubmitSupportTicketMutation,
   useUploadPhotoFileMutation,
   useUploadRegistrationPhotoMutation,
   useGetMyProfileQuery,

@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, MapPin, Phone, Clock, ShieldCheck, Send } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { useSubmitSupportTicketMutation } from "@/lib/redux/api";
 
 export default function ContactSupportPage() {
   const { addNotification } = useAppStore();
+  const [submitSupportTicket] = useSubmitSupportTicketMutation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -24,19 +26,28 @@ export default function ContactSupportPage() {
     if (!name || !email || !subject || !message) return;
     
     setIsSubmitting(true);
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    const randomTicket = `VIK-TKT-${Math.floor(100000 + Math.random() * 900000)}`;
-    setTicketId(randomTicket);
-    setIsSubmitted(true);
-    setIsSubmitting(false);
-
-    addNotification({
-      title: "Support Ticket Registered",
-      body: `Your ticket ${randomTicket} has been submitted successfully. Support will contact you shortly.`,
-      type: "system"
-    });
+    try {
+      const res = await submitSupportTicket({
+        name,
+        email,
+        subject,
+        message
+      }).unwrap();
+      
+      setTicketId(res.ticketNumber);
+      setIsSubmitted(true);
+  
+      addNotification({
+        title: "Support Ticket Registered",
+        body: `Your ticket ${res.ticketNumber} has been submitted successfully. Support will contact you shortly.`,
+        type: "system"
+      });
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.data?.message || "Failed to submit support ticket.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
