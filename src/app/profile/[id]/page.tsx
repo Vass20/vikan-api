@@ -269,14 +269,14 @@ export default function ProfileDetailPage() {
     const isGold = membership === "Gold Member" || membership === "Gold";
     const isDiamond = membership === "Diamond Member" || membership === "Diamond";
  
-    if (isGold && unlockedIds.length >= 20 && !unlockedIds.includes(profile.id)) {
-      showToast("You have reached the limit of 20 direct contact unlocks for Gold Members. Upgrade to Diamond or Royal Platinum for more!", "warning");
+    if (isGold && unlockedIds.length >= 10 && !unlockedIds.includes(profile.id)) {
+      showToast("You have reached the limit of 10 direct contact unlocks for Gold Members. Upgrade to Diamond or Royal Platinum for more!", "warning");
       router.push("/membership");
       return;
     }
  
-    if (isDiamond && unlockedIds.length >= 60 && !unlockedIds.includes(profile.id)) {
-      showToast("You have reached the limit of 60 direct contact unlocks for Diamond Members. Upgrade to Royal Platinum for unlimited unlocks!", "warning");
+    if (isDiamond && unlockedIds.length >= 30 && !unlockedIds.includes(profile.id)) {
+      showToast("You have reached the limit of 30 direct contact unlocks for Diamond Members. Upgrade to Royal Platinum for unlimited unlocks!", "warning");
       router.push("/membership");
       return;
     }

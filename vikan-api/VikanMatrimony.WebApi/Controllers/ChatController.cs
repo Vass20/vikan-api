@@ -80,6 +80,30 @@ namespace VikanMatrimony.WebApi.Controllers
             var profileId = GetCurrentProfileId();
             if (string.IsNullOrEmpty(profileId)) return Unauthorized();
 
+            var sender = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == profileId);
+            if (sender == null) return NotFound("Sender profile not found.");
+
+            var membership = sender.MembershipType?.ToLower().Replace(" ", "") ?? "free";
+
+            // 1. Block Free members from chatting
+            if (membership == "free" || membership == "freemember")
+            {
+                return BadRequest(new { Message = "Chatting is not available on the Free package. Please upgrade to Silver, Gold, or Diamond to start messaging." });
+            }
+
+            // 2. Limit Silver members to 20 messages per day
+            if (membership == "silver" || membership == "silvermember")
+            {
+                var todayUtc = DateTime.UtcNow.Date;
+                var sentTodayCount = await _context.Messages
+                    .CountAsync(m => m.SenderId == profileId && m.Timestamp >= todayUtc);
+
+                if (sentTodayCount >= 20)
+                {
+                    return BadRequest(new { Message = "Silver members have a limit of 20 chat messages per day. Please upgrade to Gold or Diamond for unlimited chatting." });
+                }
+            }
+
             var message = new Message
             {
                 SenderId = profileId,

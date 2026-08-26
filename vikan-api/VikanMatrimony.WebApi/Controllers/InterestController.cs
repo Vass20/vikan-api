@@ -45,6 +45,21 @@ namespace VikanMatrimony.WebApi.Controllers
                 .FirstOrDefaultAsync(p => p.Id == senderId);
             if (sender == null) return NotFound(new { Message = "Sender profile not found" });
 
+            // Enforce Interest limit for Free membership (5 per day)
+            var isFree = string.IsNullOrEmpty(sender.MembershipType) || 
+                         sender.MembershipType.ToLower().Contains("free");
+            if (isFree)
+            {
+                var todayUtc = DateTime.UtcNow.Date;
+                var sentTodayCount = await _context.Interests
+                    .CountAsync(i => i.SenderId == senderId && i.SentAt >= todayUtc);
+
+                if (sentTodayCount >= 5)
+                {
+                    return BadRequest(new { Message = "Free members can send a maximum of 5 interests per day. Please upgrade your membership to send unlimited interests." });
+                }
+            }
+
             // Check if already sent
             var existing = await _context.Interests
                 .FirstOrDefaultAsync(i => i.SenderId == senderId && i.ReceiverId == receiverId);
