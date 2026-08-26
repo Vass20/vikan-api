@@ -39,6 +39,11 @@ namespace VikanMatrimony.WebApi.Controllers
 
             if (profile == null) return NotFound(new { Message = "Profile not found" });
 
+            if (profile.Photos != null)
+            {
+                profile.Photos = profile.Photos.OrderByDescending(ph => ph.IsPrimary).ThenBy(ph => ph.CreatedAt).ToList();
+            }
+
             return Ok(profile);
         }
 
@@ -117,7 +122,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.MembershipType,
                 profile.OnlineStatus,
                 profile.LastActive,
-                Photos = profile.Photos.Select(ph => ph.Url).ToList()
+                Photos = profile.Photos.OrderByDescending(ph => ph.IsPrimary).ThenBy(ph => ph.CreatedAt).Select(ph => ph.Url).ToList()
             });
         }
 
@@ -271,7 +276,47 @@ namespace VikanMatrimony.WebApi.Controllers
                 }
             }
 
-            return Ok(new { Message = "Photo deleted successfully", Photos = profile.Photos.Select(p => p.Url).ToList() });
+            return Ok(new { Message = "Photo deleted successfully", Photos = profile.Photos.OrderByDescending(p => p.IsPrimary).ThenBy(p => p.CreatedAt).Select(p => p.Url).ToList() });
+        }
+
+        [HttpPost("my/photos/set-primary")]
+        public async Task<IActionResult> SetPrimaryPhoto([FromBody] SetPrimaryPhotoRequest request)
+        {
+            var profileId = GetCurrentProfileId();
+            if (string.IsNullOrEmpty(profileId)) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(request.Url))
+            {
+                return BadRequest(new { Message = "Photo URL is required." });
+            }
+
+            var profile = await _context.Profiles.Include(p => p.Photos).FirstOrDefaultAsync(p => p.Id == profileId);
+            if (profile == null) return NotFound();
+
+            var targetUrl = request.Url.Trim();
+            var targetFileName = targetUrl.Contains("/uploads/") 
+                ? targetUrl.Substring(targetUrl.IndexOf("/uploads/") + 9) 
+                : targetUrl;
+
+            var targetPhoto = profile.Photos.FirstOrDefault(p => 
+                p.Url == targetUrl || 
+                p.Url.EndsWith($"/{targetFileName}") ||
+                p.Url.EndsWith($"_simulated_{targetFileName}"));
+
+            if (targetPhoto == null)
+            {
+                return NotFound(new { Message = "Photo not found in your profile." });
+            }
+
+            foreach (var photo in profile.Photos)
+            {
+                photo.IsPrimary = false;
+            }
+
+            targetPhoto.IsPrimary = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Primary profile photo updated successfully", Photos = profile.Photos.OrderByDescending(p => p.IsPrimary).ThenBy(p => p.CreatedAt).Select(p => p.Url).ToList() });
         }
 
         [HttpPost("my/boost")]
@@ -656,6 +701,11 @@ namespace VikanMatrimony.WebApi.Controllers
     }
 
     public class DeletePhotoRequest
+    {
+        public string Url { get; set; } = null!;
+    }
+
+    public class SetPrimaryPhotoRequest
     {
         public string Url { get; set; } = null!;
     }

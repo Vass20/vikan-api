@@ -262,6 +262,14 @@ export const api = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    setPrimaryPhoto: builder.mutation<{ message: string; photos: string[] }, { url: string }>({
+      query: (body) => ({
+        url: "/profile/my/photos/set-primary",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Profile"],
+    }),
     submitSupportTicket: builder.mutation<{ ticketNumber: string; message: string }, { name: string; email: string; subject: string; message: string }>({
       query: (body) => ({
         url: "/support/ticket",
@@ -353,6 +361,7 @@ export const {
   useCreatePaymentOrderMutation,
   useVerifyPaymentMutation,
   useDeletePhotoMutation,
+  useSetPrimaryPhotoMutation,
   useSubmitSupportTicketMutation,
   useUploadPhotoFileMutation,
   useUploadRegistrationPhotoMutation,

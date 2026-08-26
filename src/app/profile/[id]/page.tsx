@@ -19,6 +19,7 @@ import {
   useGetReceivedInterestsQuery,
   useUploadPhotoFileMutation,
   useDeletePhotoMutation,
+  useSetPrimaryPhotoMutation,
   useRecordProfileViewMutation,
   useGetMyShortlistedQuery,
   useToggleShortlistMutation
@@ -75,6 +76,7 @@ export default function ProfileDetailPage() {
   const [uploadPhotoApi] = useUploadPhotoMutation();
   const [uploadPhotoFile, { isLoading: isUploadingFile }] = useUploadPhotoFileMutation();
   const [deletePhotoApi] = useDeletePhotoMutation();
+  const [setPrimaryPhotoApi] = useSetPrimaryPhotoMutation();
   const [recordProfileViewApi] = useRecordProfileViewMutation();
   const [toggleShortlistApi] = useToggleShortlistMutation();
 
@@ -1165,6 +1167,30 @@ export default function ProfileDetailPage() {
                 {profile.photos.map((phUrl: any, idx: number) => (
                   <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-brand-gold/20 bg-black/20 group">
                     <img src={AppConst.getPhotoUrl(phUrl)} alt="Thumbnail" className="h-full w-full object-cover" />
+                    
+                    {idx === 0 ? (
+                      <div className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-brand-gold/95 text-brand-navy rounded-lg font-bold text-[8px] uppercase tracking-wider shadow-md border border-brand-gold/30 flex items-center justify-center" title="Profile Picture">
+                        ★ Primary
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await setPrimaryPhotoApi({ url: phUrl }).unwrap();
+                            showToast("Primary profile photo updated successfully", "success");
+                          } catch (err: any) {
+                            console.error(err);
+                            showToast(err?.data?.message || "Failed to update profile picture.", "error");
+                          }
+                        }}
+                        className="absolute top-1.5 left-1.5 w-6 h-6 bg-[#0B1A2F]/90 hover:bg-brand-gold hover:text-brand-navy text-[#E5DCD0]/70 rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center text-xs font-bold"
+                        title="Set as Profile Picture"
+                      >
+                        ★
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => setPhotoToDelete(phUrl)}
