@@ -6,7 +6,7 @@ import { useAppStore } from "@/lib/store";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
-import { useGetMyProfileQuery, useGetMembershipPlansQuery, useUpgradeMembershipMutation } from "@/lib/redux/api";
+import { useGetMyProfileQuery, useGetMembershipPlansQuery, useCreatePaymentOrderMutation, useVerifyPaymentMutation } from "@/lib/redux/api";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,8 @@ export default function MembershipPage() {
   
   const { data: myProfile } = useGetMyProfileQuery(undefined, { skip: !authUser });
   const { data: plansList } = useGetMembershipPlansQuery();
-  const [upgradeMembership] = useUpgradeMembershipMutation();
+  const [createPaymentOrder] = useCreatePaymentOrderMutation();
+  const [verifyPayment] = useVerifyPaymentMutation();
 
   const { addNotification } = useAppStore();
   const currentUser = myProfile;
@@ -43,9 +44,6 @@ export default function MembershipPage() {
   const [promoApplied, setPromoApplied] = useState(false);
 
   // Form states
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -107,27 +105,82 @@ export default function MembershipPage() {
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cardNumber.length < 16 || expiry.length < 5 || cvv.length < 3) {
-      alert("Please check your mock payment credentials.");
-      return;
-    }
+    if (!selectedPlan) return;
     setIsLoading(true);
 
     try {
-      if (selectedPlan) {
-        await upgradeMembership({ membershipType: selectedPlan.name }).unwrap();
+      // 1. Create order on backend (strip out spaces or "Member" suffix from plan name)
+      const rawPlanName = selectedPlan.name.replace(" Member", "").trim();
+      const orderRes = await createPaymentOrder({ planName: rawPlanName }).unwrap();
+
+      const calculatedAmount = selectedPlan.price - discountAmount;
+      const amountInPaise = calculatedAmount * 100;
+
+      // 2. Load Razorpay script
+      const res = await loadRazorpayScript();
+      if (!res) {
+        alert("Failed to load payment gateway. Please check your network connection.");
+        setIsLoading(false);
+        return;
       }
-      const invoice = `VIK-INV-${Math.floor(100000 + Math.random() * 900000)}`;
-      setInvoiceNumber(invoice);
-      setPaymentSuccess(true);
-      
-      addNotification({
-        title: "Membership Purchase Completed",
-        body: `Thank you! Your upgrade to ${selectedPlan?.name} was successful. Invoice: ${invoice}`,
-        type: "system"
+
+      // 3. Configure Razorpay options
+      const options = {
+        key: orderRes.keyId,
+        amount: amountInPaise,
+        currency: orderRes.currency,
+        name: "Vikan Matrimony",
+        description: `Upgrade to ${selectedPlan.name} Plan`,
+        order_id: orderRes.orderId,
+        handler: async function (response: any) {
+          setIsLoading(true);
+          try {
+            // 4. Verify payment on backend
+            await verifyPayment({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature || "",
+            }).unwrap();
+
+            const invoice = `VIK-INV-${Math.floor(100000 + Math.random() * 900000)}`;
+            setInvoiceNumber(invoice);
+            setPaymentSuccess(true);
+
+            addNotification({
+              title: "Membership Purchase Completed",
+              body: `Thank you! Your upgrade to ${selectedPlan.name} was successful. Invoice: ${invoice}`,
+              type: "system"
+            });
+          } catch (err: any) {
+            console.error(err);
+            alert(err?.data?.message || "Payment verification failed.");
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        prefill: {
+          name: currentUser.name,
+          email: authUser?.email,
+          contact: currentUser.parentsNumber || "",
+        },
+        notes: {
+          profile_id: currentUser.id,
+          plan: selectedPlan.name
+        },
+        theme: {
+          color: "#D4AF37"
+        }
+      };
+
+      // 5. Open checkout
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        alert(response.error.description || "Payment failed.");
       });
-    } catch (err) {
+      rzp.open();
+    } catch (err: any) {
       console.error(err);
+      alert(err?.data?.message || "Failed to initiate transaction.");
     } finally {
       setIsLoading(false);
     }
@@ -319,56 +372,30 @@ export default function MembershipPage() {
               </div>
             </div>
 
-            {/* Right side credit card inputs */}
-            <form onSubmit={handleCheckoutSubmit} className="md:col-span-7 space-y-4">
+            {/* Right side payment gateway info */}
+            <div className="md:col-span-7 space-y-6">
               <h3 className="font-serif text-sm font-bold text-brand-navy dark:text-foreground flex items-center gap-1.5 border-b border-border pb-2">
-                <CreditCard className="h-5 w-5 text-brand-gold" /> Pay via Credit Card (Mock)
+                <CreditCard className="h-5 w-5 text-brand-gold" /> Payment Method
               </h3>
               
-              <Input
-                label="Cardholder Full Name"
-                placeholder="Full name as printed"
-                required
-              />
-
-              <Input
-                label="Card Number (16-Digit)"
-                placeholder="4111 2222 3333 4444"
-                maxLength={19}
-                required
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16))}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Expiry (MM/YY)"
-                  placeholder="12/28"
-                  maxLength={5}
-                  required
-                  value={expiry}
-                  onChange={(e) => setExpiry(e.target.value)}
-                />
-                <Input
-                  label="CVV Code"
-                  placeholder="321"
-                  maxLength={3}
-                  type="password"
-                  required
-                  value={cvv}
-                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))}
-                />
+              <div className="p-5 border border-brand-gold/20 rounded-xl bg-brand-gold/5 space-y-2">
+                <h4 className="text-xs font-bold text-brand-gold">
+                  Razorpay Secure Checkout
+                </h4>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  UPI (Google Pay, PhonePe, Paytm), Netbanking, Credit/Debit Cards, and mobile wallets are supported. Payments are processed securely without card details being stored on our servers.
+                </p>
               </div>
 
               <div className="pt-4 flex gap-2">
                 <Button type="button" variant="outline" className="flex-1" onClick={() => setShowCheckout(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" variant="secondary" className="flex-1 uppercase font-bold tracking-wider text-xs" isLoading={isLoading}>
-                  Pay Total Securely
+                <Button type="button" variant="secondary" className="flex-1 uppercase font-bold tracking-wider text-xs" onClick={handleCheckoutSubmit} isLoading={isLoading}>
+                  Pay with Razorpay
                 </Button>
               </div>
-            </form>
+            </div>
           </div>
         )}
       </Dialog>
@@ -377,3 +404,17 @@ export default function MembershipPage() {
     </>
   );
 }
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};

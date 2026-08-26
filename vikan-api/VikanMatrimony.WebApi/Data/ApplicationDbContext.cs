@@ -23,6 +23,7 @@ namespace VikanMatrimony.WebApi.Data
         public DbSet<ProfileView> ProfileViews { get; set; } = null!;
         public DbSet<ShortlistedProfile> ShortlistedProfiles { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +43,13 @@ namespace VikanMatrimony.WebApi.Data
                 .HasOne(n => n.Profile)
                 .WithMany()
                 .HasForeignKey(n => n.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // PaymentTransaction relationships
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasOne(t => t.Profile)
+                .WithMany()
+                .HasForeignKey(t => t.ProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // User - Profile (1:1)

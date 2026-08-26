@@ -101,6 +101,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddSignalR();
 builder.Services.AddControllers()

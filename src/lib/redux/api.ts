@@ -227,6 +227,21 @@ export const api = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    createPaymentOrder: builder.mutation<{ orderId: string; amount: number; currency: string; keyId: string; isSimulation: boolean }, { planName: string }>({
+      query: (body) => ({
+        url: "/payment/order",
+        method: "POST",
+        body,
+      }),
+    }),
+    verifyPayment: builder.mutation<any, { razorpayOrderId: string; razorpayPaymentId: string; razorpaySignature: string }>({
+      query: (body) => ({
+        url: "/payment/verify",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Profile"],
+    }),
     uploadPhotoFile: builder.mutation<any, FormData>({
       query: (formData) => ({
         url: "/profile/my/photos/upload",
@@ -308,6 +323,8 @@ export const {
   useGetCastesQuery,
   useGetMembershipPlansQuery,
   useUpgradeMembershipMutation,
+  useCreatePaymentOrderMutation,
+  useVerifyPaymentMutation,
   useUploadPhotoFileMutation,
   useUploadRegistrationPhotoMutation,
   useGetMyProfileQuery,
