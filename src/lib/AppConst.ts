@@ -14,6 +14,9 @@ export const AppConst = {
 
   getPhotoUrl(url: string | undefined): string {
     if (!url) return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150";
+    if (url.startsWith("http://localhost") || url.startsWith("https://localhost")) {
+      return url;
+    }
     if (url.startsWith("http://") || url.startsWith("https://")) {
       const apiUrl = this.getApiUrl();
       if (url.includes("/uploads/")) {

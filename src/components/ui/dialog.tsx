@@ -10,6 +10,7 @@ interface DialogProps {
   title?: string;
   children: React.ReactNode;
   size?: "sm" | "md" | "lg" | "xl" | "full";
+  zIndex?: number;
 }
 
 export const Dialog: React.FC<DialogProps> = ({
@@ -18,6 +19,7 @@ export const Dialog: React.FC<DialogProps> = ({
   title,
   children,
   size = "md",
+  zIndex,
 }) => {
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -42,7 +44,7 @@ export const Dialog: React.FC<DialogProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: zIndex || 50 }}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}

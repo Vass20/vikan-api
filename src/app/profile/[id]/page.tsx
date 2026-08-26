@@ -393,8 +393,18 @@ export default function ProfileDetailPage() {
         return;
       }
 
+      const getFilename = (u: string) => {
+        if (u.includes("/uploads/")) {
+          return u.substring(u.indexOf("/uploads/") + 9);
+        }
+        return u;
+      };
+
+      const existingFilenames = (profile.photos || []).map((ph: string) => getFilename(ph));
+
       for (const url of photoUrls) {
-        if (!profile.photos?.includes(url)) {
+        const fn = getFilename(url);
+        if (!existingFilenames.includes(fn)) {
           await uploadPhotoApi({ url }).unwrap();
         }
       }
@@ -1039,6 +1049,7 @@ export default function ProfileDetailPage() {
         onClose={() => setPhotoToDelete(null)}
         title="Confirm Photo Deletion"
         size="sm"
+        zIndex={100}
       >
         <div className="flex flex-col items-center gap-4 text-center p-2 bg-[#0B1A2F]/95 rounded-xl">
           <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-1">
