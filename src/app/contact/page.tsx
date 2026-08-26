@@ -98,10 +98,10 @@ export default function ContactSupportPage() {
                   <div>
                     <h4 className="font-serif text-sm font-semibold">Corporate Head Office</h4>
                     <p className="text-xs text-muted-foreground font-support leading-relaxed mt-1">
-                      Vikan Matrimony Private Limited,<br />
-                      Suite 402, 4th Floor, Platinum Plaza,<br />
-                      MG Road, Mumbai, Maharashtra 400001,<br />
-                      India
+                      36 E, C Block,<br />
+                      Srikrishna Nagar, Chidambaram Main Road,<br />
+                      Jayankondam, Udayarpalayam Taluk,<br />
+                      Ariyalur District - 621802
                     </p>
                   </div>
                 </div>
