@@ -119,6 +119,10 @@ export default function ProfileDetailPage() {
   // Edit profile state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState("");
+
+  // Custom photo deletion confirm state
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editAboutMe, setEditAboutMe] = useState("");
   const [editOccupation, setEditOccupation] = useState("");
   const [editSalary, setEditSalary] = useState("");
@@ -1029,6 +1033,61 @@ export default function ProfileDetailPage() {
         </form>
       </Dialog>
 
+      {/* CONFIRM PHOTO DELETION DIALOG */}
+      <Dialog
+        isOpen={!!photoToDelete}
+        onClose={() => setPhotoToDelete(null)}
+        title="Confirm Photo Deletion"
+        size="sm"
+      >
+        <div className="flex flex-col items-center gap-4 text-center p-2 bg-[#0B1A2F]/95 rounded-xl">
+          <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-1">
+            <Trash2 className="h-6 w-6" />
+          </div>
+          <p className="text-sm font-semibold text-white">
+            Are you sure you want to delete this photo from your profile?
+          </p>
+          <p className="text-xs text-muted-foreground/80 leading-relaxed">
+            This action cannot be undone. If it is your primary photo, another photo will be selected as primary automatically.
+          </p>
+          {photoToDelete && (
+            <div className="h-28 w-28 rounded-xl overflow-hidden border border-brand-gold/30 shadow-inner mt-2">
+              <img src={AppConst.getPhotoUrl(photoToDelete)} alt="Delete target" className="h-full w-full object-cover" />
+            </div>
+          )}
+          <div className="flex w-full gap-3 mt-4 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 uppercase font-support font-semibold tracking-wider text-[11px] border-brand-gold/30 text-brand-gold hover:bg-brand-gold/10"
+              onClick={() => setPhotoToDelete(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white border-none uppercase font-support font-semibold tracking-wider text-[11px] cursor-pointer flex items-center justify-center gap-1.5"
+              onClick={async () => {
+                if (!photoToDelete) return;
+                setIsDeleting(true);
+                try {
+                  await deletePhotoApi({ url: photoToDelete }).unwrap();
+                  showToast("Photo deleted successfully", "success");
+                } catch (err: any) {
+                  console.error(err);
+                  showToast(err?.data?.message || "Failed to delete photo.", "error");
+                } finally {
+                  setIsDeleting(false);
+                  setPhotoToDelete(null);
+                }
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Yes, Delete"}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
       {/* EDIT PROFILE MODAL */}
       <Dialog isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Profile Details">
         <form onSubmit={handleSaveProfile} className="space-y-4 bg-[#0B1A2F]/95 p-5 rounded-xl border border-brand-gold/30 max-h-[70vh] overflow-y-auto scrollbar-thin text-left">
@@ -1097,17 +1156,7 @@ export default function ProfileDetailPage() {
                     <img src={AppConst.getPhotoUrl(phUrl)} alt="Thumbnail" className="h-full w-full object-cover" />
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (confirm("Are you sure you want to delete this photo from your profile?")) {
-                          try {
-                            await deletePhotoApi({ url: phUrl }).unwrap();
-                            showToast("Photo deleted successfully", "success");
-                          } catch (err: any) {
-                            console.error(err);
-                            showToast(err?.data?.message || "Failed to delete photo.", "error");
-                          }
-                        }
-                      }}
+                      onClick={() => setPhotoToDelete(phUrl)}
                       className="absolute top-1.5 right-1.5 p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center"
                       title="Delete photo"
                     >
