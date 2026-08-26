@@ -23,6 +23,7 @@ import {
   SlidersHorizontal
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { AppConst } from "@/lib/AppConst";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -417,7 +418,7 @@ export default function LandingPage() {
                 >
                   <div className="relative h-72 w-full bg-muted overflow-hidden">
                     <img
-                      src={p.photos[0]}
+                      src={AppConst.getPhotoUrl(p.photos[0])}
                       alt={p.name}
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -499,7 +500,7 @@ export default function LandingPage() {
                 >
                   <div className="relative h-72 w-full bg-muted overflow-hidden">
                     <img
-                      src={p.photos[0]}
+                      src={AppConst.getPhotoUrl(p.photos[0])}
                       alt={p.name}
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

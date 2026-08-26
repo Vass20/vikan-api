@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
 import { logout as reduxLogout } from "@/lib/redux/slices/authSlice";
+import { AppConst } from "@/lib/AppConst";
 import { useGetMyProfileQuery, useGetNotificationsQuery, useMarkNotificationReadMutation, useMarkAllNotificationsReadMutation } from "@/lib/redux/api";
 
 export const VikanLogo = ({ className = "", imgClassName = "h-13 md:h-16" }) => {
@@ -266,7 +267,7 @@ export const Navbar: React.FC = () => {
                   >
                     {myProfile?.photos?.[0] && !avatarError ? (
                       <img
-                        src={typeof myProfile.photos[0] === 'string' ? myProfile.photos[0] : (myProfile.photos[0].url || "")}
+                        src={AppConst.getPhotoUrl(typeof myProfile.photos[0] === 'string' ? myProfile.photos[0] : (myProfile.photos[0].url || ""))}
                         alt={currentUser.name}
                         onError={() => setAvatarError(true)}
                         className="h-8 w-8 rounded-full object-cover"

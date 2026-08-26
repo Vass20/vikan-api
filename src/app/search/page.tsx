@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { AppConst } from "@/lib/AppConst";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -664,7 +665,7 @@ function SearchContent() {
                     <div className="relative h-64 w-full bg-muted overflow-hidden group">
                       {p.photos && p.photos.length > 0 && p.photos[0] ? (
                         <img
-                          src={p.photos[0]}
+                          src={AppConst.getPhotoUrl(p.photos[0])}
                           alt={p.name}
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

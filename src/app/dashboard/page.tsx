@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { AppConst } from "@/lib/AppConst";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -296,7 +297,7 @@ export default function DashboardPage() {
                       >
                         <div className="relative h-60 w-full bg-muted">
                           {p.photos && p.photos.length > 0 && p.photos[0] ? (
-                            <img src={p.photos[0]} alt={p.name} className="h-full w-full object-cover" />
+                            <img src={AppConst.getPhotoUrl(p.photos[0])} alt={p.name} className="h-full w-full object-cover" />
                           ) : (
                             <div className="h-full w-full flex flex-col items-center justify-center bg-muted/65 p-4 text-center text-xs text-muted-foreground font-support gap-1.5">
                               <ImageOff className="h-7 w-7 text-brand-gold/40" />
@@ -381,7 +382,7 @@ export default function DashboardPage() {
                 <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-brand-gold shadow-md mb-4 bg-muted">
                   {currentUser.photos?.[0] && !avatarError ? (
                     <img 
-                      src={currentUser.photos[0]} 
+                      src={AppConst.getPhotoUrl(currentUser.photos[0])} 
                       alt={currentUser.name} 
                       onError={() => setAvatarError(true)}
                       className="h-full w-full object-cover" 
@@ -449,7 +450,7 @@ export default function DashboardPage() {
                         >
                           {profile.photos?.[0] ? (
                             <img
-                              src={profile.photos[0]}
+                              src={AppConst.getPhotoUrl(profile.photos[0])}
                               alt={profile.name}
                               className="h-10 w-10 rounded-full object-cover border border-border group-hover:border-brand-gold shrink-0"
                             />
@@ -510,7 +511,7 @@ export default function DashboardPage() {
                           >
                             {profile.photos?.[0] ? (
                               <img
-                                src={profile.photos[0]}
+                                src={AppConst.getPhotoUrl(profile.photos[0])}
                                 alt={profile.name}
                                 className="h-10 w-10 rounded-full object-cover border border-border group-hover:border-brand-gold shrink-0"
                               />
@@ -585,7 +586,7 @@ export default function DashboardPage() {
                           <Link href={`/profile/${profile.id}`} className="flex items-center gap-3 group">
                             {profile.photos?.[0] ? (
                               <img
-                                src={profile.photos[0]}
+                                src={AppConst.getPhotoUrl(profile.photos[0])}
                                 alt={profile.name}
                                 className="h-10 w-10 rounded-full object-cover border border-border group-hover:border-brand-gold shrink-0"
                               />

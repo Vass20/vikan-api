@@ -22,6 +22,7 @@ import {
   useGetMyShortlistedQuery,
   useToggleShortlistMutation
 } from "@/lib/redux/api";
+import { AppConst } from "@/lib/AppConst";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { MatchRing } from "@/components/ui/MatchRing";
@@ -165,7 +166,7 @@ export default function ProfileDetailPage() {
       setEditCity(profile.city || "");
       setEditState(profile.state || "");
       setEditDiet(profile.diet || "");
-      setEditPhotosText(profile.photos ? profile.photos.join(", ") : "");
+      setEditPhotosText(profile.photos ? profile.photos.map((p: any) => AppConst.getPhotoUrl(p)).join(", ") : "");
     }
   }, [profile, isOwnProfile]);
 
@@ -429,7 +430,7 @@ export default function ProfileDetailPage() {
               <div className="relative aspect-[4/5] w-full rounded-[2rem] overflow-hidden border border-brand-gold/15 bg-[#051121]/40 shadow-2xl flex items-center justify-center">
                 {profile.photos && profile.photos.length > 0 && profile.photos[activePhotoIdx] ? (
                   <img
-                    src={profile.photos[activePhotoIdx]}
+                    src={AppConst.getPhotoUrl(profile.photos[activePhotoIdx])}
                     alt={profile.name}
                     className="h-full w-full object-cover"
                   />
@@ -466,7 +467,7 @@ export default function ProfileDetailPage() {
                         activePhotoIdx === idx ? "border-brand-gold scale-105" : "border-transparent opacity-50 hover:opacity-85"
                       }`}
                     >
-                      <img src={ph} alt="Thumb" className="h-full w-full object-cover" />
+                      <img src={AppConst.getPhotoUrl(ph)} alt="Thumb" className="h-full w-full object-cover" />
                     </button>
                   ))}
                 </div>

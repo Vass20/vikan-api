@@ -196,7 +196,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var fileUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+            var fileUrl = $"/uploads/{fileName}";
 
             var photo = new ProfilePhoto
             {
