@@ -33,12 +33,15 @@ namespace VikanMatrimony.WebApi.Controllers
                     Price = 0,
                     Duration = "Forever",
                     Features = new[] {
-                        "Create your profile with up to 3 photos",
-                        "Browse verified bride & groom profiles",
-                        "Express up to 5 interests per day",
+                        "Create your profile",
+                        "Upload up to 3 photos",
+                        "Browse bride & groom profiles",
                         "Basic search filters",
-                        "Receive match recommendations",
-                        "View limited profile details"
+                        "Send up to 5 interests/day",
+                        "Receive interests",
+                        "View basic profile information",
+                        "❌ No chat",
+                        "❌ No contact details"
                     }
                 },
                 new {
@@ -47,12 +50,11 @@ namespace VikanMatrimony.WebApi.Controllers
                     Duration = "1 Month",
                     Features = new[] {
                         "Everything in Free",
-                        "Unlimited interest requests",
-                        "Send up to 30 chat messages daily",
-                        "View horoscope compatibility",
+                        "Upload up to 5 photos",
                         "Advanced search filters",
+                        "Unlimited interest requests",
+                        "Limited chat — 20 messages/day",
                         "See who viewed your profile",
-                        "Email & WhatsApp notifications",
                         "Standard customer support"
                     }
                 },
@@ -62,12 +64,11 @@ namespace VikanMatrimony.WebApi.Controllers
                     Duration = "3 Months",
                     Features = new[] {
                         "Everything in Silver",
-                        "Unlimited chat messaging",
-                        "Unlock up to 20 direct contact details",
-                        "Profile highlighted in search results",
-                        "Priority match recommendations",
-                        "Unlimited profile views",
-                        "Read message status",
+                        "Upload up to 8 photos",
+                        "Unlimited chat",
+                        "Unlock up to 10 contact details",
+                        "Profile highlighted in search",
+                        "Priority profile visibility",
                         "Priority customer support"
                     }
                 },
@@ -77,13 +78,12 @@ namespace VikanMatrimony.WebApi.Controllers
                     Duration = "6 Months",
                     Features = new[] {
                         "Everything in Gold",
-                        "Unlock up to 60 direct contact details",
-                        "Monthly profile boost",
-                        "Verified Profile Badge",
-                        "Advanced compatibility suggestions",
-                        "Priority profile visibility",
-                        "Access to exclusive premium profiles",
-                        "Faster profile verification"
+                        "Upload up to 10 photos",
+                        "Unlock up to 30 contact details",
+                        "Profile boost",
+                        "Verified profile badge",
+                        "Higher profile visibility",
+                        "Priority support"
                     }
                 },
                 new {
@@ -92,16 +92,13 @@ namespace VikanMatrimony.WebApi.Controllers
                     Duration = "12 Months",
                     Features = new[] {
                         "Everything in Diamond",
-                        "Unlimited direct contact unlocks",
-                        "Dedicated Relationship Manager",
-                        "Personalized matchmaking assistance",
-                        "Permanent profile highlight",
-                        "Private photo access controls",
-                        "Highest search ranking",
+                        "Upload up to 15 photos",
+                        "Unlimited contact detail access",
+                        "Maximum profile visibility",
+                        "Premium profile highlight",
+                        "Profile boost",
                         "VIP priority support",
-                        "Exclusive premium profile recommendations",
-                        "Free profile verification & boost",
-                        "Early access to new premium features"
+                        "Premium profile recommendations"
                     }
                 }
             };

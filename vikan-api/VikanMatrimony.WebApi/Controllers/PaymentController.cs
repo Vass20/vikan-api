@@ -56,12 +56,13 @@ namespace VikanMatrimony.WebApi.Controllers
             }
 
             // Map plan pricing (Amounts in Indian Rupees)
-            decimal amountInRupees = request.PlanName.ToLower() switch
+            decimal amountInRupees = request.PlanName.ToLower().Replace(" ", "") switch
             {
                 "silver" => 1499,
-                "gold" => 4999,
-                "diamond" => 9999,
-                "platinum" => 14999,
+                "gold" => 2499,
+                "diamond" => 4999,
+                "royalplatinum" => 8999,
+                "platinum" => 8999,
                 _ => 0
             };
 
