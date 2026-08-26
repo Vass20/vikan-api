@@ -18,6 +18,7 @@ import {
   useGetSentInterestsQuery,
   useGetReceivedInterestsQuery,
   useUploadPhotoFileMutation,
+  useDeletePhotoMutation,
   useRecordProfileViewMutation,
   useGetMyShortlistedQuery,
   useToggleShortlistMutation
@@ -50,7 +51,8 @@ import {
   Mail,
   MoreHorizontal,
   GraduationCap,
-  ImageOff
+  ImageOff,
+  Trash2
 } from "lucide-react";
 
 export default function ProfileDetailPage() {
@@ -72,6 +74,7 @@ export default function ProfileDetailPage() {
   const [updateProfileApi] = useUpdateMyProfileMutation();
   const [uploadPhotoApi] = useUploadPhotoMutation();
   const [uploadPhotoFile, { isLoading: isUploadingFile }] = useUploadPhotoFileMutation();
+  const [deletePhotoApi] = useDeletePhotoMutation();
   const [recordProfileViewApi] = useRecordProfileViewMutation();
   const [toggleShortlistApi] = useToggleShortlistMutation();
 
@@ -1084,6 +1087,38 @@ export default function ProfileDetailPage() {
             required
             className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
           />
+
+          {profile?.photos && profile.photos.length > 0 && (
+            <div className="flex flex-col gap-2 text-left mb-2">
+              <span className="text-xs font-semibold text-[#E5DCD0]/80">Current Photos (Click to Delete)</span>
+              <div className="grid grid-cols-4 gap-3">
+                {profile.photos.map((phUrl: any, idx: number) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-brand-gold/20 bg-black/20 group">
+                    <img src={AppConst.getPhotoUrl(phUrl)} alt="Thumbnail" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to delete this photo from your profile?")) {
+                          try {
+                            await deletePhotoApi({ url: phUrl }).unwrap();
+                            showToast("Photo deleted successfully", "success");
+                          } catch (err: any) {
+                            console.error(err);
+                            showToast(err?.data?.message || "Failed to delete photo.", "error");
+                          }
+                        }
+                      }}
+                      className="absolute top-1.5 right-1.5 p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center"
+                      title="Delete photo"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1.5 text-left">
             <label className="text-xs font-semibold text-[#E5DCD0]/80">Photos (comma-separated URLs)</label>
             <textarea

@@ -211,6 +211,69 @@ namespace VikanMatrimony.WebApi.Controllers
             return Ok(photo);
         }
 
+        [HttpPost("my/photos/delete")]
+        public async Task<IActionResult> DeletePhoto([FromBody] DeletePhotoRequest request)
+        {
+            var profileId = GetCurrentProfileId();
+            if (string.IsNullOrEmpty(profileId)) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(request.Url))
+            {
+                return BadRequest(new { Message = "Photo URL is required." });
+            }
+
+            var profile = await _context.Profiles.Include(p => p.Photos).FirstOrDefaultAsync(p => p.Id == profileId);
+            if (profile == null) return NotFound();
+
+            var targetUrl = request.Url.Trim();
+            var targetFileName = targetUrl.Contains("/uploads/") 
+                ? targetUrl.Substring(targetUrl.IndexOf("/uploads/") + 9) 
+                : targetUrl;
+
+            var photo = profile.Photos.FirstOrDefault(p => 
+                p.Url == targetUrl || 
+                p.Url.EndsWith($"/{targetFileName}") ||
+                p.Url.EndsWith($"_simulated_{targetFileName}"));
+
+            if (photo == null)
+            {
+                return NotFound(new { Message = "Photo not found in your profile." });
+            }
+
+            _context.ProfilePhotos.Remove(photo);
+
+            if (photo.IsPrimary && profile.Photos.Count > 1)
+            {
+                var nextPhoto = profile.Photos.FirstOrDefault(p => p.Id != photo.Id);
+                if (nextPhoto != null)
+                {
+                    nextPhoto.IsPrimary = true;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (targetUrl.Contains("/uploads/"))
+            {
+                try
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    var fileName = targetFileName.Split('?')[0];
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error deleting physical photo file: {ex.Message}");
+                }
+            }
+
+            return Ok(new { Message = "Photo deleted successfully", Photos = profile.Photos.Select(p => p.Url).ToList() });
+        }
+
         [HttpPost("my/boost")]
         public async Task<IActionResult> BoostProfile()
         {
@@ -588,6 +651,11 @@ namespace VikanMatrimony.WebApi.Controllers
     }
 
     public class PhotoUploadRequest
+    {
+        public string Url { get; set; } = null!;
+    }
+
+    public class DeletePhotoRequest
     {
         public string Url { get; set; } = null!;
     }
