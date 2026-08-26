@@ -12,8 +12,18 @@ export const AppConst = {
     return this.useLocalhost ? this.LOCAL_API_URL : this.DEPLOYED_API_URL;
   },
 
-  getPhotoUrl(url: string | undefined): string {
-    if (!url) return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150";
+  getPhotoUrl(photo: any): string {
+    if (!photo) return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150";
+    
+    let url = "";
+    if (typeof photo === "string") {
+      url = photo;
+    } else if (photo && typeof photo === "object" && typeof photo.url === "string") {
+      url = photo.url;
+    } else {
+      return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150";
+    }
+
     if (url.startsWith("http://localhost") || url.startsWith("https://localhost")) {
       return url;
     }
