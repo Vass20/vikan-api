@@ -15,7 +15,9 @@ import {
   useApproveVerificationMutation,
   useRejectVerificationMutation,
   useGetSafetyReportsQuery,
-  useSuspendMemberMutation
+  useSuspendMemberMutation,
+  useGetSupportTicketsQuery,
+  useUpdateTicketStatusMutation
 } from "@/lib/redux/api";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -45,12 +47,14 @@ export default function AdminPortalPage() {
   const { data: pendingApprovalsData } = useGetPendingApprovalsQuery(undefined, { skip: !authUser });
   const { data: verificationsData } = useGetPendingVerificationsQuery(undefined, { skip: !authUser });
   const { data: reportsData } = useGetSafetyReportsQuery(undefined, { skip: !authUser });
+  const { data: ticketsData } = useGetSupportTicketsQuery(undefined, { skip: !authUser });
 
   const [approveProfileApi, { isLoading: isApprovingProfile }] = useApproveProfileMutation();
   const [rejectProfileApi, { isLoading: isRejectingProfile }] = useRejectProfileMutation();
   const [approveVerificationApi] = useApproveVerificationMutation();
   const [rejectVerificationApi] = useRejectVerificationMutation();
   const [suspendMemberApi] = useSuspendMemberMutation();
+  const [updateTicketStatusApi] = useUpdateTicketStatusMutation();
 
   const {
     profiles,
@@ -62,6 +66,7 @@ export default function AdminPortalPage() {
   const pendingApprovals = pendingApprovalsData || [];
   const pendingRequests = verificationsData || [];
   const reports = reportsData || [];
+  const tickets = ticketsData || [];
 
   const totalUsers = metrics?.totalMembers || 0;
   const premiumCount = metrics?.premiumMembers || 0;
@@ -100,7 +105,7 @@ export default function AdminPortalPage() {
   const premiumPercentage = totalUsers > 0 ? (premiumUsersCount * 100 / totalUsers) : 0;
   const freePercentage = totalUsers > 0 ? (freeUsersCount * 100 / totalUsers) : 100;
 
-  const [activeTab, setActiveTab] = useState<"approvals" | "verification" | "cms" | "reports" | "metrics">("approvals");
+  const [activeTab, setActiveTab] = useState<"approvals" | "verification" | "cms" | "reports" | "metrics" | "tickets">("approvals");
   const [processingProfileId, setProcessingProfileId] = useState<string | null>(null);
   const [rejectingProfile, setRejectingProfile] = useState<any | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -258,6 +263,16 @@ export default function AdminPortalPage() {
                 }`}
               >
                 CMS Controls
+              </button>
+              <button
+                onClick={() => setActiveTab("tickets")}
+                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap ${
+                  activeTab === "tickets"
+                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                }`}
+              >
+                Helpdesk Tickets ({tickets.length})
               </button>
             </div>
           </div>
@@ -994,6 +1009,94 @@ export default function AdminPortalPage() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab 6: Helpdesk Support Tickets */}
+          {activeTab === "tickets" && (
+            <div className="space-y-6">
+              <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm text-left">
+                <span className="text-xs text-muted-foreground font-support">
+                  There are <span className="font-bold text-foreground">{tickets.length}</span> active helpdesk support tickets.
+                </span>
+              </div>
+
+              {tickets.length === 0 ? (
+                <div className="text-center p-12 border border-dashed border-border/60 rounded-2xl bg-card">
+                  <ShieldAlert className="h-8 w-8 text-brand-gold/60 mx-auto mb-2" />
+                  <h4 className="text-sm font-serif font-bold text-brand-navy dark:text-foreground">All Tickets Resolved</h4>
+                  <p className="text-xs text-muted-foreground font-support mt-1">There are no open customer support requests.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tickets.map((t: any) => (
+                    <div
+                      key={t.id}
+                      className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-brand-gold/40 transition-all text-left"
+                    >
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono font-bold text-[#F44336] dark:text-[#E91E63]">
+                            {t.ticketNumber}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold font-sans uppercase tracking-wider ${
+                            t.status === "Open"
+                              ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                              : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                          }`}>
+                            {t.status}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-support">
+                            {new Date(t.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="text-sm font-bold text-[#F7F3EE]">{t.subject}</h4>
+                          <p className="text-xs text-muted-foreground font-support leading-relaxed mt-1 whitespace-pre-wrap">
+                            "{t.message}"
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-support border-t border-border/20 pt-3">
+                          <span>
+                            <strong>Name:</strong> {t.name}
+                          </span>
+                          <span>
+                            <strong>Email:</strong> <a href={`mailto:${t.email}`} className="text-brand-gold hover:underline">{t.email}</a>
+                          </span>
+                          {t.profileId && (
+                            <span>
+                              <strong>Profile ID:</strong> {t.profileId}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {t.status === "Open" && (
+                        <div className="flex gap-2 shrink-0 w-full md:w-auto">
+                          <Button
+                            variant="gold"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await updateTicketStatusApi({ id: t.id, status: "Resolved" }).unwrap();
+                                showToast("Support ticket resolved successfully", "success");
+                              } catch (err) {
+                                console.error(err);
+                                showToast("Failed to resolve ticket", "error");
+                              }
+                            }}
+                            className="w-full md:w-auto uppercase text-[10px] font-bold py-2 px-3 rounded-lg tracking-wider"
+                          >
+                            Resolve Ticket
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

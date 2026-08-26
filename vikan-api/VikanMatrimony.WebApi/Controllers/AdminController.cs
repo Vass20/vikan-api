@@ -310,10 +310,42 @@ namespace VikanMatrimony.WebApi.Controllers
 
             return Ok(new { Message = "Member profile suspended and deleted successfully" });
         }
+
+        [HttpGet("tickets")]
+        public async Task<IActionResult> GetSupportTickets()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            var tickets = await _context.SupportTickets
+                .AsNoTracking()
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return Ok(tickets);
+        }
+
+        [HttpPost("tickets/{id}/status")]
+        public async Task<IActionResult> UpdateTicketStatus(string id, [FromBody] UpdateTicketStatusRequest request)
+        {
+            if (!IsAdmin()) return Forbid();
+
+            var ticket = await _context.SupportTickets.FirstOrDefaultAsync(t => t.Id == id);
+            if (ticket == null) return NotFound();
+
+            ticket.Status = request.Status;
+            await _context.SaveChangesAsync();
+
+            return Ok(ticket);
+        }
     }
 
     public class RejectProfileRequest
     {
         public string? Reason { get; set; }
+    }
+
+    public class UpdateTicketStatusRequest
+    {
+        public string Status { get; set; } = null!;
     }
 }

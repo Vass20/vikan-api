@@ -14,7 +14,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Profile", "Interest", "Message", "AdminMetrics", "Verification", "SafetyReport", "Visitors", "Shortlist", "Notification"],
+  tagTypes: ["Profile", "Interest", "Message", "AdminMetrics", "Verification", "SafetyReport", "Visitors", "Shortlist", "Notification", "SupportTicket"],
   endpoints: (builder) => ({
     // Auth
     login: builder.mutation<any, any>({
@@ -202,6 +202,18 @@ export const api = createApi({
       }),
       invalidatesTags: ["SafetyReport", "AdminMetrics"],
     }),
+    getSupportTickets: builder.query<any[], void>({
+      query: () => "/admin/tickets",
+      providesTags: ["SupportTicket"],
+    }),
+    updateTicketStatus: builder.mutation<any, { id: string; status: string }>({
+      query: ({ id, status }) => ({
+        url: `/admin/tickets/${id}/status`,
+        method: "POST",
+        body: { status },
+      }),
+      invalidatesTags: ["SupportTicket"],
+    }),
     getMyVerifications: builder.query<any, void>({
       query: () => "/profile/my/verification",
       providesTags: ["Verification"],
@@ -363,6 +375,8 @@ export const {
   useRejectVerificationMutation,
   useGetSafetyReportsQuery,
   useSuspendMemberMutation,
+  useGetSupportTicketsQuery,
+  useUpdateTicketStatusMutation,
   useGetMyVerificationsQuery,
   useSubmitVerificationMutation,
   useGetNotificationsQuery,
