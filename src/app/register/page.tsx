@@ -57,54 +57,57 @@ export default function RegisterPage() {
   // Auto-saved draft helper
   const [draftName, setDraftName] = useState(registrationDraft.name || "");
   const [draftGender, setDraftGender] = useState<"female" | "male">(registrationDraft.gender === "male" ? "male" : "female");
-  const [draftDob, setDraftDob] = useState(registrationDraft.dob || "1998-05-15");
+  const [draftDob, setDraftDob] = useState(registrationDraft.dob || "");
   const [draftEmail, setDraftEmail] = useState(registrationDraft.email || "");
   const [draftPassword, setDraftPassword] = useState("");
   const [draftMobile, setDraftMobile] = useState(registrationDraft.mobile || "");
 
   // Step 2
-  const [draftReligion, setDraftReligion] = useState(registrationDraft.religion || "Hindu");
+  const [draftReligion, setDraftReligion] = useState(registrationDraft.religion || "");
   const [draftCommunity, setDraftCommunity] = useState(registrationDraft.community || "");
-  const [draftTongue, setDraftTongue] = useState(registrationDraft.motherTongue || "Hindi");
-  const [draftMarital, setDraftMarital] = useState(registrationDraft.maritalStatus || "Never Married");
+  const [draftTongue, setDraftTongue] = useState(registrationDraft.motherTongue || "");
+  const [draftMarital, setDraftMarital] = useState(registrationDraft.maritalStatus || "");
 
   const communityOptions = useMemo(() => {
     if (!castes || !draftReligion) return [];
     const list = castes[draftReligion] || [];
-    return list.map((c: string) => ({ value: c, label: c }));
+    return [
+      { value: "", label: "Select..." },
+      ...list.map((c: string) => ({ value: c, label: c }))
+    ];
   }, [castes, draftReligion]);
 
   useEffect(() => {
     if (communityOptions.length > 0) {
       const match = communityOptions.find(o => o.value === draftCommunity);
       if (!match) {
-        setDraftCommunity(communityOptions[0].value);
+        setDraftCommunity("");
       }
     }
   }, [draftReligion, communityOptions]);
 
   // Step 3
-  const [draftEdu, setDraftEdu] = useState(registrationDraft.education || "B.Tech Computer Science");
-  const [draftOcc, setDraftOcc] = useState(registrationDraft.occupation || "Software Engineer");
-  const [draftSal, setDraftSal] = useState(registrationDraft.salary || "18 LPA");
-  const [draftState, setDraftState] = useState(registrationDraft.state || "Maharashtra");
-  const [draftCity, setDraftCity] = useState(registrationDraft.city || "Mumbai");
-  const [draftDiet, setDraftDiet] = useState(registrationDraft.diet || "Vegetarian");
-  const [draftSmoking, setDraftSmoking] = useState(registrationDraft.smoking || "No");
-  const [draftDrinking, setDraftDrinking] = useState(registrationDraft.drinking || "No");
+  const [draftEdu, setDraftEdu] = useState(registrationDraft.education || "");
+  const [draftOcc, setDraftOcc] = useState(registrationDraft.occupation || "");
+  const [draftSal, setDraftSal] = useState(registrationDraft.salary || "");
+  const [draftState, setDraftState] = useState(registrationDraft.state || "");
+  const [draftCity, setDraftCity] = useState(registrationDraft.city || "");
+  const [draftDiet, setDraftDiet] = useState(registrationDraft.diet || "");
+  const [draftSmoking, setDraftSmoking] = useState(registrationDraft.smoking || "");
+  const [draftDrinking, setDraftDrinking] = useState(registrationDraft.drinking || "");
   const [draftParentsNumber, setDraftParentsNumber] = useState(registrationDraft.parentsNumber || "");
 
   // Step 4
-  const [draftFamType, setDraftFamType] = useState(registrationDraft.familyType || "Nuclear");
-  const [draftFamStatus, setDraftFamStatus] = useState(registrationDraft.familyStatus || "Upper Middle Class");
-  const [draftFamValues, setDraftFamValues] = useState(registrationDraft.familyValues || "Moderate");
+  const [draftFamType, setDraftFamType] = useState(registrationDraft.familyType || "");
+  const [draftFamStatus, setDraftFamStatus] = useState(registrationDraft.familyStatus || "");
+  const [draftFamValues, setDraftFamValues] = useState(registrationDraft.familyValues || "");
   const [draftFamDetails, setDraftFamDetails] = useState(registrationDraft.familyDetails || "");
 
   // Step 5 Partner
-  const [draftPrefAgeMin, setDraftPrefAgeMin] = useState(registrationDraft.partnerPreferences?.ageMin || 22);
-  const [draftPrefAgeMax, setDraftPrefAgeMax] = useState(registrationDraft.partnerPreferences?.ageMax || 30);
-  const [draftPrefHeightMin, setDraftPrefHeightMin] = useState(registrationDraft.partnerPreferences?.heightMin || "5' 2\"");
-  const [draftPrefHeightMax, setDraftPrefHeightMax] = useState(registrationDraft.partnerPreferences?.heightMax || "6' 0\"");
+  const [draftPrefAgeMin, setDraftPrefAgeMin] = useState(registrationDraft.partnerPreferences?.ageMin || 21);
+  const [draftPrefAgeMax, setDraftPrefAgeMax] = useState(registrationDraft.partnerPreferences?.ageMax || 35);
+  const [draftPrefHeightMin, setDraftPrefHeightMin] = useState(registrationDraft.partnerPreferences?.heightMin || "");
+  const [draftPrefHeightMax, setDraftPrefHeightMax] = useState(registrationDraft.partnerPreferences?.heightMax || "");
 
   // Step 6 Photos
   const [photoUrl, setPhotoUrl] = useState(registrationDraft.photos?.[0] || "");
@@ -579,6 +582,7 @@ export default function RegisterPage() {
                       value={draftReligion}
                       onChange={(e) => setDraftReligion(e.target.value)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Hindu", label: "Hindu" },
                         { value: "Muslim", label: "Muslim" },
                         { value: "Christian", label: "Christian" },
@@ -610,6 +614,7 @@ export default function RegisterPage() {
                       value={draftTongue}
                       onChange={(e) => setDraftTongue(e.target.value)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Hindi", label: "Hindi" },
                         { value: "Punjabi", label: "Punjabi" },
                         { value: "Tamil", label: "Tamil" },
@@ -628,6 +633,7 @@ export default function RegisterPage() {
                       value={draftMarital}
                       onChange={(e) => setDraftMarital(e.target.value)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Never Married", label: "Never Married" },
                         { value: "Divorced", label: "Divorced" },
                         { value: "Widowed", label: "Widowed" }
@@ -658,6 +664,7 @@ export default function RegisterPage() {
                       value={draftSal}
                       onChange={(e) => setDraftSal(e.target.value)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "7 LPA", label: "Under 10 LPA" },
                         { value: "12 LPA", label: "10 - 15 LPA" },
                         { value: "18 LPA", label: "15 - 25 LPA" },
@@ -688,6 +695,7 @@ export default function RegisterPage() {
                       value={draftDiet}
                       onChange={(e) => setDraftDiet(e.target.value)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Vegetarian", label: "Vegetarian" },
                         { value: "Non-Vegetarian", label: "Non-Vegetarian" },
                         { value: "Eggetarian", label: "Eggetarian" },
@@ -701,6 +709,7 @@ export default function RegisterPage() {
                         value={draftSmoking}
                         onChange={(e) => setDraftSmoking(e.target.value as any)}
                         options={[
+                          { value: "", label: "Select..." },
                           { value: "No", label: "No" },
                           { value: "Yes", label: "Yes" },
                           { value: "Occasionally", label: "Occasionally" }
@@ -711,6 +720,7 @@ export default function RegisterPage() {
                         value={draftDrinking}
                         onChange={(e) => setDraftDrinking(e.target.value as any)}
                         options={[
+                          { value: "", label: "Select..." },
                           { value: "No", label: "No" },
                           { value: "Yes", label: "Yes" },
                           { value: "Occasionally", label: "Occasionally" }
@@ -728,6 +738,7 @@ export default function RegisterPage() {
                       value={draftFamType}
                       onChange={(e) => setDraftFamType(e.target.value as any)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Nuclear", label: "Nuclear Family" },
                         { value: "Joint", label: "Joint Family" }
                       ]}
@@ -738,6 +749,7 @@ export default function RegisterPage() {
                       value={draftFamStatus}
                       onChange={(e) => setDraftFamStatus(e.target.value as any)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Middle Class", label: "Middle Class" },
                         { value: "Upper Middle Class", label: "Upper Middle Class" },
                         { value: "Rich/Affluent", label: "Rich & Affluent" },
@@ -750,6 +762,7 @@ export default function RegisterPage() {
                       value={draftFamValues}
                       onChange={(e) => setDraftFamValues(e.target.value as any)}
                       options={[
+                        { value: "", label: "Select..." },
                         { value: "Moderate", label: "Moderate (Mix of Modern/Traditional)" },
                         { value: "Traditional", label: "Traditional" },
                         { value: "Liberal", label: "Liberal / Modern" }

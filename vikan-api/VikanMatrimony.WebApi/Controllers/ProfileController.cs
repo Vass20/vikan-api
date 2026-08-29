@@ -67,16 +67,24 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.Salary = request.Salary?.Trim() ?? string.Empty;
             profile.State = request.State?.Trim() ?? string.Empty;
             profile.City = request.City?.Trim() ?? string.Empty;
-            profile.Diet = request.Diet?.Trim() ?? "Vegetarian";
-            profile.Smoking = request.Smoking?.Trim() ?? "No";
-            profile.Drinking = request.Drinking?.Trim() ?? "No";
+            profile.Diet = request.Diet?.Trim() ?? string.Empty;
+            profile.Smoking = request.Smoking?.Trim() ?? string.Empty;
+            profile.Drinking = request.Drinking?.Trim() ?? string.Empty;
             profile.ParentsNumber = request.ParentsNumber?.Trim() ?? string.Empty;
-            profile.FamilyType = request.FamilyType?.Trim() ?? "Nuclear";
-            profile.FamilyStatus = request.FamilyStatus?.Trim() ?? "Middle Class";
-            profile.FamilyValues = request.FamilyValues?.Trim() ?? "Moderate";
+            profile.FamilyType = request.FamilyType?.Trim() ?? string.Empty;
+            profile.FamilyStatus = request.FamilyStatus?.Trim() ?? string.Empty;
+            profile.FamilyValues = request.FamilyValues?.Trim() ?? string.Empty;
             profile.FamilyDetails = request.FamilyDetails?.Trim() ?? string.Empty;
             profile.AboutMe = request.AboutMe?.Trim() ?? string.Empty;
-            profile.MaritalStatus = request.MaritalStatus?.Trim() ?? "Never Married";
+            profile.MaritalStatus = request.MaritalStatus?.Trim() ?? string.Empty;
+            profile.MotherTongue = request.MotherTongue?.Trim() ?? string.Empty;
+            profile.Religion = request.Religion?.Trim() ?? string.Empty;
+            profile.Community = request.Community?.Trim() ?? string.Empty;
+
+            if (request.DateOfBirth.HasValue)
+            {
+                profile.DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth.Value, DateTimeKind.Utc);
+            }
 
             await _context.SaveChangesAsync();
             return Ok(profile);
@@ -678,21 +686,25 @@ namespace VikanMatrimony.WebApi.Controllers
     public class UpdateProfileRequest
     {
         public string Name { get; set; } = null!;
-        public string Education { get; set; } = null!;
-        public string Occupation { get; set; } = null!;
-        public string Salary { get; set; } = null!;
-        public string State { get; set; } = null!;
-        public string City { get; set; } = null!;
-        public string Diet { get; set; } = "Vegetarian";
-        public string Smoking { get; set; } = "No";
-        public string Drinking { get; set; } = "No";
+        public string Education { get; set; } = string.Empty;
+        public string Occupation { get; set; } = string.Empty;
+        public string Salary { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Diet { get; set; } = string.Empty;
+        public string Smoking { get; set; } = string.Empty;
+        public string Drinking { get; set; } = string.Empty;
         public string ParentsNumber { get; set; } = string.Empty;
-        public string FamilyType { get; set; } = "Nuclear";
-        public string FamilyStatus { get; set; } = "Middle Class";
-        public string FamilyValues { get; set; } = "Moderate";
+        public string FamilyType { get; set; } = string.Empty;
+        public string FamilyStatus { get; set; } = string.Empty;
+        public string FamilyValues { get; set; } = string.Empty;
         public string FamilyDetails { get; set; } = string.Empty;
         public string AboutMe { get; set; } = string.Empty;
-        public string MaritalStatus { get; set; } = "Never Married";
+        public string MaritalStatus { get; set; } = string.Empty;
+        public string MotherTongue { get; set; } = string.Empty;
+        public string Religion { get; set; } = string.Empty;
+        public string Community { get; set; } = string.Empty;
+        public DateTime? DateOfBirth { get; set; }
     }
 
     public class PhotoUploadRequest
