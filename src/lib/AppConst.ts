@@ -3,7 +3,7 @@ export const AppConst = {
   useLocalhost: true,
 
   LOCAL_API_URL: "http://localhost:5176",
-  DEPLOYED_API_URL: "https://vikan-api.onrender.com", // Replace with your production API URL when ready
+  DEPLOYED_API_URL: "https://vikanmatrimony.in",
 
   getApiUrl(): string {
     if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
