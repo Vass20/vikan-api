@@ -11,7 +11,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
-import { Check, ShieldCheck, Heart, Sparkles, Award, Receipt, Star, CreditCard, AlertCircle, AlertTriangle } from "lucide-react";
+import { Check, ShieldCheck, Heart, Sparkles, Award, Receipt, Star, CreditCard, AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 interface Plan {
   name: string;
@@ -32,6 +32,17 @@ export default function MembershipPage() {
 
   const { addNotification, showToast } = useAppStore();
   const currentUser = myProfile;
+
+  const isCurrentPlan = (plan: Plan) => {
+    const userPlan = (currentUser?.membershipType || "Free").toLowerCase().trim();
+    const targetPlan = plan.name.toLowerCase().trim();
+    if (plan.price === 0 || targetPlan.includes("free")) {
+      return userPlan.includes("free") || userPlan === "";
+    }
+    const cleanUserPlan = userPlan.replace(" member", "").replace(" package", "").trim();
+    const cleanTargetPlan = targetPlan.replace(" member", "").replace(" package", "").trim();
+    return cleanUserPlan.length > 0 && (cleanUserPlan.includes(cleanTargetPlan) || cleanTargetPlan.includes(cleanUserPlan));
+  };
 
   // Custom luxury alert modal state
   const [alertModal, setAlertModal] = useState<{
@@ -263,13 +274,20 @@ export default function MembershipPage() {
                 </div>
 
                 <div className="mt-8">
-                  <Button
-                    variant={plan.isPopular ? "gold" : "outline"}
-                    className="w-full uppercase font-bold tracking-wider text-xs py-2.5"
-                    onClick={() => handleSelectPlan(plan)}
-                  >
-                    Select Plan
-                  </Button>
+                  {isCurrentPlan(plan) ? (
+                    <div className="w-full uppercase font-bold tracking-wider text-xs py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1.5 shadow-sm font-support">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Current Plan</span>
+                    </div>
+                  ) : (
+                    <Button
+                      variant={plan.isPopular ? "gold" : "outline"}
+                      className="w-full uppercase font-bold tracking-wider text-xs py-2.5"
+                      onClick={() => handleSelectPlan(plan)}
+                    >
+                      Select Plan
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
