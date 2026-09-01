@@ -26,7 +26,8 @@ export default function VerificationPage() {
   const [submitVerificationApi] = useSubmitVerificationMutation();
 
   const {
-    addNotification
+    addNotification,
+    showToast
   } = useAppStore();
 
   const [mounted, setMounted] = useState(false);
@@ -77,7 +78,7 @@ export default function VerificationPage() {
   const handleSubmitVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idCardFile) {
-      alert("Please provide a Government ID document URL or select a mock file first.");
+      showToast("Please provide a Government ID document URL or select a mock file first.", "warning");
       return;
     }
     setSubmitting(true);

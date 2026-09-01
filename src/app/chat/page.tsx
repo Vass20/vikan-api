@@ -410,7 +410,7 @@ export default function ChatPage() {
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
-                      onClick={() => alert("Demo feature: Attachment uploads are mocked.")}
+                      onClick={() => showToast("Demo feature: Attachment uploads are mocked.", "info")}
                       className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
                       title="Upload photos"
                     >
@@ -418,7 +418,7 @@ export default function ChatPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => alert("Demo feature: Document attachments are mocked.")}
+                      onClick={() => showToast("Demo feature: Document attachments are mocked.", "info")}
                       className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
                       title="Attach file"
                     >
@@ -437,7 +437,7 @@ export default function ChatPage() {
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
-                      onClick={() => alert("Demo feature: Voice recording is simulated.")}
+                      onClick={() => showToast("Demo feature: Voice recording is simulated.", "info")}
                       className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
                     >
                       <Mic className="h-5 w-5" />

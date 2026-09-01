@@ -11,7 +11,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
-import { Check, ShieldCheck, Heart, Sparkles, Award, Receipt, Star, CreditCard } from "lucide-react";
+import { Check, ShieldCheck, Heart, Sparkles, Award, Receipt, Star, CreditCard, AlertCircle, AlertTriangle } from "lucide-react";
 
 interface Plan {
   name: string;
@@ -30,8 +30,25 @@ export default function MembershipPage() {
   const [createPaymentOrder] = useCreatePaymentOrderMutation();
   const [verifyPayment] = useVerifyPaymentMutation();
 
-  const { addNotification } = useAppStore();
+  const { addNotification, showToast } = useAppStore();
   const currentUser = myProfile;
+
+  // Custom luxury alert modal state
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: "info" | "error" | "warning" | "success";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info"
+  });
+
+  const showAlert = (message: string, title = "Notice", type: "info" | "error" | "warning" | "success" = "info") => {
+    setAlertModal({ isOpen: true, title, message, type });
+  };
 
   const [mounted, setMounted] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -74,11 +91,11 @@ export default function MembershipPage() {
 
   const handleSelectPlan = (plan: Plan) => {
     if (plan.price === 0) {
-      alert("Free package is already active by default.");
+      showAlert("Free package is already active by default for all registered accounts.", "Free Package Active", "info");
       return;
     }
     if (!currentUser) {
-      alert("Please log in or register to purchase a membership.");
+      showAlert("Please log in or register to purchase a membership plan.", "Login Required", "warning");
       router.push("/login");
       return;
     }
@@ -119,7 +136,7 @@ export default function MembershipPage() {
       // 2. Load Razorpay script
       const res = await loadRazorpayScript();
       if (!res) {
-        alert("Failed to load payment gateway. Please check your network connection.");
+        showAlert("Failed to load payment gateway. Please check your network connection.", "Payment Error", "error");
         setIsLoading(false);
         return;
       }
@@ -153,7 +170,7 @@ export default function MembershipPage() {
             });
           } catch (err: any) {
             console.error(err);
-            alert(err?.data?.message || "Payment verification failed.");
+            showAlert(err?.data?.message || "Payment verification failed.", "Payment Error", "error");
           } finally {
             setIsLoading(false);
           }
@@ -175,12 +192,12 @@ export default function MembershipPage() {
       // 5. Open checkout
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
-        alert(response.error.description || "Payment failed.");
+        showAlert(response.error.description || "Payment failed.", "Transaction Failed", "error");
       });
       rzp.open();
     } catch (err: any) {
       console.error(err);
-      alert(err?.data?.message || "Failed to initiate transaction.");
+      showAlert(err?.data?.message || "Failed to initiate transaction.", "Transaction Error", "error");
     } finally {
       setIsLoading(false);
     }
@@ -398,6 +415,50 @@ export default function MembershipPage() {
             </div>
           </div>
         )}
+      </Dialog>
+
+      {/* CUSTOM LUXURY ALERT MODAL */}
+      <Dialog
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+        title={alertModal.title}
+        size="sm"
+        zIndex={100}
+      >
+        <div className="flex flex-col items-center gap-4 text-center p-3 bg-[#0B1A2F]/95 rounded-xl border border-brand-gold/30 shadow-2xl">
+          <div className={`h-14 w-14 rounded-full flex items-center justify-center border shadow-lg ${
+            alertModal.type === 'error' 
+              ? 'bg-red-500/10 border-red-500/30 text-red-500' 
+              : alertModal.type === 'warning'
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
+              : 'bg-brand-gold/10 border-brand-gold/30 text-brand-gold'
+          }`}>
+            {alertModal.type === 'error' ? (
+              <AlertCircle className="h-7 w-7 animate-pulse" />
+            ) : alertModal.type === 'warning' ? (
+              <AlertTriangle className="h-7 w-7 animate-pulse" />
+            ) : (
+              <Sparkles className="h-7 w-7 text-brand-gold" />
+            )}
+          </div>
+          
+          <div className="space-y-1.5">
+            <h3 className="text-base font-serif font-bold text-white tracking-wide">
+              {alertModal.title}
+            </h3>
+            <p className="text-xs text-[#E5DCD0]/80 font-support leading-relaxed max-w-xs">
+              {alertModal.message}
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => setAlertModal((prev) => ({ ...prev, isOpen: false }))}
+            className="gold-gradient text-brand-navy font-bold text-xs uppercase tracking-wider px-8 py-2.5 rounded-xl shadow-md hover:scale-105 transition-transform"
+          >
+            Got It
+          </Button>
+        </div>
       </Dialog>
 
       <Footer />

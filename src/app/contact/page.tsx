@@ -10,7 +10,7 @@ import { useAppStore } from "@/lib/store";
 import { useSubmitSupportTicketMutation } from "@/lib/redux/api";
 
 export default function ContactSupportPage() {
-  const { addNotification } = useAppStore();
+  const { addNotification, showToast } = useAppStore();
   const [submitSupportTicket] = useSubmitSupportTicketMutation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -44,7 +44,7 @@ export default function ContactSupportPage() {
       });
     } catch (err: any) {
       console.error(err);
-      alert(err?.data?.message || "Failed to submit support ticket.");
+      showToast(err?.data?.message || "Failed to submit support ticket.", "error");
     } finally {
       setIsSubmitting(false);
     }
