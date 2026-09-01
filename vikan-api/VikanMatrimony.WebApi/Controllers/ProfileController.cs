@@ -254,13 +254,13 @@ namespace VikanMatrimony.WebApi.Controllers
 
             var targetUrl = request.Url.Trim();
             var targetFileName = targetUrl.Contains("/uploads/") 
-                ? targetUrl.Substring(targetUrl.IndexOf("/uploads/") + 9) 
+                ? targetUrl.Substring(targetUrl.IndexOf("/uploads/") + 9).Split('?')[0] 
                 : targetUrl;
 
             var photo = profile.Photos.FirstOrDefault(p => 
                 p.Url == targetUrl || 
-                p.Url.EndsWith($"/{targetFileName}") ||
-                p.Url.EndsWith($"_simulated_{targetFileName}"));
+                (p.Url.Contains("/uploads/") && p.Url.Substring(p.Url.IndexOf("/uploads/") + 9).Split('?')[0] == targetFileName) ||
+                p.Url.EndsWith($"/{targetFileName}"));
 
             if (photo == null)
             {

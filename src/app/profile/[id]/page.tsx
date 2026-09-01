@@ -1127,7 +1127,35 @@ export default function ProfileDetailPage() {
                 if (!photoToDelete) return;
                 setIsDeleting(true);
                 try {
-                  await deletePhotoApi({ url: photoToDelete }).unwrap();
+                  const targetUrl = typeof photoToDelete === "string" ? photoToDelete : (photoToDelete as any).url || "";
+                  await deletePhotoApi({ url: targetUrl }).unwrap();
+
+                  // Filter deleted photo out of editPhotosText
+                  const extractUrl = (ph: any): string => {
+                    if (!ph) return "";
+                    if (typeof ph === "string") return ph;
+                    if (typeof ph === "object" && typeof ph.url === "string") return ph.url;
+                    return "";
+                  };
+
+                  const getFn = (u: any) => {
+                    const urlStr = extractUrl(u);
+                    if (!urlStr) return "";
+                    if (urlStr.includes("/uploads/")) {
+                      return urlStr.substring(urlStr.indexOf("/uploads/") + 9).split("?")[0];
+                    }
+                    return urlStr;
+                  };
+
+                  const deletedFn = getFn(targetUrl);
+                  setEditPhotosText((prev) =>
+                    prev
+                      .split(",")
+                      .map((u) => u.trim())
+                      .filter((u) => u !== "" && getFn(u) !== deletedFn && u !== targetUrl)
+                      .join(", ")
+                  );
+
                   showToast("Photo deleted successfully", "success");
                 } catch (err: any) {
                   console.error(err);
