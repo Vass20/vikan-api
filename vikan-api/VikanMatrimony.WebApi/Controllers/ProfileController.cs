@@ -140,7 +140,7 @@ namespace VikanMatrimony.WebApi.Controllers
             var profileId = GetCurrentProfileId();
             if (string.IsNullOrEmpty(profileId)) return Unauthorized();
 
-            if (string.IsNullOrWhiteSpace(request.Url))
+            if (string.IsNullOrWhiteSpace(request?.Url))
             {
                 return BadRequest(new { Message = "Valid photo URL is required." });
             }
@@ -148,10 +148,24 @@ namespace VikanMatrimony.WebApi.Controllers
             var profile = await _context.Profiles.Include(p => p.Photos).FirstOrDefaultAsync(p => p.Id == profileId);
             if (profile == null) return NotFound();
 
+            var targetUrl = request.Url.Trim();
+            var targetFileName = targetUrl.Contains("/uploads/")
+                ? targetUrl.Substring(targetUrl.IndexOf("/uploads/") + 9).Split('?')[0]
+                : targetUrl;
+
+            var existingPhoto = profile.Photos.FirstOrDefault(p =>
+                p.Url == targetUrl ||
+                (p.Url.Contains("/uploads/") && p.Url.Substring(p.Url.IndexOf("/uploads/") + 9).Split('?')[0] == targetFileName));
+
+            if (existingPhoto != null)
+            {
+                return Ok(existingPhoto);
+            }
+
             var photo = new ProfilePhoto
             {
                 ProfileId = profileId,
-                Url = request.Url.Trim(),
+                Url = targetUrl,
                 IsPrimary = !profile.Photos.Any(p => p.IsPrimary)
             };
 

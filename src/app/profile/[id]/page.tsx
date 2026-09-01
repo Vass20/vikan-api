@@ -428,18 +428,29 @@ export default function ProfileDetailPage() {
         return;
       }
 
-      const getFilename = (u: string) => {
-        if (u.includes("/uploads/")) {
-          return u.substring(u.indexOf("/uploads/") + 9);
-        }
-        return u;
+      const extractUrl = (ph: any): string => {
+        if (!ph) return "";
+        if (typeof ph === "string") return ph;
+        if (typeof ph === "object" && typeof ph.url === "string") return ph.url;
+        return "";
       };
 
-      const existingFilenames = (profile.photos || []).map((ph: string) => getFilename(ph));
+      const getFilename = (u: any) => {
+        const urlStr = extractUrl(u);
+        if (!urlStr) return "";
+        if (urlStr.includes("/uploads/")) {
+          return urlStr.substring(urlStr.indexOf("/uploads/") + 9).split("?")[0];
+        }
+        return urlStr;
+      };
+
+      const existingFilenames = (profile.photos || [])
+        .map((ph: any) => getFilename(ph))
+        .filter((fn: string) => fn !== "");
 
       for (const url of photoUrls) {
         const fn = getFilename(url);
-        if (!existingFilenames.includes(fn)) {
+        if (fn && !existingFilenames.includes(fn)) {
           await uploadPhotoApi({ url }).unwrap();
         }
       }
