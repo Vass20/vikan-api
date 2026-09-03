@@ -380,8 +380,8 @@ export default function DashboardPage() {
 
             {/* Right side metrics & visitors lists */}
             <div className="lg:col-span-4 space-y-8">
-              {/* My Profile Card */}
-              <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
+              {/* My Profile Card - Hidden as requested */}
+              {/* <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
                 <div className="relative h-24 w-24 rounded-full overflow-hidden border-2 border-brand-gold shadow-md mb-4 bg-muted">
                   {currentUser.photos?.[0] && !avatarError ? (
                     <img 
@@ -417,7 +417,7 @@ export default function DashboardPage() {
                     View My Full Profile
                   </Button>
                 </Link>
-              </div>
+              </div> */}
 
               {/* Friends & Connected Matches */}
               <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm">
