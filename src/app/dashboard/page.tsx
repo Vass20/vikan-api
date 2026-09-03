@@ -192,6 +192,43 @@ export default function DashboardPage() {
 
 
 
+  // Helper for overlapping circular avatar stack
+  const AvatarStack = ({ items, getPhoto }: { items: any[]; getPhoto: (item: any) => any }) => {
+    if (!items || items.length === 0) return null;
+    const visibleItems = items.slice(0, 4);
+    const extraCount = items.length > 4 ? items.length - 4 : 0;
+
+    return (
+      <div className="flex items-center -space-x-3 overflow-hidden py-1">
+        {visibleItems.map((item, idx) => {
+          const rawPhoto = getPhoto(item);
+          const name = item?.name || item?.profile?.name || item?.sender?.name || "User";
+          const photoUrl = AppConst.getPhotoUrl(rawPhoto);
+          return photoUrl ? (
+            <img
+              key={idx}
+              src={photoUrl}
+              alt={name}
+              className="inline-block h-10 w-10 rounded-full ring-2 ring-card object-cover shrink-0 shadow-sm"
+            />
+          ) : (
+            <div
+              key={idx}
+              className="inline-block h-10 w-10 rounded-full ring-2 ring-card bg-brand-gold/20 text-brand-gold font-serif font-bold text-xs flex items-center justify-center shrink-0 shadow-sm uppercase"
+            >
+              {name.charAt(0)}
+            </div>
+          );
+        })}
+        {extraCount > 0 && (
+          <div className="inline-block h-10 w-10 rounded-full ring-2 ring-card bg-brand-navy dark:bg-card text-brand-gold text-[11px] font-bold font-support flex items-center justify-center shrink-0 shadow-sm border border-brand-gold/30">
+            +{extraCount}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <Navbar />
@@ -219,6 +256,77 @@ export default function DashboardPage() {
                 <Flame className={`h-4 w-4 ${boostActive ? "animate-bounce text-brand-navy" : "text-brand-navy"}`} />
                 {boostActive ? "Profile Boosted!" : "Boost Profile"}
               </Button>
+            </div>
+          </div>
+
+          {/* Quick Metrics Overview Row with Overlapping Avatar Stacks */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* 1. Friends List */}
+            <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between hover:border-brand-gold/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-support uppercase tracking-wider text-muted-foreground">
+                  Friends List
+                </span>
+                <span className="bg-brand-gold/15 text-brand-gold text-xs font-bold px-2 py-0.5 rounded-full border border-brand-gold/30 font-support">
+                  {friendsList?.length || 0}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <AvatarStack items={friendsList || []} getPhoto={(item) => item?.photos?.[0]} />
+                <Link href="/chat" className="text-xs font-bold text-brand-gold hover:underline font-support">
+                  Chat →
+                </Link>
+              </div>
+            </div>
+
+            {/* 2. Profile Visitors */}
+            <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between hover:border-brand-gold/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-support uppercase tracking-wider text-muted-foreground">
+                  Profile Visitors
+                </span>
+                <span className="bg-blue-500/15 text-blue-500 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-500/30 font-support">
+                  {dbVisitors?.length || 0}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <AvatarStack items={dbVisitors || []} getPhoto={(item) => item?.profile?.photos?.[0]} />
+                <span className="text-xs text-muted-foreground font-support">Viewed</span>
+              </div>
+            </div>
+
+            {/* 3. Shortlisted Profiles */}
+            <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between hover:border-brand-gold/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-support uppercase tracking-wider text-muted-foreground">
+                  Shortlisted
+                </span>
+                <span className="bg-rose-500/15 text-rose-500 text-xs font-bold px-2 py-0.5 rounded-full border border-rose-500/30 font-support">
+                  {dbShortlisted?.length || 0}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <AvatarStack items={dbShortlisted || []} getPhoto={(item) => item?.profile?.photos?.[0]} />
+                <Link href="/search" className="text-xs font-bold text-brand-gold hover:underline font-support">
+                  Explore →
+                </Link>
+              </div>
+            </div>
+
+            {/* 4. Interests Received */}
+            <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between hover:border-brand-gold/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-support uppercase tracking-wider text-muted-foreground">
+                  Interests Received
+                </span>
+                <span className="bg-emerald-500/15 text-emerald-500 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 font-support">
+                  {receivedInterests?.length || 0}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <AvatarStack items={receivedInterests || []} getPhoto={(item) => item?.sender?.photos?.[0]} />
+                <span className="text-xs text-muted-foreground font-support">Requests</span>
+              </div>
             </div>
           </div>
 
@@ -421,14 +529,17 @@ export default function DashboardPage() {
 
               {/* Friends & Connected Matches */}
               <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center justify-between mb-4 border-b border-border/40 pb-2">
-                  <span className="flex items-center gap-2">
-                    <UserCheck className="h-5 w-5 text-brand-gold" /> Friends & Connections
-                  </span>
-                  <span className="text-xs text-muted-foreground font-support font-normal">
-                    {friendsList?.length || 0} friends
-                  </span>
-                </h3>
+                <div className="border-b border-border/40 pb-3 mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center gap-2">
+                      <UserCheck className="h-5 w-5 text-brand-gold" /> Friends & Connections
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-support font-normal">
+                      {friendsList?.length || 0} friends
+                    </span>
+                  </div>
+                  <AvatarStack items={friendsList || []} getPhoto={(item) => item?.photos?.[0]} />
+                </div>
 
                 {(!friendsList || friendsList.length === 0) ? (
                   <div className="text-center py-6">
@@ -488,14 +599,17 @@ export default function DashboardPage() {
 
               {/* Profile Visitors */}
               <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center justify-between mb-4 border-b border-border/40 pb-2">
-                  <span className="flex items-center gap-2">
-                    <Eye className="h-5 w-5 text-brand-gold" /> Profile Visitors
-                  </span>
-                  <span className="text-xs text-muted-foreground font-support font-normal">
-                    {dbVisitors?.length || 0} viewed
-                  </span>
-                </h3>
+                <div className="border-b border-border/40 pb-3 mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center gap-2">
+                      <Eye className="h-5 w-5 text-brand-gold" /> Profile Visitors
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-support font-normal">
+                      {dbVisitors?.length || 0} viewed
+                    </span>
+                  </div>
+                  <AvatarStack items={dbVisitors || []} getPhoto={(item) => item?.profile?.photos?.[0]} />
+                </div>
 
                 {(!dbVisitors || dbVisitors.length === 0) ? (
                   <div className="text-center py-6">
@@ -549,14 +663,17 @@ export default function DashboardPage() {
 
               {/* Shortlisted Favorites Card */}
               <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center justify-between mb-4 border-b border-border/40 pb-2">
-                  <span className="flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-brand-gold fill-brand-gold/10" /> Shortlisted Profiles
-                  </span>
-                  <span className="text-xs text-muted-foreground font-support font-normal">
-                    {dbShortlisted?.length || 0} saved
-                  </span>
-                </h3>
+                <div className="border-b border-border/40 pb-3 mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-brand-gold fill-brand-gold/10" /> Shortlisted Profiles
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-support font-normal">
+                      {dbShortlisted?.length || 0} saved
+                    </span>
+                  </div>
+                  <AvatarStack items={dbShortlisted || []} getPhoto={(item) => item?.profile?.photos?.[0]} />
+                </div>
 
                 {(!dbShortlisted || dbShortlisted.length === 0) ? (
                   <div className="text-center py-6">
@@ -629,14 +746,17 @@ export default function DashboardPage() {
 
               {/* Interests Received Queue */}
               <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center justify-between mb-4 border-b border-border/40 pb-2">
-                  <span className="flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-brand-gold fill-current" /> Interests Received
-                  </span>
-                  <span className="text-xs text-muted-foreground font-support font-normal">
-                    {receivedInterests?.filter((i: any) => i.status === "Pending")?.length || 0} pending
-                  </span>
-                </h3>
+                <div className="border-b border-border/40 pb-3 mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-brand-gold fill-current" /> Interests Received
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-support font-normal">
+                      {receivedInterests?.filter((i: any) => i.status === "Pending")?.length || 0} pending
+                    </span>
+                  </div>
+                  <AvatarStack items={receivedInterests || []} getPhoto={(item) => item?.sender?.photos?.[0]} />
+                </div>
 
                 {(!receivedInterests || receivedInterests.length === 0) ? (
                   <p className="text-xs text-muted-foreground text-center py-6 font-support">
