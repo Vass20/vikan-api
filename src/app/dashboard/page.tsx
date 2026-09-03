@@ -22,7 +22,8 @@ import {
   useGetReceivedInterestsQuery,
   useGetMyVisitorsQuery,
   useGetMyShortlistedQuery,
-  useToggleShortlistMutation
+  useToggleShortlistMutation,
+  useGetChatConnectionsQuery
 } from "@/lib/redux/api";
 import {
   ShieldAlert,
@@ -36,7 +37,8 @@ import {
   UserCheck,
   Star,
   UserPlus,
-  ImageOff
+  ImageOff,
+  Users
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -54,6 +56,7 @@ export default function DashboardPage() {
   const { data: receivedInterests } = useGetReceivedInterestsQuery(undefined, { skip: !myProfile });
   const { data: dbVisitors } = useGetMyVisitorsQuery(undefined, { skip: !myProfile });
   const { data: dbShortlisted } = useGetMyShortlistedQuery(undefined, { skip: !myProfile });
+  const { data: friendsList } = useGetChatConnectionsQuery(undefined, { skip: !myProfile });
 
   const [sendInterestApi] = useSendInterestMutation();
   const [acceptInterestApi] = useAcceptInterestMutation();
@@ -414,6 +417,73 @@ export default function DashboardPage() {
                     View My Full Profile
                   </Button>
                 </Link>
+              </div>
+
+              {/* Friends & Connected Matches */}
+              <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground flex items-center justify-between mb-4 border-b border-border/40 pb-2">
+                  <span className="flex items-center gap-2">
+                    <UserCheck className="h-5 w-5 text-brand-gold" /> Friends & Connections
+                  </span>
+                  <span className="text-xs text-muted-foreground font-support font-normal">
+                    {friendsList?.length || 0} friends
+                  </span>
+                </h3>
+
+                {(!friendsList || friendsList.length === 0) ? (
+                  <div className="text-center py-6">
+                    <p className="text-xs text-muted-foreground font-support">
+                      No mutual friends connected yet.
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/80 font-support mt-1">
+                      Accept interest requests to unlock chat and connect with members.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
+                    {friendsList.map((friend: any) => (
+                      <div
+                        key={friend.id}
+                        className="flex items-center justify-between gap-3 group hover:bg-muted/10 p-2 rounded-xl transition-colors border border-border/30 bg-muted/5"
+                      >
+                        <Link href={`/profile/${friend.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="relative shrink-0">
+                            {friend.photos?.[0] ? (
+                              <img
+                                src={AppConst.getPhotoUrl(friend.photos[0])}
+                                alt={friend.name}
+                                className="h-10 w-10 rounded-full object-cover border border-brand-gold/40 shrink-0"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center text-sm font-bold font-serif uppercase shrink-0">
+                                {friend.name?.charAt(0) || "F"}
+                              </div>
+                            )}
+                            <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card ${
+                              friend.onlineStatus === "Online" ? "bg-emerald-500" : "bg-muted-foreground/40"
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-bold text-foreground truncate group-hover:text-brand-gold transition-colors">
+                              {friend.name}
+                            </h4>
+                            <p className="text-[10px] text-muted-foreground font-support truncate">
+                              {friend.gender} • {friend.onlineStatus || "Member"}
+                            </p>
+                          </div>
+                        </Link>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Link href="/chat">
+                            <Button size="sm" variant="gold" className="h-7 px-2.5 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" /> Chat
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Profile Visitors */}
