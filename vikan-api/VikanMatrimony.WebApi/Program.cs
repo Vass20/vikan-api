@@ -298,8 +298,24 @@ using (var scope = app.Services.CreateScope())
             context.SaveChanges();
         }
  
+        // Enforce: update specified users to Silver Member
+        var silverEmails = new[] { "vasanthlf2020@gmail.com", "alancaptsee@gmail.com" };
+        foreach (var email in silverEmails)
+        {
+            var user = userManager.FindByEmailAsync(email).GetAwaiter().GetResult();
+            if (user != null)
+            {
+                var prof = context.Profiles.FirstOrDefault(p => p.UserId == user.Id);
+                if (prof != null)
+                {
+                    prof.MembershipType = "Silver Member";
+                    prof.IsPremium = true;
+                }
+            }
+        }
+
         // Enforce: only display premium if the user has purchased a membership plan (Non-Free)
-        var freeProfiles = context.Profiles.Where(p => p.MembershipType == "Free" || string.IsNullOrEmpty(p.MembershipType) || p.MembershipType == "Free Package" || p.MembershipType == "Free Member").ToList();
+        var freeProfiles = context.Profiles.Where(p => (p.MembershipType == "Free" || string.IsNullOrEmpty(p.MembershipType) || p.MembershipType == "Free Package" || p.MembershipType == "Free Member") && !silverEmails.Contains(p.User.Email)).ToList();
         foreach (var p in freeProfiles)
         {
             p.IsPremium = false;
