@@ -390,7 +390,7 @@ export default function AboutPage() {
             </p>
             <div className="mt-8 flex justify-center">
               <Link href="/register">
-                <Button variant="secondary" size="lg" className="font-bold uppercase tracking-wider px-10 rounded-full border border-brand-gold hover:border-brand-gold shadow-md hover:shadow-brand-gold/20 transition-all">
+                <Button variant="secondary" size="lg" className="font-bold uppercase tracking-wider px-10 rounded-full !border !border-brand-gold hover:!border-brand-gold shadow-md hover:shadow-brand-gold/20 transition-all">
                   Register Complimentarily Now
                 </Button>
               </Link>
