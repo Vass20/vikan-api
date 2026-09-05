@@ -104,28 +104,31 @@ export default function ChatPage() {
       .withUrl(`${AppConst.getApiUrl()}/chathub`, {
         accessTokenFactory: () => localStorage.getItem("vikan_token") || ""
       })
+      .configureLogging(signalR.LogLevel.Warning)
       .withAutomaticReconnect()
       .build();
 
-    connection.start()
-      .then(() => {
-        if (isSubscribed) {
-          console.log("SignalR ChatHub Connected!");
-          setHubConnection(connection);
-        } else {
-          connection.stop().catch(() => {});
-        }
-      })
-      .catch(err => {
-        // Suppress benign AbortError during negotiation cleanup on component unmount/re-render
-        if (err?.name !== "AbortError" && !err?.message?.includes("stopped during negotiation")) {
-          console.error("SignalR Connection Error: ", err);
-        }
-      });
+    if (connection.state === signalR.HubConnectionState.Disconnected) {
+      connection.start()
+        .then(() => {
+          if (isSubscribed) {
+            console.log("SignalR ChatHub Connected!");
+            setHubConnection(connection);
+          } else {
+            connection.stop().catch(() => {});
+          }
+        })
+        .catch(err => {
+          const msg = err?.message || err?.toString() || "";
+          if (err?.name !== "AbortError" && !msg.includes("stopped during negotiation") && !msg.includes("negotiation")) {
+            console.error("SignalR Connection Error: ", err);
+          }
+        });
+    }
 
     return () => {
       isSubscribed = false;
-      if (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting) {
+      if (connection.state === signalR.HubConnectionState.Connected) {
         connection.stop().catch(() => {});
       }
       setHubConnection(null);
