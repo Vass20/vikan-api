@@ -239,6 +239,13 @@ export const api = createApi({
       }),
       invalidatesTags: ["Profile"],
     }),
+    cancelMembership: builder.mutation<any, void>({
+      query: () => ({
+        url: "/membership/cancel",
+        method: "POST",
+      }),
+      invalidatesTags: ["Profile"],
+    }),
     createPaymentOrder: builder.mutation<{ orderId: string; amount: number; currency: string; keyId: string; isSimulation: boolean }, { planName: string }>({
       query: (body) => ({
         url: "/payment/order",
@@ -358,6 +365,7 @@ export const {
   useGetCastesQuery,
   useGetMembershipPlansQuery,
   useUpgradeMembershipMutation,
+  useCancelMembershipMutation,
   useCreatePaymentOrderMutation,
   useVerifyPaymentMutation,
   useDeletePhotoMutation,

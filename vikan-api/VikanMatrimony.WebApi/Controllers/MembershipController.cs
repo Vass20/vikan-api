@@ -127,6 +127,27 @@ namespace VikanMatrimony.WebApi.Controllers
             await _context.SaveChangesAsync();
             return Ok(profile);
         }
+
+        [HttpPost("cancel")]
+        public async Task<IActionResult> CancelMembership()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null) return NotFound("Profile not found");
+
+            if (profile.MembershipType == "Free Member" || profile.MembershipType == "Free" || !profile.IsPremium)
+            {
+                return BadRequest(new { Message = "You are currently on the Free Plan and do not have an active premium membership to cancel." });
+            }
+
+            profile.MembershipType = "Free Member";
+            profile.IsPremium = false;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Your membership has been successfully cancelled and downgraded to the Free Plan.", Profile = profile });
+        }
     }
 
     public class UpgradeRequest

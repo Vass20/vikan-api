@@ -29,9 +29,13 @@ export default function MembershipPage() {
   const { data: plansList } = useGetMembershipPlansQuery();
   const [createPaymentOrder] = useCreatePaymentOrderMutation();
   const [verifyPayment] = useVerifyPaymentMutation();
+  const [cancelMembershipApi] = useCancelMembershipMutation();
 
   const { addNotification, showToast } = useAppStore();
   const currentUser = myProfile;
+
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const isCurrentPlan = (plan: Plan) => {
     const userPlan = (currentUser?.membershipType || "Free").toLowerCase().trim();
@@ -214,6 +218,20 @@ export default function MembershipPage() {
     }
   };
 
+  const handleCancelMembership = async () => {
+    setIsCancelling(true);
+    try {
+      const res = await cancelMembershipApi().unwrap();
+      showToast(res.message || "Membership cancelled successfully", "info");
+      setShowCancelModal(false);
+    } catch (err: any) {
+      console.error(err);
+      showAlert(err?.data?.message || "Failed to cancel membership.", "Error", "error");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -273,11 +291,23 @@ export default function MembershipPage() {
                   </ul>
                 </div>
 
-                <div className="mt-8">
+                <div className="mt-8 space-y-2">
                   {isCurrentPlan(plan) ? (
-                    <div className="w-full uppercase font-bold tracking-wider text-xs py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1.5 shadow-sm font-support">
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>Current Plan</span>
+                    <div className="space-y-2">
+                      <div className="w-full uppercase font-bold tracking-wider text-xs py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1.5 shadow-sm font-support">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>Current Plan</span>
+                      </div>
+                      {plan.price > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowCancelModal(true)}
+                          className="w-full text-[11px] border-destructive/40 text-destructive hover:bg-destructive/10 hover:!text-destructive uppercase font-bold tracking-wider font-support py-2 cursor-pointer"
+                        >
+                          Cancel Membership
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <Button
@@ -476,6 +506,42 @@ export default function MembershipPage() {
           >
             Got It
           </Button>
+        </div>
+      </Dialog>
+
+      {/* CANCEL MEMBERSHIP CONFIRMATION DIALOG */}
+      <Dialog isOpen={showCancelModal} onClose={() => setShowCancelModal(false)} title="Cancel Active Membership">
+        <div className="space-y-5 text-center font-support p-2">
+          <div className="mx-auto h-12 w-12 rounded-full bg-destructive/15 text-destructive flex items-center justify-center border border-destructive/30">
+            <AlertCircle className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-serif font-bold text-foreground">
+              Are you sure you want to cancel your membership?
+            </h3>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed max-w-sm mx-auto">
+              Your account is currently on <span className="font-bold text-brand-gold">{currentUser?.membershipType}</span>. Cancelling will revert your account to the <span className="font-bold text-foreground">Free Member Plan</span> and remove active premium perks.
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 text-xs uppercase font-bold"
+              onClick={() => setShowCancelModal(false)}
+              disabled={isCancelling}
+            >
+              Keep Membership
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1 text-xs uppercase font-bold bg-destructive hover:bg-destructive/90 text-white border-none"
+              onClick={handleCancelMembership}
+              isLoading={isCancelling}
+            >
+              Yes, Cancel Membership
+            </Button>
+          </div>
         </div>
       </Dialog>
 
