@@ -155,6 +155,9 @@ export default function DashboardPage() {
 
   const currentUser = myProfile;
 
+  const memType = (currentUser?.membershipType || "").toLowerCase().trim();
+  const isBoostEligible = memType.includes("diamond") || memType.includes("royal") || memType.includes("platinum");
+
   // Calculate matching scores and filter
   const recommendedMatches = (matchProfiles || [])
     .filter((p: any) => p.id !== currentUser.id)
@@ -246,17 +249,19 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Button
-                variant={boostActive ? "secondary" : "primary"}
-                onClick={handleBoost}
-                className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-xs"
-                disabled={boostActive}
-              >
-                <Flame className={`h-4 w-4 ${boostActive ? "animate-bounce text-brand-navy" : "text-brand-navy"}`} />
-                {boostActive ? "Profile Boosted!" : "Boost Profile"}
-              </Button>
-            </div>
+            {isBoostEligible && (
+              <div className="flex items-center gap-2.5">
+                <Button
+                  variant={boostActive ? "secondary" : "primary"}
+                  onClick={handleBoost}
+                  className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-xs gold-gradient text-brand-navy border border-brand-gold shadow-md hover:brightness-105"
+                  disabled={boostActive}
+                >
+                  <Flame className={`h-4 w-4 ${boostActive ? "animate-bounce text-brand-navy" : "text-brand-navy"}`} />
+                  {boostActive ? "Profile Boosted!" : "Boost Profile"}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Quick Metrics Overview Row with Overlapping Avatar Stacks */}

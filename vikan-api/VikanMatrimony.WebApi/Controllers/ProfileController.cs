@@ -350,6 +350,12 @@ namespace VikanMatrimony.WebApi.Controllers
             var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == profileId);
             if (profile == null) return NotFound();
 
+            var mem = (profile.MembershipType ?? "").ToLower().Trim();
+            if (!mem.Contains("diamond") && !mem.Contains("royal") && !mem.Contains("platinum"))
+            {
+                return BadRequest(new { Message = "Profile Boost is an exclusive feature reserved for Diamond Member and Royal Platinum plans." });
+            }
+
             profile.IsPremium = true;
             await _context.SaveChangesAsync();
 
