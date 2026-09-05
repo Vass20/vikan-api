@@ -20,21 +20,26 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  SlidersHorizontal
+  SlidersHorizontal,
+  X,
+  Calendar,
+  Clock,
+  User as UserIcon,
+  BookOpen
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { AppConst } from "@/lib/AppConst";
 import { Navbar } from "@/components/layout/Navbar";
-import { useSelector } from "react-redux";
+import { useSelector as useReduxSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
 import { useSearchProfilesQuery } from "@/lib/redux/api";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { MOCK_SUCCESS_STORIES, MOCK_BLOG_POSTS, MOCK_FAQS } from "@/lib/mock-data";
+import { MOCK_SUCCESS_STORIES, MOCK_BLOG_POSTS, MOCK_FAQS, BlogPost } from "@/lib/mock-data";
 
 export default function LandingPage() {
   const router = useRouter();
-  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const currentUser = useReduxSelector((state: RootState) => state.auth.user);
 
   const { data: bridesData } = useSearchProfilesQuery({ gender: "Female" });
   const { data: groomsData } = useSearchProfilesQuery({ gender: "Male" });
@@ -72,6 +77,9 @@ export default function LandingPage() {
 
   // FAQ accordion open index
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Article Reader Modal state
+  const [selectedArticle, setSelectedArticle] = useState<BlogPost | null>(null);
 
   // Hydration guard
   const [mounted, setMounted] = useState(false);
@@ -785,7 +793,8 @@ export default function LandingPage() {
                   key={post.id}
                   variants={cardVariants}
                   whileHover={{ y: -8 }}
-                  className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm hover:shadow-md hover:border-brand-gold/45 transition-all duration-300 group flex flex-col h-full"
+                  onClick={() => setSelectedArticle(post)}
+                  className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-sm hover:shadow-md hover:border-brand-gold/45 transition-all duration-300 group flex flex-col h-full cursor-pointer"
                 >
                   <div className="h-52 w-full bg-muted overflow-hidden relative">
                     <img
@@ -793,31 +802,141 @@ export default function LandingPage() {
                       alt={post.title}
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-3 left-3 bg-brand-gold text-brand-navy text-[10px] font-bold px-2.5 py-0.5 rounded uppercase font-support">
+                    <div className="absolute top-3 left-3 bg-brand-gold text-brand-navy text-[10px] font-bold px-2.5 py-0.5 rounded uppercase font-support shadow-sm">
                       {post.category}
                     </div>
                   </div>
                   <div className="p-6 flex flex-col flex-1 justify-between">
                     <div>
-                      <span className="text-[10px] text-muted-foreground font-support">
-                        {post.date} • {post.readTime}
-                      </span>
-                      <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground mt-2 leading-snug">
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-support">
+                        <span className="flex items-center gap-1"><Calendar className="h-3 w-3 text-brand-gold" /> {post.date}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-brand-gold" /> {post.readTime}</span>
+                      </div>
+                      <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-foreground mt-2.5 leading-snug group-hover:text-brand-gold transition-colors">
                         {post.title}
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-2 font-support leading-relaxed">
+                      <p className="text-xs text-muted-foreground mt-2.5 font-support leading-relaxed line-clamp-3">
                         {post.summary}
                       </p>
                     </div>
-                    <button className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-brand-gold group-hover:underline cursor-pointer font-support">
-                      Read Article <ChevronRight className="h-3 w-3" />
-                    </button>
+                    <div className="mt-5 flex items-center justify-between pt-3 border-t border-border/40">
+                      <span className="text-[11px] font-medium text-muted-foreground font-support flex items-center gap-1">
+                        <UserIcon className="h-3 w-3 text-brand-gold" /> {post.author}
+                      </span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedArticle(post);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-brand-gold group-hover:translate-x-1 transition-transform cursor-pointer font-support"
+                      >
+                        Read Article <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
             </motion.div>
           </div>
         </section>
+
+        {/* Article Reader Modal */}
+        <AnimatePresence>
+          {selectedArticle && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/75 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.25 }}
+                className="bg-card text-foreground rounded-3xl border border-brand-gold/30 shadow-2xl max-w-3xl w-full overflow-hidden max-h-[90vh] flex flex-col my-auto"
+              >
+                {/* Modal Header */}
+                <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-muted flex-shrink-0">
+                  <img
+                    src={selectedArticle.image}
+                    alt={selectedArticle.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                  
+                  {/* Close button */}
+                  <button
+                    onClick={() => setSelectedArticle(null)}
+                    className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-md transition-all cursor-pointer border border-white/20"
+                    aria-label="Close article"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+
+                  {/* Header Meta overlay */}
+                  <div className="absolute bottom-6 left-6 right-6 text-white">
+                    <span className="bg-brand-gold text-brand-navy text-[10px] font-bold px-3 py-1 rounded-full uppercase font-support inline-block mb-3 shadow-md">
+                      {selectedArticle.category}
+                    </span>
+                    <h2 className="font-serif text-2xl sm:text-3xl font-bold leading-tight text-white drop-shadow-md">
+                      {selectedArticle.title}
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Author Info & Meta Bar */}
+                <div className="px-6 py-4 border-b border-border/40 bg-muted/20 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground font-support flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center font-bold">
+                      <UserIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground text-sm">{selectedArticle.author}</p>
+                      <p className="text-[11px] text-muted-foreground">{selectedArticle.authorRole}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand-gold" /> {selectedArticle.date}</span>
+                    <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand-gold" /> {selectedArticle.readTime}</span>
+                  </div>
+                </div>
+
+                {/* Article Content Scroll Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1 scrollbar-thin">
+                  <p className="text-sm sm:text-base text-muted-foreground font-support italic border-l-2 border-brand-gold pl-4 py-1 leading-relaxed bg-brand-gold/5 rounded-r-lg">
+                    "{selectedArticle.summary}"
+                  </p>
+
+                  {selectedArticle.content.map((sec, idx) => (
+                    <div key={idx} className="space-y-3">
+                      <h3 className="font-serif text-lg font-bold text-brand-navy dark:text-brand-gold flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-brand-gold" />
+                        {sec.heading}
+                      </h3>
+                      {sec.paragraphs.map((p, pIdx) => (
+                        <p key={pIdx} className="text-xs sm:text-sm text-foreground/90 font-support leading-relaxed">
+                          {p}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 sm:p-5 border-t border-border/40 bg-muted/10 flex items-center justify-between flex-shrink-0">
+                  <span className="text-xs text-muted-foreground font-support">
+                    Published by Vikan Matrimony Editorial
+                  </span>
+                  <Button
+                    onClick={() => setSelectedArticle(null)}
+                    variant="outline"
+                    size="sm"
+                    className="border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10 font-bold uppercase tracking-wider text-xs px-6"
+                  >
+                    Close Reader
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Subtle Luxury Divider */}
         <div className="w-full h-px bg-gradient-to-r from-transparent via-brand-gold/15 to-transparent" />

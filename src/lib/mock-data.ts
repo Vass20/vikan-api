@@ -307,33 +307,131 @@ export const MOCK_SUCCESS_STORIES = [
   }
 ];
 
-export const MOCK_BLOG_POSTS = [
+export interface BlogPost {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  readTime: string;
+  author: string;
+  authorRole: string;
+  summary: string;
+  image: string;
+  content: {
+    heading: string;
+    paragraphs: string[];
+  }[];
+}
+
+export const MOCK_BLOG_POSTS: BlogPost[] = [
   {
     id: "blog-1",
-    title: "Navigating Modern Love in a Traditional Indian Family",
+    title: "Navigating Modern Love & Family Values in Indian Matchmaking",
     category: "Relationship Advice",
-    date: "June 15, 2026",
-    readTime: "5 min read",
-    summary: "How to balance modern expectations with traditional marriage alignment. Tips on effective family communications during matchmaking.",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&auto=format&fit=crop&q=80"
+    date: "September 02, 2026",
+    readTime: "6 min read",
+    author: "Dr. Alok Verma",
+    authorRole: "Senior Relationship & Matchmaking Counselor",
+    summary: "How modern Indian professionals balance career goals with traditional family expectations during the matrimonial search.",
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80",
+    content: [
+      {
+        heading: "The Evolving Landscape of Indian Matchmaking",
+        paragraphs: [
+          "Finding a life partner in modern India is a delicate blend of century-old family heritage and contemporary personal aspirations. Today's educated professionals seek emotional intimacy, career alignment, and intellectual parity alongside traditional family blessings.",
+          "Rather than viewing family involvement as a constraint, modern matchmaking platforms like Vikan empower couples and parents to collaborate seamlessly, ensuring transparency and shared values from day one."
+        ]
+      },
+      {
+        heading: "1. Aligning Core Values Early in Conversations",
+        paragraphs: [
+          "During initial meetings, move beyond superficial hobbies to discuss fundamental life pillars: career growth trajectories, financial management styles, living preferences (joint vs. nuclear), and long-term family goals.",
+          "Open, honest dialogue in early interactions builds mutual trust and eliminates mismatched expectations before formal commitments are made."
+        ]
+      },
+      {
+        heading: "2. The Power of Family Collaboration",
+        paragraphs: [
+          "Respectful family participation provides an invaluable safety net and emotional wisdom. When parents and children review profiles together using modern digital tools, decision-making becomes harmonious rather than transactional."
+        ]
+      },
+      {
+        heading: "3. Assessing Behavioral & Emotional Compatibility",
+        paragraphs: [
+          "While horoscope Guna matching provides traditional peace of mind, daily emotional maturity, empathy, and conflict-resolution skills are the true markers of a resilient, happy marriage."
+        ]
+      }
+    ]
   },
   {
     id: "blog-2",
     title: "The Ultimate Guide to Luxury Indian Wedding Planning",
     category: "Wedding Planning",
-    date: "June 20, 2026",
+    date: "August 28, 2026",
     readTime: "8 min read",
-    summary: "From curated color palettes to selection of elegant heritage venues. Steps to execute a memorable premium wedding celebrations.",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=500&auto=format&fit=crop&q=80"
+    author: "Meera Kapoor",
+    authorRole: "Luxury Event Designer & Trousseau Curator",
+    summary: "From curated color palettes to heritage palace venues and bespoke guest hospitality, a master checklist for your dream wedding.",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop&q=80",
+    content: [
+      {
+        heading: "Crafting a Timeless & Royal Celebration",
+        paragraphs: [
+          "An Indian wedding is not merely a single ceremony; it is a multi-day festival of rituals, music, haute couture, and culinary grandeur. Proper timeline planning ensures that every moment remains joyful rather than overwhelming."
+        ]
+      },
+      {
+        heading: "12 Months Out: Venue & Theme Selection",
+        paragraphs: [
+          "Shortlist heritage palaces in Rajasthan, oceanfront resorts in Goa, or luxury hotel ballrooms in major metro cities. Secure your primary dates early, as prime auspicious wedding Muhurats book up quickly.",
+          "Define your visual aesthetic early—whether classic royal crimson and gold, regal pastel botanical decor, or minimal modern champagne luxury."
+        ]
+      },
+      {
+        heading: "6 Months Out: Couture & Gastronomy Curation",
+        paragraphs: [
+          "Finalize bridal lehengas, sherwanis, and family ensemble fittings. Schedule food tasting trials with master chefs to design multi-cuisine live stations blending authentic regional delicacies with international gourmet offerings."
+        ]
+      },
+      {
+        heading: "3 Months Out: Guest Experience & Digital Invitations",
+        paragraphs: [
+          "Send personalized digital invites with interactive RSVP portals. Arrange airport transfers, luxury welcome hampers, and concierge hospitality for out-of-town guests."
+        ]
+      }
+    ]
   },
   {
     id: "blog-3",
-    title: "Decoding Kundali Matching: Modern Science or Sacred Tradition?",
-    category: "Horoscope",
-    date: "June 25, 2026",
-    readTime: "6 min read",
-    summary: "An in-depth look at what modern couples need to understand about Guna matching, Vedic astrology, and behavioral compatibility.",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format&fit=crop&q=80"
+    title: "Decoding Kundali Matching: Vedic Tradition Meets Modern Compatibility",
+    category: "Horoscope & Astrology",
+    date: "August 15, 2026",
+    readTime: "5 min read",
+    author: "Acharya Rajesh Sharma",
+    authorRole: "Vedic Astrologer & Vedic Scholar",
+    summary: "An in-depth look at what modern couples should understand about 36 Gunas, Manglik Dosha, and behavioral harmony.",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80",
+    content: [
+      {
+        heading: "The Wisdom Behind Vedic Astrology",
+        paragraphs: [
+          "In Vedic tradition, Kundali matching (Ashtakoota Milan) evaluates 36 key points (Gunas) spanning health, temperament, emotional compatibility, and family prosperity.",
+          "While a score above 18 is traditionally considered favorable, modern Vedic scholars emphasize that astrological harmony must be matched by real-world mutual respect, financial prudence, and communication."
+        ]
+      },
+      {
+        heading: "Demystifying Manglik Dosha & Remedial Measures",
+        paragraphs: [
+          "Manglik status is often misunderstood. In contemporary practice, proper planetary house placements, age maturity, and mutual planetary remedies frequently neutralize potential imbalances seamlessly."
+        ]
+      },
+      {
+        heading: "Balancing Astrology with Practical Compatibility",
+        paragraphs: [
+          "Astrology serves as a guiding light, not a rigid constraint. The most successful marriages pair astrological alignment with genuine love, shared core values, and mutual dedication."
+        ]
+      }
+    ]
   }
 ];
 
