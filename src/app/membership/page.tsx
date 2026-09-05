@@ -6,7 +6,7 @@ import { useAppStore } from "@/lib/store";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
-import { useGetMyProfileQuery, useGetMembershipPlansQuery, useCreatePaymentOrderMutation, useVerifyPaymentMutation } from "@/lib/redux/api";
+import { useGetMyProfileQuery, useGetMembershipPlansQuery, useCreatePaymentOrderMutation, useVerifyPaymentMutation, useCancelMembershipMutation } from "@/lib/redux/api";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
