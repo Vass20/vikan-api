@@ -133,9 +133,9 @@ namespace VikanMatrimony.WebApi.Services
         {
             var host = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
-            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "playstoreavanikotechnologies@gmail.com";
+            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderName = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "ckpcbdqosvjlawmg";
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
             var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
 
             var subject = $"{otp} is your Vikan Matrimony Verification Code";
@@ -188,9 +188,9 @@ namespace VikanMatrimony.WebApi.Services
         {
             var host = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
-            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "playstoreavanikotechnologies@gmail.com";
+            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderName = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "ckpcbdqosvjlawmg";
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
             var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
 
             var subject = "🎉 Congratulations! Your Vikan Matrimony Profile Has Been Approved";
@@ -248,9 +248,9 @@ namespace VikanMatrimony.WebApi.Services
         {
             var host = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
-            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "playstoreavanikotechnologies@gmail.com";
+            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderName = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "ckpcbdqosvjlawmg";
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
             var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
 
             var subject = "Update Regarding Your Vikan Matrimony Registration";
@@ -318,9 +318,9 @@ namespace VikanMatrimony.WebApi.Services
         {
             var host = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
-            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "playstoreavanikotechnologies@gmail.com";
+            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderNameConfig = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "ckpcbdqosvjlawmg";
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
             var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
 
             var subject = $"💌 New Interest Request from {senderName} on Vikan Matrimony";
@@ -378,9 +378,9 @@ namespace VikanMatrimony.WebApi.Services
         {
             var host = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
-            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "playstoreavanikotechnologies@gmail.com";
+            var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderNameConfig = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "ckpcbdqosvjlawmg";
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
             var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
 
             var subject = $"🎉 {receiverName} Accepted Your Interest on Vikan Matrimony!";
