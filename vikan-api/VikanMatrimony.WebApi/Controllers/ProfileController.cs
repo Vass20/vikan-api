@@ -379,6 +379,8 @@ namespace VikanMatrimony.WebApi.Controllers
                 .Include(p => p.Photos)
                 .Include(p => p.User)
                 .Where(p => p.IsApproved && p.User.Email != "admin@vikan.com")
+                .OrderByDescending(p => p.IsPremium)
+                .ThenByDescending(p => p.CreatedAt)
                 .AsQueryable();
 
             var currentProfileId = GetCurrentProfileId();
