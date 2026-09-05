@@ -67,7 +67,7 @@
 
   --font-serif: var(--font-serif), Georgia, serif;
   --font-sans: var(--font-sans), ui-sans-serif, system-ui;
-  --font-support: var(--font-support), ui-sans-serif, system-ui;
+  --font-support: var(--font-sans), ui-sans-serif, system-ui;
   
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 4px);
