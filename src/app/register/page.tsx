@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -921,6 +922,12 @@ export default function RegisterPage() {
               </Button>
             )}
           </div>
+          <p className="text-[11px] text-muted-foreground text-center font-support mt-4">
+            By creating an account, you agree to Vikan Matrimony&apos;s{" "}
+            <Link href="/terms" className="text-brand-gold hover:underline font-semibold">Terms &amp; Conditions</Link>,{" "}
+            <Link href="/privacy" className="text-brand-gold hover:underline font-semibold">Privacy Policy</Link>, and{" "}
+            <Link href="/refund-policy" className="text-brand-gold hover:underline font-semibold">Refund Policy</Link>.
+          </p>
         </div>
       )}
     </main>

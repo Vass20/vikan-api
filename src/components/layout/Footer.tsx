@@ -139,9 +139,10 @@ export const Footer: React.FC = () => {
               </Link>
             </div>
           </div>
-          <div className="flex gap-4 mt-4 md:mt-0">
-            <Link href="/" className="hover:text-brand-gold">Terms of Service</Link>
-            <Link href="/" className="hover:text-brand-gold">Privacy Policy</Link>
+          <div className="flex flex-wrap gap-4 mt-4 md:mt-0 text-xs font-support">
+            <Link href="/terms" className="hover:text-brand-gold">Terms &amp; Conditions</Link>
+            <Link href="/privacy" className="hover:text-brand-gold">Privacy Policy</Link>
+            <Link href="/refund-policy" className="hover:text-brand-gold">Refund Policy</Link>
             <a href="#" onClick={openCookiePreferences} className="hover:text-brand-gold cursor-pointer">Cookie Preferences</a>
             <Link href="/contact" className="hover:text-brand-gold">Contact Support</Link>
           </div>
