@@ -39,6 +39,24 @@ namespace VikanMatrimony.WebApi.Controllers
 
             if (profile == null) return NotFound(new { Message = "Profile not found" });
 
+            // Auto-upgrade designated test accounts to Silver Member in database
+            if (profile.User != null && !string.IsNullOrEmpty(profile.User.Email))
+            {
+                var cleanEmail = profile.User.Email.Trim().ToLower();
+                if ((cleanEmail == "vasanthlf2020@gmail.com" || cleanEmail == "alancaptsee@gmail.com") && profile.MembershipType != "Silver Member")
+                {
+                    var dbProfile = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == profileId);
+                    if (dbProfile != null)
+                    {
+                        dbProfile.MembershipType = "Silver Member";
+                        dbProfile.IsPremium = true;
+                        await _context.SaveChangesAsync();
+                        profile.MembershipType = "Silver Member";
+                        profile.IsPremium = true;
+                    }
+                }
+            }
+
             if (profile.Photos != null)
             {
                 profile.Photos = profile.Photos.OrderByDescending(ph => ph.IsPrimary).ThenBy(ph => ph.CreatedAt).ToList();

@@ -302,20 +302,18 @@ using (var scope = app.Services.CreateScope())
         var silverEmails = new[] { "vasanthlf2020@gmail.com", "alancaptsee@gmail.com" };
         foreach (var email in silverEmails)
         {
-            var user = userManager.FindByEmailAsync(email).GetAwaiter().GetResult();
-            if (user != null)
+            var cleanEmail = email.Trim().ToLower();
+            var profilesToUpdate = context.Profiles.Include(p => p.User).Where(p => p.User != null && p.User.Email != null && p.User.Email.ToLower() == cleanEmail).ToList();
+            foreach (var prof in profilesToUpdate)
             {
-                var prof = context.Profiles.FirstOrDefault(p => p.UserId == user.Id);
-                if (prof != null)
-                {
-                    prof.MembershipType = "Silver Member";
-                    prof.IsPremium = true;
-                }
+                prof.MembershipType = "Silver Member";
+                prof.IsPremium = true;
             }
         }
+        context.SaveChanges();
 
         // Enforce: only display premium if the user has purchased a membership plan (Non-Free)
-        var freeProfiles = context.Profiles.Where(p => (p.MembershipType == "Free" || string.IsNullOrEmpty(p.MembershipType) || p.MembershipType == "Free Package" || p.MembershipType == "Free Member") && !silverEmails.Contains(p.User.Email)).ToList();
+        var freeProfiles = context.Profiles.Include(p => p.User).Where(p => (p.MembershipType == "Free" || string.IsNullOrEmpty(p.MembershipType) || p.MembershipType == "Free Package" || p.MembershipType == "Free Member") && (p.User == null || p.User.Email == null || !silverEmails.Contains(p.User.Email.ToLower()))).ToList();
         foreach (var p in freeProfiles)
         {
             p.IsPremium = false;
