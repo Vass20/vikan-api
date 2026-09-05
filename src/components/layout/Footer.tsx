@@ -111,7 +111,7 @@ export const Footer: React.FC = () => {
             </span>
             <div className="flex gap-4 justify-center md:justify-start">
               {/* Instagram */}
-              <Link href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand-gold transition-colors" title="Instagram">
+              <Link href="https://www.instagram.com/vikanmatrimony/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand-gold transition-colors" title="Instagram">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
