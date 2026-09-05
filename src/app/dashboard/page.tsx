@@ -174,8 +174,8 @@ export default function DashboardPage() {
   const missingItems = [];
   let completionPercentage = 70;
 
-  if (!currentUser.horoscopeRequired) {
-    missingItems.push({ label: "Upload Horoscope (Kundali)", link: `/profile/${currentUser.id}` });
+  if (!currentUser.aboutMe || currentUser.aboutMe.trim().length < 15) {
+    missingItems.push({ label: "Add 'About Me' personal bio", link: `/profile/${currentUser.id}` });
   } else {
     completionPercentage += 10;
   }
@@ -184,7 +184,7 @@ export default function DashboardPage() {
   } else {
     completionPercentage += 10;
   }
-  if (currentUser.photos.length < 2) {
+  if (!currentUser.photos || currentUser.photos.length < 2) {
     missingItems.push({ label: "Add secondary gallery photos", link: `/profile/${currentUser.id}` });
   } else {
     completionPercentage += 10;
