@@ -214,6 +214,58 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
+    // Seed / Ensure Test User with Gold Membership
+    var testEmail = "test@gmail.com";
+    var testUser = userManager.FindByEmailAsync(testEmail).GetAwaiter().GetResult();
+    if (testUser == null)
+    {
+        testUser = new User
+        {
+            UserName = testEmail,
+            Email = testEmail,
+            EmailConfirmed = true
+        };
+        var createRes = userManager.CreateAsync(testUser, "Demo@123").GetAwaiter().GetResult();
+        if (createRes.Succeeded)
+        {
+            var testProfile = new Profile
+            {
+                UserId = testUser.Id,
+                Name = "Test Gold Member",
+                Gender = "Male",
+                DateOfBirth = DateTime.SpecifyKind(new DateTime(1995, 5, 15), DateTimeKind.Utc),
+                Religion = "Hindu",
+                Community = "Vanniyar",
+                MotherTongue = "Tamil",
+                City = "Chennai",
+                State = "Tamil Nadu",
+                Education = "B.Tech Computer Science",
+                Occupation = "Software Engineer",
+                Salary = "12-15 LPA",
+                IsVerified = true,
+                IsApproved = true,
+                ApprovalStatus = "Approved",
+                IsPremium = true,
+                MembershipType = "Gold Member"
+            };
+            context.Profiles.Add(testProfile);
+            context.SaveChanges();
+        }
+    }
+    else
+    {
+        var testProfile = context.Profiles.FirstOrDefault(p => p.UserId == testUser.Id);
+        if (testProfile != null)
+        {
+            testProfile.MembershipType = "Gold Member";
+            testProfile.IsPremium = true;
+            testProfile.IsApproved = true;
+            testProfile.ApprovalStatus = "Approved";
+            testProfile.IsVerified = true;
+            context.SaveChanges();
+        }
+    }
+
     // Seed Castes
         if (!context.Castes.Any())
         {
