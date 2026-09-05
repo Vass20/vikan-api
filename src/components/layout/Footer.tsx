@@ -125,14 +125,14 @@ export const Footer: React.FC = () => {
                 </svg>
               </Link>
               {/* Youtube */}
-              <Link href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand-gold transition-colors" title="YouTube">
+              <Link href="https://www.youtube.com/channel/UCuJt3A8lDhH5cXvU4qGNmjA" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand-gold transition-colors" title="YouTube">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z" />
                   <polygon points="10 15 15 12 10 9" fill="currentColor" />
                 </svg>
               </Link>
               {/* X / Twitter */}
-              <Link href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand-gold transition-colors" title="X (Twitter)">
+              <Link href="https://x.com/vikanmatrimony" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand-gold transition-colors" title="X (Twitter)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="currentColor" stroke="none" />
                 </svg>
