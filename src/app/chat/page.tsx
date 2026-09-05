@@ -62,7 +62,10 @@ export default function ChatPage() {
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
     return messages.filter((m: any) => {
-      return m.senderId === myProfile.id && new Date(m.sentAt) >= todayStart;
+      const rawDate = m.timestamp || m.Timestamp || m.sentAt;
+      const msgDate = rawDate ? new Date(rawDate) : new Date();
+      const senderId = m.senderId || m.SenderId;
+      return senderId === myProfile.id && msgDate >= todayStart;
     }).length;
   }, [messages, myProfile]);
 
@@ -348,7 +351,11 @@ export default function ChatPage() {
                           activePartner.onlineStatus === "online" ? "bg-emerald-500 animate-pulse" : "bg-muted"
                         }`} />
                         <span className="text-[10px] text-muted-foreground font-support">
-                          {activePartner.onlineStatus === "online" ? "Online" : `Active ${activePartner.lastActive}`}
+                          {activePartner.onlineStatus === "online" 
+                            ? "Online" 
+                            : activePartner.lastActive?.includes("Z") || activePartner.lastActive?.includes("-")
+                            ? "Active recently"
+                            : `Active ${activePartner.lastActive || "Recently"}`}
                         </span>
                       </div>
                     </div>
@@ -389,10 +396,19 @@ export default function ChatPage() {
                 <div ref={scrollContainerRef} className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-4 bg-muted/5">
                   {currentChatMessages.length > 0 ? (
                     currentChatMessages.map((msg: any) => {
-                      const isMe = msg.senderId === currentUser.id;
+                      const senderId = msg.senderId || msg.SenderId;
+                      const isMe = senderId === currentUser.id || senderId === myProfile?.id;
+                      const msgText = msg.text || msg.Text || msg.content || "";
+                      const rawDate = msg.timestamp || msg.Timestamp || msg.sentAt;
+                      const dateObj = rawDate ? new Date(rawDate) : new Date();
+                      const isValidDate = !isNaN(dateObj.getTime());
+                      const timeString = isValidDate 
+                        ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                        : "Just now";
+
                       return (
                         <div
-                          key={msg.id}
+                          key={msg.id || Math.random().toString()}
                           className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
                         >
                           <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm ${
@@ -401,12 +417,12 @@ export default function ChatPage() {
                               : "bg-card text-foreground rounded-tl-none border border-border"
                           }`}>
                             <p className="text-xs md:text-sm font-sans leading-relaxed break-words whitespace-pre-wrap">
-                              {msg.content}
+                              {msgText}
                             </p>
                             <span className={`text-[8px] font-support mt-1 block text-right ${
                               isMe ? "text-primary-foreground/70" : "text-muted-foreground"
                             }`}>
-                              {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {timeString}
                             </span>
                           </div>
                         </div>
