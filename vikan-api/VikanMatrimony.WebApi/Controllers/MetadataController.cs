@@ -20,9 +20,10 @@ namespace VikanMatrimony.WebApi.Controllers
         }
 
         [HttpGet("castes")]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetCastes()
         {
-            var castes = await _context.Castes.ToListAsync();
+            var castes = await _context.Castes.AsNoTracking().ToListAsync();
             var grouped = castes
                 .GroupBy(c => c.Religion)
                 .ToDictionary(

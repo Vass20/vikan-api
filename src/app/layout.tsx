@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/components/providers/ReduxProvider";
@@ -9,13 +9,23 @@ const playfair = Playfair_Display({
   variable: "--font-serif",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 const dmSans = DM_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#081626",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Vikan Matrimony | Endless Bond. Perfect Match.",
@@ -31,6 +41,11 @@ export const metadata: Metadata = {
     "Bharat Matrimony",
   ],
   authors: [{ name: "Vikan Matrimony" }],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Vikan Matrimony",
+  },
   icons: {
     icon: "/icon.png",
     shortcut: "/icon.png",
