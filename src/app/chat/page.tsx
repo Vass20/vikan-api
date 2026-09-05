@@ -94,26 +94,43 @@ export default function ChatPage() {
 
   // Setup SignalR real-time messaging client connection
   useEffect(() => {
-    if (currentUser) {
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${AppConst.getApiUrl()}/chathub`, {
-          accessTokenFactory: () => localStorage.getItem("vikan_token") || ""
-        })
-        .withAutomaticReconnect()
-        .build();
+    if (!currentUser?.id) return;
 
-      connection.start()
-        .then(() => {
+    let isSubscribed = true;
+    const token = typeof window !== "undefined" ? localStorage.getItem("vikan_token") || "" : "";
+    if (!token) return;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${AppConst.getApiUrl()}/chathub`, {
+        accessTokenFactory: () => localStorage.getItem("vikan_token") || ""
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    connection.start()
+      .then(() => {
+        if (isSubscribed) {
           console.log("SignalR ChatHub Connected!");
           setHubConnection(connection);
-        })
-        .catch(err => console.error("SignalR Connection Error: ", err));
+        } else {
+          connection.stop().catch(() => {});
+        }
+      })
+      .catch(err => {
+        // Suppress benign AbortError during negotiation cleanup on component unmount/re-render
+        if (err?.name !== "AbortError" && !err?.message?.includes("stopped during negotiation")) {
+          console.error("SignalR Connection Error: ", err);
+        }
+      });
 
-      return () => {
-        connection.stop();
-      };
-    }
-  }, [currentUser]);
+    return () => {
+      isSubscribed = false;
+      if (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting) {
+        connection.stop().catch(() => {});
+      }
+      setHubConnection(null);
+    };
+  }, [currentUser?.id]);
 
   // Listen for real-time messages
   useEffect(() => {
