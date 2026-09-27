@@ -69,7 +69,7 @@ export default function ChatPage() {
     }).length;
   }, [messages, myProfile]);
 
-  const userMembership = myProfile?.membershipType || currentUser?.membershipType || "Free";
+  const userMembership = myProfile?.membershipType || (currentUser as any)?.membershipType || "Free";
   const isFreeUser = userMembership === "Free" || userMembership === "Free Member" || userMembership === "Free Package";
   const isSilverUser = userMembership === "Silver" || userMembership === "Silver Member" || userMembership === "Silver Tier";
   const isSilverLimitReached = isSilverUser && todayMessagesSent >= 20;
