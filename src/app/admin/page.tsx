@@ -211,69 +211,89 @@ export default function AdminPortalPage() {
               </p>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex bg-[#081626]/40 rounded-full p-1 border border-brand-gold/15 gap-2 overflow-x-auto scrollbar-none">
-              <button
-                onClick={() => setActiveTab("approvals")}
-                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap flex items-center gap-1.5 ${
-                  activeTab === "approvals"
-                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
-                }`}
-              >
-                <UserCheck className="h-3.5 w-3.5" />
-                Profile Approvals ({pendingApprovals.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("verification")}
-                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap ${
-                  activeTab === "verification"
-                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
-                }`}
-              >
-                Verification Queue ({pendingRequests.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("reports")}
-                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap ${
-                  activeTab === "reports"
-                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
-                }`}
-              >
-                Compliance Reports ({reports.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("metrics")}
-                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap ${
-                  activeTab === "metrics"
-                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
-                }`}
-              >
-                System Metrics
-              </button>
-              <button
-                onClick={() => setActiveTab("cms")}
-                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap ${
-                  activeTab === "cms"
-                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
-                }`}
-              >
-                CMS Controls
-              </button>
-              <button
-                onClick={() => setActiveTab("tickets")}
-                className={`py-1.5 px-4 text-xs font-semibold rounded-full transition-all cursor-pointer border whitespace-nowrap ${
-                  activeTab === "tickets"
-                    ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                    : "bg-transparent text-[#E5DCD0]/60 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
-                }`}
-              >
-                Helpdesk Tickets ({tickets.length})
-              </button>
+            {/* Navigation Dropdown & Pills */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-[#E5DCD0]/70 font-support shrink-0">
+                  Select Menu:
+                </span>
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as any)}
+                  className="bg-[#0B1A2F] border-2 border-brand-gold/40 text-brand-gold text-xs font-bold font-support rounded-xl px-4 py-2 focus:outline-none focus:border-brand-gold cursor-pointer shadow-md min-w-[230px]"
+                >
+                  <option value="approvals" className="bg-[#0B1A2F] text-white">👤 Profile Approvals ({pendingApprovals.length})</option>
+                  <option value="verification" className="bg-[#0B1A2F] text-white">🛡️ Verification Queue ({pendingRequests.length})</option>
+                  <option value="reports" className="bg-[#0B1A2F] text-white">🚩 Compliance Reports ({reports.length})</option>
+                  <option value="metrics" className="bg-[#0B1A2F] text-white">📊 System Metrics</option>
+                  <option value="cms" className="bg-[#0B1A2F] text-white">✍️ CMS Controls</option>
+                  <option value="tickets" className="bg-[#0B1A2F] text-white">🎫 Helpdesk Tickets ({tickets.length})</option>
+                </select>
+              </div>
+
+              <div className="flex flex-wrap bg-[#081626]/60 rounded-2xl p-1.5 border border-brand-gold/20 gap-1.5 max-w-full">
+                <button
+                  onClick={() => setActiveTab("approvals")}
+                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-1.5 ${
+                    activeTab === "approvals"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                  }`}
+                >
+                  <UserCheck className="h-3.5 w-3.5" />
+                  Profile Approvals ({pendingApprovals.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("verification")}
+                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                    activeTab === "verification"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                  }`}
+                >
+                  Verification Queue ({pendingRequests.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("reports")}
+                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                    activeTab === "reports"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                  }`}
+                >
+                  Compliance Reports ({reports.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("metrics")}
+                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                    activeTab === "metrics"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                  }`}
+                >
+                  System Metrics
+                </button>
+                <button
+                  onClick={() => setActiveTab("cms")}
+                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                    activeTab === "cms"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                  }`}
+                >
+                  CMS Controls
+                </button>
+                <button
+                  onClick={() => setActiveTab("tickets")}
+                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                    activeTab === "tickets"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                  }`}
+                >
+                  Helpdesk Tickets ({tickets.length})
+                </button>
+              </div>
             </div>
           </div>
 
