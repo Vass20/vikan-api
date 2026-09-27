@@ -34,6 +34,10 @@ namespace VikanMatrimony.WebApi.Models
         public string FamilyDetails { get; set; } = string.Empty;
         public string AboutMe { get; set; } = string.Empty;
 
+        public string AstroStarDetails { get; set; } = "Nadi: Manglik (No)";
+        public string HoroscopeMatch { get; set; } = "Not Required";
+        public string BloodGroup { get; set; } = "B+ (Positive)";
+
         public bool IsVerified { get; set; } = false;
         public bool IsApproved { get; set; } = false;
         public string ApprovalStatus { get; set; } = "Pending";

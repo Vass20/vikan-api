@@ -69,6 +69,11 @@ export default function ChatPage() {
     }).length;
   }, [messages, myProfile]);
 
+  const userMembership = myProfile?.membershipType || currentUser?.membershipType || "Free";
+  const isFreeUser = userMembership === "Free" || userMembership === "Free Member" || userMembership === "Free Package";
+  const isSilverUser = userMembership === "Silver" || userMembership === "Silver Member" || userMembership === "Silver Tier";
+  const isSilverLimitReached = isSilverUser && todayMessagesSent >= 20;
+
   const [hubConnection, setHubConnection] = useState<signalR.HubConnection | null>(null);
 
   const {
@@ -178,20 +183,17 @@ export default function ChatPage() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || !activePartnerId) return;
- 
-    const membership = myProfile?.membershipType || "Free";
-    if (membership === "Free" || membership === "Free Member" || membership === "Free Package") {
-      showToast("Chat messaging is reserved for premium plans. Upgrade to a Silver Membership or higher to start chatting with matches!", "warning");
+
+    if (isFreeUser) {
+      showToast("Chat messaging is reserved for premium plans. Upgrade to a Silver Membership or higher to start chatting!", "warning");
       router.push("/membership");
       return;
     }
- 
-    if (membership === "Silver Member" || membership === "Silver" || membership === "Silver Tier") {
-      if (todayMessagesSent >= 30) {
-        showToast("You have reached the daily chat limit of 30 messages for Silver Members. Upgrade to Gold for unlimited messaging!", "warning");
-        router.push("/membership");
-        return;
-      }
+
+    if (isSilverLimitReached) {
+      showToast("You have reached your daily limit of 20 chat messages for Silver Members. Upgrade to Gold or Diamond for unlimited chatting!", "warning");
+      router.push("/membership");
+      return;
     }
     
     try {
@@ -205,8 +207,13 @@ export default function ChatPage() {
 
       setInputText("");
       refetchMessages();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error sending message:", err);
+      const errorMsg = err?.data?.message || err?.data?.Message || err?.message || "Failed to send message.";
+      showToast(errorMsg, "warning");
+      if (errorMsg.includes("limit") || errorMsg.includes("Silver") || errorMsg.includes("Free")) {
+        router.push("/membership");
+      }
     }
   };
 
@@ -361,7 +368,18 @@ export default function ChatPage() {
                     </div>
                   </div>
 
-                  <div className="relative">
+                  <div className="flex items-center gap-3">
+                    {isSilverUser && (
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm ${
+                        isSilverLimitReached
+                          ? "bg-red-500/20 text-red-400 border-red-500/40 animate-pulse"
+                          : "bg-brand-gold/15 text-brand-gold border-brand-gold/30"
+                      }`}>
+                        {todayMessagesSent} / 20 msgs today
+                      </span>
+                    )}
+
+                    <div className="relative">
                     <button
                       onClick={() => setShowMoreMenu(!showMoreMenu)}
                       className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors cursor-pointer"
@@ -390,6 +408,7 @@ export default function ChatPage() {
                       </div>
                     )}
                   </div>
+                  </div>
                 </div>
 
                 {/* Messages Box */}
@@ -414,7 +433,7 @@ export default function ChatPage() {
                           <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm ${
                             isMe
                               ? "bg-primary text-primary-foreground rounded-tr-none border border-transparent"
-                              : "bg-card text-foreground rounded-tl-none border border-border"
+                              : "bg-card text-[#E5DCD0] rounded-tl-none border border-border"
                           }`}>
                             <p className="text-xs md:text-sm font-sans leading-relaxed break-words whitespace-pre-wrap">
                               {msgText}
@@ -441,53 +460,85 @@ export default function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Panel */}
-                <form onSubmit={handleSend} className="px-6 py-4 border-t border-border bg-card flex items-center gap-3">
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => showToast("Demo feature: Attachment uploads are mocked.", "info")}
-                      className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
-                      title="Upload photos"
-                    >
-                      <ImageIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => showToast("Demo feature: Document attachments are mocked.", "info")}
-                      className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
-                      title="Attach file"
-                    >
-                      <Paperclip className="h-5 w-5" />
-                    </button>
+                {/* Input Panel / Limit Reached Banner */}
+                {isFreeUser ? (
+                  <div className="p-4 border-t border-brand-gold/20 bg-[#0B1A2F]/95 text-center flex flex-col items-center justify-center gap-2">
+                    <div className="flex items-center gap-2 text-brand-gold font-bold text-xs">
+                      <Lock className="h-4 w-4" />
+                      Chat Available on Premium Plans
+                    </div>
+                    <p className="text-[11px] text-[#E5DCD0]/70 max-w-md font-support">
+                      Free accounts cannot send chat messages. Upgrade to Silver (20 messages/day) or Gold/Diamond (Unlimited) to start chatting with your matches!
+                    </p>
+                    <Link href="/membership">
+                      <Button className="gold-gradient text-brand-navy font-bold text-xs uppercase tracking-wider px-5 py-2 rounded-full shadow-md">
+                        Upgrade Membership
+                      </Button>
+                    </Link>
                   </div>
-
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder={`Message ${activePartner.name}...`}
-                    className="flex-1 px-4 py-2.5 border border-border bg-muted/10 hover:bg-muted/5 focus:bg-card focus:border-brand-gold focus:ring-1 focus:ring-brand-gold rounded-full outline-none text-xs md:text-sm font-sans"
-                  />
-
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => showToast("Demo feature: Voice recording is simulated.", "info")}
-                      className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
-                    >
-                      <Mic className="h-5 w-5" />
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={!inputText.trim()}
-                      className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
-                      title="Send message"
-                    >
-                      <Send className="h-5 w-5 text-brand-navy" />
-                    </button>
+                ) : isSilverLimitReached ? (
+                  <div className="p-4 border-t border-amber-500/30 bg-[#0B1A2F]/95 text-center flex flex-col items-center justify-center gap-2">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                      <ShieldAlert className="h-4 w-4" />
+                      Daily Chat Limit Over (20/20 Messages Sent)
+                    </div>
+                    <p className="text-[11px] text-[#E5DCD0]/80 max-w-md font-support leading-relaxed">
+                      You have reached your daily limit of 20 chat messages for Silver Members. Upgrade to Gold, Diamond, or Royal Platinum for unlimited messages!
+                    </p>
+                    <Link href="/membership">
+                      <Button className="gold-gradient text-brand-navy font-bold text-xs uppercase tracking-wider px-6 py-2 rounded-full shadow-md">
+                        Upgrade for Unlimited Chat
+                      </Button>
+                    </Link>
                   </div>
-                </form>
+                ) : (
+                  <form onSubmit={handleSend} className="px-6 py-4 border-t border-border bg-card flex items-center gap-3">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => showToast("Demo feature: Attachment uploads are mocked.", "info")}
+                        className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
+                        title="Upload photos"
+                      >
+                        <ImageIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => showToast("Demo feature: Document attachments are mocked.", "info")}
+                        className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
+                        title="Attach file"
+                      >
+                        <Paperclip className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      placeholder={`Message ${activePartner.name}...`}
+                      className="flex-1 px-4 py-2.5 border border-border bg-muted/10 hover:bg-muted/5 focus:bg-card focus:border-brand-gold focus:ring-1 focus:ring-brand-gold rounded-full outline-none text-xs md:text-sm font-sans"
+                    />
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => showToast("Demo feature: Voice recording is simulated.", "info")}
+                        className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
+                      >
+                        <Mic className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!inputText.trim()}
+                        className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
+                        title="Send message"
+                      >
+                        <Send className="h-5 w-5 text-brand-navy" />
+                      </button>
+                    </div>
+                  </form>
+                )}
               </>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-muted-foreground font-support bg-muted/5">

@@ -94,6 +94,9 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.FamilyValues = request.FamilyValues?.Trim() ?? string.Empty;
             profile.FamilyDetails = request.FamilyDetails?.Trim() ?? string.Empty;
             profile.AboutMe = request.AboutMe?.Trim() ?? string.Empty;
+            profile.AstroStarDetails = request.AstroStarDetails?.Trim() ?? string.Empty;
+            profile.HoroscopeMatch = request.HoroscopeMatch?.Trim() ?? string.Empty;
+            profile.BloodGroup = request.BloodGroup?.Trim() ?? string.Empty;
             profile.MaritalStatus = request.MaritalStatus?.Trim() ?? string.Empty;
             profile.MotherTongue = request.MotherTongue?.Trim() ?? string.Empty;
             profile.Religion = request.Religion?.Trim() ?? string.Empty;
@@ -143,6 +146,9 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.FamilyValues,
                 profile.FamilyDetails,
                 profile.AboutMe,
+                profile.AstroStarDetails,
+                profile.HoroscopeMatch,
+                profile.BloodGroup,
                 profile.IsVerified,
                 profile.IsPremium,
                 profile.MembershipType,
@@ -740,6 +746,9 @@ namespace VikanMatrimony.WebApi.Controllers
         public string FamilyValues { get; set; } = string.Empty;
         public string FamilyDetails { get; set; } = string.Empty;
         public string AboutMe { get; set; } = string.Empty;
+        public string AstroStarDetails { get; set; } = string.Empty;
+        public string HoroscopeMatch { get; set; } = string.Empty;
+        public string BloodGroup { get; set; } = string.Empty;
         public string MaritalStatus { get; set; } = string.Empty;
         public string MotherTongue { get; set; } = string.Empty;
         public string Religion { get; set; } = string.Empty;

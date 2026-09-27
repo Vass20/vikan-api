@@ -40,6 +40,9 @@ export interface Profile {
   horoscopeRequired: boolean;
   aboutMe: string;
   familyDetails: string;
+  astroStarDetails?: string;
+  horoscopeMatch?: string;
+  bloodGroup?: string;
   photos: string[];
   isVerified: boolean;
   isPremium: boolean;

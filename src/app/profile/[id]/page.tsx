@@ -126,6 +126,9 @@ export default function ProfileDetailPage() {
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editAboutMe, setEditAboutMe] = useState("");
+  const [editAstroStarDetails, setEditAstroStarDetails] = useState("");
+  const [editHoroscopeMatch, setEditHoroscopeMatch] = useState("");
+  const [editBloodGroup, setEditBloodGroup] = useState("");
   const [editOccupation, setEditOccupation] = useState("");
   const [editSalary, setEditSalary] = useState("");
   const [editCity, setEditCity] = useState("");
@@ -183,6 +186,9 @@ export default function ProfileDetailPage() {
     if (profile && isOwnProfile) {
       setEditName(profile.name || "");
       setEditAboutMe(profile.aboutMe || "");
+      setEditAstroStarDetails(profile.astroStarDetails || "Nadi: Manglik (No)");
+      setEditHoroscopeMatch(profile.horoscopeMatch || (profile.horoscopeRequired ? "Required / Kundali Available" : "Not Required"));
+      setEditBloodGroup(profile.bloodGroup || "B+ (Positive)");
       setEditOccupation(profile.occupation || "");
       setEditSalary(profile.salary || "");
       setEditCity(profile.city || "");
@@ -253,21 +259,21 @@ export default function ProfileDetailPage() {
   ];
 
   if (currentUser) {
-    if (profile.religion === currentUser.religion) {
+    if (profile.religion && currentUser.religion && profile.religion === currentUser.religion) {
       matchScore += 8;
       matchCriteria[0].match = true;
     }
     const currentAge = profile.age;
-    const prefMin = currentUser.partnerPreferences.ageMin;
-    const prefMax = currentUser.partnerPreferences.ageMax;
-    if (currentAge >= prefMin && currentAge <= prefMax) {
+    const prefMin = currentUser.partnerPreferences?.ageMin ?? 20;
+    const prefMax = currentUser.partnerPreferences?.ageMax ?? 40;
+    if (currentAge && currentAge >= prefMin && currentAge <= prefMax) {
       matchScore += 6;
       matchCriteria[1].match = true;
     }
     matchScore += 5; // default height match
     matchCriteria[2].match = true;
 
-    if (profile.diet === currentUser.diet) {
+    if (profile.diet && currentUser.diet && profile.diet === currentUser.diet) {
       matchScore += 5;
       matchCriteria[3].match = true;
     }
@@ -414,6 +420,9 @@ export default function ProfileDetailPage() {
         motherTongue: editMotherTongue,
         religion: editReligion,
         community: editCommunity,
+        astroStarDetails: editAstroStarDetails,
+        horoscopeMatch: editHoroscopeMatch,
+        bloodGroup: editBloodGroup,
         dateOfBirth: editDob ? new Date(editDob).toISOString() : undefined
       }).unwrap();
 
@@ -931,15 +940,15 @@ export default function ProfileDetailPage() {
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3 w-1/3">Astro Star Details</td>
-                            <td className="font-semibold py-3">Nadi: Manglik (No)</td>
+                            <td className="font-semibold py-3">{profile.astroStarDetails || "Nadi: Manglik (No)"}</td>
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Horoscope Match</td>
-                            <td className="font-semibold py-3">{profile.horoscopeRequired ? "Required / Kundali Available" : "Not Required"}</td>
+                            <td className="font-semibold py-3">{profile.horoscopeMatch || (profile.horoscopeRequired ? "Required / Kundali Available" : "Not Required")}</td>
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Blood Group</td>
-                            <td className="font-semibold py-3">B+ (Positive)</td>
+                            <td className="font-semibold py-3">{profile.bloodGroup || "B+ (Positive)"}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -1323,6 +1332,45 @@ export default function ProfileDetailPage() {
             type="tel"
             value={editParentsNumber}
             onChange={(e) => setEditParentsNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Astro Star Details"
+              value={editAstroStarDetails}
+              onChange={(e) => setEditAstroStarDetails(e.target.value)}
+              placeholder="E.g. Nadi: Manglik (No)"
+              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+            />
+            <Select
+              label="Horoscope Match"
+              value={editHoroscopeMatch}
+              onChange={(e) => setEditHoroscopeMatch(e.target.value)}
+              options={[
+                { value: "Not Required", label: "Not Required" },
+                { value: "Required / Kundali Available", label: "Required / Kundali Available" },
+                { value: "Must Match", label: "Must Match" }
+              ]}
+              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+            />
+          </div>
+
+          <Select
+            label="Blood Group"
+            value={editBloodGroup}
+            onChange={(e) => setEditBloodGroup(e.target.value)}
+            options={[
+              { value: "", label: "Select..." },
+              { value: "A+ (Positive)", label: "A+ (Positive)" },
+              { value: "A- (Negative)", label: "A- (Negative)" },
+              { value: "B+ (Positive)", label: "B+ (Positive)" },
+              { value: "B- (Negative)", label: "B- (Negative)" },
+              { value: "O+ (Positive)", label: "O+ (Positive)" },
+              { value: "O- (Negative)", label: "O- (Negative)" },
+              { value: "AB+ (Positive)", label: "AB+ (Positive)" },
+              { value: "AB- (Negative)", label: "AB- (Negative)" }
+            ]}
             className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
           />
 
