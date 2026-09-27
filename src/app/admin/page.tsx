@@ -211,86 +211,98 @@ export default function AdminPortalPage() {
               </p>
             </div>
 
-            {/* Navigation Dropdown & Pills */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#E5DCD0]/70 font-support shrink-0">
-                  Select Menu:
-                </span>
-                <select
-                  value={activeTab}
-                  onChange={(e) => setActiveTab(e.target.value as any)}
-                  className="bg-[#0B1A2F] border-2 border-brand-gold/40 text-brand-gold text-xs font-bold font-support rounded-xl px-4 py-2 focus:outline-none focus:border-brand-gold cursor-pointer shadow-md min-w-[230px]"
-                >
-                  <option value="approvals" className="bg-[#0B1A2F] text-white">👤 Profile Approvals ({pendingApprovals.length})</option>
-                  <option value="verification" className="bg-[#0B1A2F] text-white">🛡️ Verification Queue ({pendingRequests.length})</option>
-                  <option value="reports" className="bg-[#0B1A2F] text-white">🚩 Compliance Reports ({reports.length})</option>
-                  <option value="metrics" className="bg-[#0B1A2F] text-white">📊 System Metrics</option>
-                  <option value="cms" className="bg-[#0B1A2F] text-white">✍️ CMS Controls</option>
-                  <option value="tickets" className="bg-[#0B1A2F] text-white">🎫 Helpdesk Tickets ({tickets.length})</option>
-                </select>
+            {/* Responsive Navigation Layout */}
+            <div className="w-full lg:w-auto">
+              {/* Mobile & Tablet Dropdown Selector */}
+              <div className="lg:hidden w-full">
+                <label className="text-[11px] font-bold text-brand-gold uppercase tracking-wider block mb-1.5 font-support">
+                  Select Admin Module:
+                </label>
+                <div className="relative">
+                  <select
+                    value={activeTab}
+                    onChange={(e) => setActiveTab(e.target.value as any)}
+                    className="w-full bg-[#0B1A2F] border-2 border-brand-gold/50 text-brand-gold text-xs font-bold font-support rounded-xl px-4 py-3 outline-none focus:border-brand-gold cursor-pointer shadow-lg appearance-none"
+                  >
+                    <option value="approvals" className="bg-[#0B1A2F] text-white">👤 Profile Approvals ({pendingApprovals.length})</option>
+                    <option value="verification" className="bg-[#0B1A2F] text-white">🛡️ Verification Queue ({pendingRequests.length})</option>
+                    <option value="reports" className="bg-[#0B1A2F] text-white">🚩 Compliance Reports ({reports.length})</option>
+                    <option value="metrics" className="bg-[#0B1A2F] text-white">📊 System Metrics</option>
+                    <option value="cms" className="bg-[#0B1A2F] text-white">✍️ CMS Controls</option>
+                    <option value="tickets" className="bg-[#0B1A2F] text-white">🎫 Helpdesk Tickets ({tickets.length})</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold text-xs font-bold">
+                    ▼
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-wrap bg-[#081626]/60 rounded-2xl p-1.5 border border-brand-gold/20 gap-1.5 max-w-full">
+              {/* Desktop Tab Buttons */}
+              <div className="hidden lg:flex flex-wrap items-center bg-[#081626]/80 rounded-2xl p-1.5 border border-brand-gold/25 gap-2 shadow-inner">
                 <button
                   onClick={() => setActiveTab("approvals")}
-                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-1.5 ${
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
                     activeTab === "approvals"
-                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
                   }`}
                 >
-                  <UserCheck className="h-3.5 w-3.5" />
+                  <UserCheck className="h-4 w-4" />
                   Profile Approvals ({pendingApprovals.length})
                 </button>
                 <button
                   onClick={() => setActiveTab("verification")}
-                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
                     activeTab === "verification"
-                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
                   }`}
                 >
+                  <ShieldAlert className="h-4 w-4" />
                   Verification Queue ({pendingRequests.length})
                 </button>
                 <button
                   onClick={() => setActiveTab("reports")}
-                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
                     activeTab === "reports"
-                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
                   }`}
                 >
+                  <Flag className="h-4 w-4" />
                   Compliance Reports ({reports.length})
                 </button>
                 <button
                   onClick={() => setActiveTab("metrics")}
-                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
                     activeTab === "metrics"
-                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
                   }`}
                 >
+                  <TrendingUp className="h-4 w-4" />
                   System Metrics
                 </button>
                 <button
                   onClick={() => setActiveTab("cms")}
-                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
                     activeTab === "cms"
-                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
                   }`}
                 >
+                  <PenTool className="h-4 w-4" />
                   CMS Controls
                 </button>
                 <button
                   onClick={() => setActiveTab("tickets")}
-                  className={`py-1.5 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap ${
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
                     activeTab === "tickets"
-                      ? "bg-brand-gold text-brand-navy border-transparent shadow-sm font-bold"
-                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/20 hover:border-brand-gold/45"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
                   }`}
                 >
+                  <Bookmark className="h-4 w-4" />
                   Helpdesk Tickets ({tickets.length})
                 </button>
               </div>
