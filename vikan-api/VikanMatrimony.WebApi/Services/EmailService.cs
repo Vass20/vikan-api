@@ -102,31 +102,70 @@ namespace VikanMatrimony.WebApi.Services
             if (isRestApiConfigured)
             {
                 var (success, errorMsg) = await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail);
-                if (!success)
+                if (success)
                 {
-                    throw new Exception($"Failed to send email via REST API: {errorMsg}");
+                    return;
                 }
-                return;
+                _logger.LogWarning("REST API email send failed: {Error}. Falling back to SMTP...", errorMsg);
             }
 
-            // 2. Fall back to standard SMTP only if REST API is not configured
-            using var client = new SmtpClient(host, port)
+            // 2. Try primary SMTP
+            try
             {
-                Credentials = new NetworkCredential(senderEmail, appPassword),
-                EnableSsl = enableSsl
-            };
+                using var client = new SmtpClient(host, port)
+                {
+                    Credentials = new NetworkCredential(senderEmail, appPassword),
+                    EnableSsl = enableSsl,
+                    Timeout = 12000
+                };
 
-            using var mailMessage = new MailMessage
+                using var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(senderEmail, senderName),
+                    Subject = subject,
+                    Body = htmlBody,
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(toEmail);
+                await client.SendMailAsync(mailMessage);
+            }
+            catch (Exception ex)
             {
-                From = new MailAddress(senderEmail, senderName),
-                Subject = subject,
-                Body = htmlBody,
-                IsBodyHtml = true
-            };
+                _logger.LogWarning(ex, "Primary SMTP attempt on {Host}:{Port} failed ({Message}). Attempting fallback on port 465...", host, port, ex.Message);
 
-            mailMessage.To.Add(toEmail);
+                if (port == 587)
+                {
+                    try
+                    {
+                        using var fallbackClient = new SmtpClient(host, 465)
+                        {
+                            Credentials = new NetworkCredential(senderEmail, appPassword),
+                            EnableSsl = true,
+                            Timeout = 12000
+                        };
 
-            await client.SendMailAsync(mailMessage);
+                        using var fallbackMessage = new MailMessage
+                        {
+                            From = new MailAddress(senderEmail, senderName),
+                            Subject = subject,
+                            Body = htmlBody,
+                            IsBodyHtml = true
+                        };
+
+                        fallbackMessage.To.Add(toEmail);
+                        await fallbackClient.SendMailAsync(fallbackMessage);
+                        _logger.LogInformation("Email sent successfully via fallback port 465.");
+                        return;
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        _logger.LogError(fallbackEx, "Fallback SMTP on port 465 also failed.");
+                    }
+                }
+
+                throw;
+            }
         }
 
         public async Task SendOtpEmailAsync(string toEmail, string otp)
