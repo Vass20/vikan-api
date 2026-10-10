@@ -114,8 +114,10 @@ namespace VikanMatrimony.WebApi.Services
             {
                 using var client = new SmtpClient(host, port)
                 {
+                    UseDefaultCredentials = false,
                     Credentials = new NetworkCredential(senderEmail, appPassword),
                     EnableSsl = enableSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
                     Timeout = 12000
                 };
 
@@ -140,8 +142,10 @@ namespace VikanMatrimony.WebApi.Services
                     {
                         using var fallbackClient = new SmtpClient(host, 465)
                         {
+                            UseDefaultCredentials = false,
                             Credentials = new NetworkCredential(senderEmail, appPassword),
                             EnableSsl = true,
+                            DeliveryMethod = SmtpDeliveryMethod.Network,
                             Timeout = 12000
                         };
 
