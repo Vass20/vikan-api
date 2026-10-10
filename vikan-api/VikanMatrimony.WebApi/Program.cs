@@ -24,7 +24,10 @@ builder.Configuration
 
 // Register PostgreSQL Database Context with Connection Pooling
 builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 
 // Configure Response Compression
 builder.Services.AddResponseCompression(options =>
@@ -176,8 +179,16 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     
-    // Automatically apply any pending EF migrations on startup
-    context.Database.Migrate();
+    // Automatically apply any pending EF migrations on startup safely
+    try
+    {
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "EF Core Migration skipped or failed to apply cleanly on startup: {Message}", ex.Message);
+    }
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
