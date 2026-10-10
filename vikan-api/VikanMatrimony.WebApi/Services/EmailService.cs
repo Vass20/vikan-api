@@ -32,50 +32,49 @@ namespace VikanMatrimony.WebApi.Services
             };
             message.Body = bodyBuilder.ToMessageBody();
 
-            using var client = new SmtpClient();
-            // Accept all SSL certificates if needed for Linux trust store compatibility
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-
-            try
+            // Attempt 1: Try Port 465 (SSL Direct) first, as Linux VPS cloud hosts (Hostinger/AWS/DO) open 465 by default
+            using (var client = new SmtpClient())
             {
-                _logger.LogInformation("Connecting to SMTP {Host}:{Port} via MailKit...", host, port);
-                
-                var socketOptions = port == 465 
-                    ? SecureSocketOptions.SslOnConnect 
-                    : SecureSocketOptions.StartTls;
+                client.Timeout = 7000; // 7 seconds timeout per attempt
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-                await client.ConnectAsync(host, port, socketOptions);
-                await client.AuthenticateAsync(senderEmail, appPassword);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-                _logger.LogInformation("Email successfully sent to {Email} via MailKit (Port {Port}).", toEmail, port);
-                return;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "MailKit SMTP attempt on {Host}:{Port} failed ({Message}). Trying fallback port 465...", host, port, ex.Message);
-
-                if (port != 465)
+                try
                 {
-                    try
-                    {
-                        using var fallbackClient = new SmtpClient();
-                        fallbackClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
-
-                        await fallbackClient.ConnectAsync(host, 465, SecureSocketOptions.SslOnConnect);
-                        await fallbackClient.AuthenticateAsync(senderEmail, appPassword);
-                        await fallbackClient.SendAsync(message);
-                        await fallbackClient.DisconnectAsync(true);
-                        _logger.LogInformation("Email successfully sent to {Email} via MailKit Fallback Port 465.", toEmail);
-                        return;
-                    }
-                    catch (Exception fallbackEx)
-                    {
-                        _logger.LogError(fallbackEx, "Fallback MailKit SMTP on port 465 also failed.");
-                    }
+                    _logger.LogInformation("Connecting to Gmail SMTP {Host}:465 (SSL)...", host);
+                    await client.ConnectAsync(host, 465, SecureSocketOptions.SslOnConnect);
+                    await client.AuthenticateAsync(senderEmail, appPassword);
+                    await client.SendAsync(message);
+                    await client.DisconnectAsync(true);
+                    _logger.LogInformation("Email successfully sent to {Email} via MailKit Port 465 (SSL).", toEmail);
+                    return;
                 }
+                catch (Exception ex465)
+                {
+                    _logger.LogWarning(ex465, "MailKit SMTP on Port 465 failed ({Message}). Trying Port 587 (STARTTLS)...", ex465.Message);
+                }
+            }
 
-                throw;
+            // Attempt 2: Try Port 587 (STARTTLS) as fallback
+            using (var client587 = new SmtpClient())
+            {
+                client587.Timeout = 7000;
+                client587.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+                try
+                {
+                    _logger.LogInformation("Connecting to Gmail SMTP {Host}:587 (STARTTLS)...", host);
+                    await client587.ConnectAsync(host, 587, SecureSocketOptions.StartTls);
+                    await client587.AuthenticateAsync(senderEmail, appPassword);
+                    await client587.SendAsync(message);
+                    await client587.DisconnectAsync(true);
+                    _logger.LogInformation("Email successfully sent to {Email} via MailKit Port 587 (STARTTLS).", toEmail);
+                    return;
+                }
+                catch (Exception ex587)
+                {
+                    _logger.LogError(ex587, "MailKit SMTP on Port 587 also failed: {Message}", ex587.Message);
+                    throw new InvalidOperationException($"SMTP sending failed on Port 465 and 587. Error: {ex587.Message}", ex587);
+                }
             }
         }
 

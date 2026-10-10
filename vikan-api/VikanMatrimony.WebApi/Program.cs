@@ -149,8 +149,13 @@ app.UseSwaggerUI(c =>
 app.UseCors(policy => policy
     .SetIsOriginAllowed(origin => 
     {
+        if (string.IsNullOrEmpty(origin)) return false;
         var uri = new Uri(origin);
-        return uri.Host == "localhost" || uri.Host == "vikan-seven.vercel.app" || uri.Host.EndsWith(".vercel.app");
+        return uri.Host == "localhost" 
+            || uri.Host == "vikanmatrimony.in"
+            || uri.Host.EndsWith("vikanmatrimony.in")
+            || uri.Host == "vikan-seven.vercel.app" 
+            || uri.Host.EndsWith(".vercel.app");
     })
     .AllowAnyMethod()
     .AllowAnyHeader()
