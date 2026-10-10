@@ -1,11 +1,10 @@
 using System;
-using System.Net;
-using System.Net.Mail;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 
 namespace VikanMatrimony.WebApi.Services
 {
@@ -13,7 +12,6 @@ namespace VikanMatrimony.WebApi.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
@@ -21,150 +19,59 @@ namespace VikanMatrimony.WebApi.Services
             _logger = logger;
         }
 
-        private async Task<(bool success, string? errorMessage)> TrySendViaRestApiAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail)
+        private async Task SendEmailCoreAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail, string host, int port, string appPassword)
         {
-            var brevoApiKey = _configuration["Brevo:ApiKey"];
-            var resendApiKey = _configuration["Resend:ApiKey"];
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(senderName, senderEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
 
-            if (!string.IsNullOrEmpty(brevoApiKey))
+            var bodyBuilder = new BodyBuilder
             {
-                try
-                {
-                    _logger.LogInformation("Attempting to send email to {Email} via Brevo REST API...", toEmail);
-                    using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
-                    request.Headers.Add("api-key", brevoApiKey);
-                    request.Content = JsonContent.Create(new
-                    {
-                        sender = new { name = senderName, email = senderEmail },
-                        to = new[] { new { email = toEmail } },
-                        subject = subject,
-                        htmlContent = htmlBody
-                    });
-                    
-                    var response = await _httpClient.SendAsync(request);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        _logger.LogInformation("Email sent successfully via Brevo REST API.");
-                        return (true, null);
-                    }
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Brevo API returned error: {Error}", error);
-                    return (false, $"Brevo API error: {response.StatusCode} - {error}");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send email via Brevo API.");
-                    return (false, $"Brevo exception: {ex.Message}");
-                }
-            }
-            else if (!string.IsNullOrEmpty(resendApiKey))
-            {
-                try
-                {
-                    _logger.LogInformation("Attempting to send email to {Email} via Resend REST API...", toEmail);
-                    using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
-                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", resendApiKey);
-                    request.Content = JsonContent.Create(new
-                    {
-                        from = $"{senderName} <onboarding@resend.dev>", // Or verified domain email
-                        to = new[] { toEmail },
-                        subject = subject,
-                        html = htmlBody
-                    });
+                HtmlBody = htmlBody
+            };
+            message.Body = bodyBuilder.ToMessageBody();
 
-                    var response = await _httpClient.SendAsync(request);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        _logger.LogInformation("Email sent successfully via Resend REST API.");
-                        return (true, null);
-                    }
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Resend API returned error: {Error}", error);
-                    return (false, $"Resend API error: {response.StatusCode} - {error}");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send email via Resend API.");
-                    return (false, $"Resend exception: {ex.Message}");
-                }
-            }
+            using var client = new SmtpClient();
+            // Accept all SSL certificates if needed for Linux trust store compatibility
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-            return (false, "REST API not configured");
-        }
-
-        private async Task SendEmailCoreAsync(string toEmail, string subject, string htmlBody, string senderName, string senderEmail, string host, int port, string appPassword, bool enableSsl)
-        {
-            var brevoApiKey = _configuration["Brevo:ApiKey"];
-            var resendApiKey = _configuration["Resend:ApiKey"];
-            var isRestApiConfigured = !string.IsNullOrEmpty(brevoApiKey) || !string.IsNullOrEmpty(resendApiKey);
-
-            // 1. Try sending via REST API first
-            if (isRestApiConfigured)
-            {
-                var (success, errorMsg) = await TrySendViaRestApiAsync(toEmail, subject, htmlBody, senderName, senderEmail);
-                if (success)
-                {
-                    return;
-                }
-                _logger.LogWarning("REST API email send failed: {Error}. Falling back to SMTP...", errorMsg);
-            }
-
-            // 2. Try primary SMTP
             try
             {
-                using var client = new SmtpClient(host, port)
-                {
-                    UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(senderEmail, appPassword),
-                    EnableSsl = enableSsl,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    Timeout = 12000
-                };
+                _logger.LogInformation("Connecting to SMTP {Host}:{Port} via MailKit...", host, port);
+                
+                var socketOptions = port == 465 
+                    ? SecureSocketOptions.SslOnConnect 
+                    : SecureSocketOptions.StartTls;
 
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderName),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
-
-                mailMessage.To.Add(toEmail);
-                await client.SendMailAsync(mailMessage);
+                await client.ConnectAsync(host, port, socketOptions);
+                await client.AuthenticateAsync(senderEmail, appPassword);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+                _logger.LogInformation("Email successfully sent to {Email} via MailKit (Port {Port}).", toEmail, port);
+                return;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Primary SMTP attempt on {Host}:{Port} failed ({Message}). Attempting fallback on port 465...", host, port, ex.Message);
+                _logger.LogWarning(ex, "MailKit SMTP attempt on {Host}:{Port} failed ({Message}). Trying fallback port 465...", host, port, ex.Message);
 
-                if (port == 587)
+                if (port != 465)
                 {
                     try
                     {
-                        using var fallbackClient = new SmtpClient(host, 465)
-                        {
-                            UseDefaultCredentials = false,
-                            Credentials = new NetworkCredential(senderEmail, appPassword),
-                            EnableSsl = true,
-                            DeliveryMethod = SmtpDeliveryMethod.Network,
-                            Timeout = 12000
-                        };
+                        using var fallbackClient = new SmtpClient();
+                        fallbackClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-                        using var fallbackMessage = new MailMessage
-                        {
-                            From = new MailAddress(senderEmail, senderName),
-                            Subject = subject,
-                            Body = htmlBody,
-                            IsBodyHtml = true
-                        };
-
-                        fallbackMessage.To.Add(toEmail);
-                        await fallbackClient.SendMailAsync(fallbackMessage);
-                        _logger.LogInformation("Email sent successfully via fallback port 465.");
+                        await fallbackClient.ConnectAsync(host, 465, SecureSocketOptions.SslOnConnect);
+                        await fallbackClient.AuthenticateAsync(senderEmail, appPassword);
+                        await fallbackClient.SendAsync(message);
+                        await fallbackClient.DisconnectAsync(true);
+                        _logger.LogInformation("Email successfully sent to {Email} via MailKit Fallback Port 465.", toEmail);
                         return;
                     }
                     catch (Exception fallbackEx)
                     {
-                        _logger.LogError(fallbackEx, "Fallback SMTP on port 465 also failed.");
+                        _logger.LogError(fallbackEx, "Fallback MailKit SMTP on port 465 also failed.");
                     }
                 }
 
@@ -178,8 +85,7 @@ namespace VikanMatrimony.WebApi.Services
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
             var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderName = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
-            var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "zzmibpayowuthfru";
 
             var subject = $"{otp} is your Vikan Matrimony Verification Code";
             
@@ -217,7 +123,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword, enableSsl);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword);
                 _logger.LogInformation("OTP email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -233,8 +139,7 @@ namespace VikanMatrimony.WebApi.Services
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
             var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderName = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
-            var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "zzmibpayowuthfru";
 
             var subject = "🎉 Congratulations! Your Vikan Matrimony Profile Has Been Approved";
             
@@ -277,7 +182,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword, enableSsl);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword);
                 _logger.LogInformation("Approval email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -293,8 +198,7 @@ namespace VikanMatrimony.WebApi.Services
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
             var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderName = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
-            var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "zzmibpayowuthfru";
 
             var subject = "Update Regarding Your Vikan Matrimony Registration";
             var reasonText = !string.IsNullOrWhiteSpace(reason) 
@@ -347,7 +251,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword, enableSsl);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderName, senderEmail, host, port, appPassword);
                 _logger.LogInformation("Rejection email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -363,8 +267,7 @@ namespace VikanMatrimony.WebApi.Services
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
             var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderNameConfig = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
-            var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "zzmibpayowuthfru";
 
             var subject = $"💌 New Interest Request from {senderName} on Vikan Matrimony";
 
@@ -408,7 +311,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderNameConfig, senderEmail, host, port, appPassword, enableSsl);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderNameConfig, senderEmail, host, port, appPassword);
                 _logger.LogInformation("Interest received email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
@@ -423,8 +326,7 @@ namespace VikanMatrimony.WebApi.Services
             var port = int.TryParse(_configuration["Smtp:Port"], out var p) ? p : 587;
             var senderEmail = _configuration["Smtp:SenderEmail"] ?? "vikanmatrimony@gmail.com";
             var senderNameConfig = _configuration["Smtp:SenderName"] ?? "Vikan Matrimony";
-            var appPassword = _configuration["Smtp:AppPassword"] ?? "bqfzikzybynfdbzm";
-            var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var ssl) ? ssl : true;
+            var appPassword = _configuration["Smtp:AppPassword"] ?? "zzmibpayowuthfru";
 
             var subject = $"🎉 {receiverName} Accepted Your Interest on Vikan Matrimony!";
 
@@ -468,7 +370,7 @@ namespace VikanMatrimony.WebApi.Services
 
             try
             {
-                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderNameConfig, senderEmail, host, port, appPassword, enableSsl);
+                await SendEmailCoreAsync(toEmail, subject, htmlBody, senderNameConfig, senderEmail, host, port, appPassword);
                 _logger.LogInformation("Interest accepted email successfully sent to {Email}", toEmail);
             }
             catch (Exception ex)
