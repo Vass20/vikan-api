@@ -179,7 +179,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     
-    // Automatically apply any pending EF migrations on startup safely
+    // Automatically apply any pending EF migrations and missing schema columns on startup safely
     try
     {
         context.Database.Migrate();
@@ -188,6 +188,20 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogWarning(ex, "EF Core Migration skipped or failed to apply cleanly on startup: {Message}", ex.Message);
+    }
+
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""AstroStarDetails"" text NOT NULL DEFAULT 'Nadi: Manglik (No)';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""HoroscopeMatch"" text NOT NULL DEFAULT 'Not Required';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""BloodGroup"" text NOT NULL DEFAULT 'B+ (Positive)';
+        ");
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Column auto-creation skipped: {Message}", ex.Message);
     }
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
