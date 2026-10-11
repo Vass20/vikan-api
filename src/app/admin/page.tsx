@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
@@ -139,7 +140,8 @@ export default function AdminPortalPage() {
 
   const activeCustomerFilterCount = (customerFilterGender !== "all" ? 1 : 0) +
     (customerFilterMembership !== "all" ? 1 : 0) +
-    (customerFilterStatus !== "all" ? 1 : 0);
+    (customerFilterStatus !== "all" ? 1 : 0) +
+    (customerSearchQuery.trim() ? 1 : 0);
 
   const filteredCustomers = React.useMemo(() => {
     return allCustomers.filter((c: any) => {
@@ -493,7 +495,27 @@ export default function AdminPortalPage() {
                     Audit, filter, and view complete profiles of all registered members. Export records to spreadsheet or generate a report.
                   </p>
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomerFilters(prev => !prev)}
+                    className={`px-4 py-2.5 rounded-xl border font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md ${
+                      showCustomerFilters || activeCustomerFilterCount > 0
+                        ? "bg-brand-gold text-brand-navy border-brand-gold shadow-lg"
+                        : "bg-[#081626] border-brand-gold/40 text-brand-gold hover:bg-brand-gold/10"
+                    }`}
+                    title={showCustomerFilters ? "Hide Filters & Search" : "Open Filters & Search"}
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>{showCustomerFilters ? "Hide Filters" : "Filters"}</span>
+                    {activeCustomerFilterCount > 0 && (
+                      <span className={`h-4 w-4 rounded-full font-bold text-[10px] flex items-center justify-center ${
+                        showCustomerFilters ? "bg-brand-navy text-brand-gold" : "bg-brand-gold text-brand-navy"
+                      }`}>
+                        {activeCustomerFilterCount}
+                      </span>
+                    )}
+                  </button>
                   <button
                     onClick={exportCustomersToCsv}
                     className="px-4 py-2.5 rounded-xl bg-brand-gold text-brand-navy font-bold text-xs flex items-center gap-2 hover:bg-brand-gold/90 transition-all cursor-pointer shadow-md"
@@ -556,141 +578,109 @@ export default function AdminPortalPage() {
                 </div>
               </div>
 
-              {/* Filter Toolbar */}
-              <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3">
-                {/* Search Bar + Filter Toggle */}
-                <div className="flex items-center gap-3">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Search name, email, phone, city, caste..."
-                      value={customerSearchQuery}
-                      onChange={(e) => { setCustomerSearchQuery(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder-muted-foreground/60 focus:outline-none focus:border-brand-gold"
-                    />
-                    {customerSearchQuery && (
-                      <button
-                        onClick={() => { setCustomerSearchQuery(""); setCustomerPage(1); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white cursor-pointer"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Filter Icon Button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomerFilters(prev => !prev)}
-                    className={`px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                      showCustomerFilters || activeCustomerFilterCount > 0
-                        ? "bg-brand-gold/20 border-brand-gold text-brand-gold shadow-sm"
-                        : "bg-[#081626]/80 border-brand-gold/30 text-muted-foreground hover:text-white hover:border-brand-gold/60"
-                    }`}
-                    title={showCustomerFilters ? "Hide Filters" : "Show Filters"}
-                  >
-                    <Filter className="h-4 w-4" />
-                    <span className="hidden sm:inline">Filters</span>
-                    {activeCustomerFilterCount > 0 && (
-                      <span className="h-4 w-4 rounded-full bg-brand-gold text-brand-navy font-bold text-[10px] flex items-center justify-center">
-                        {activeCustomerFilterCount}
-                      </span>
-                    )}
-                  </button>
-                </div>
-
-                {/* Filter Section (conditionally displayed when filter icon clicked) */}
+              {/* Filter & Search Toolbar (Smooth animated transition on toggle) */}
+              <AnimatePresence>
                 {showCustomerFilters && (
-                  <div className="pt-3 border-t border-border/40 space-y-2 animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-brand-gold uppercase tracking-wider font-support">
-                        Filter Criteria:
-                      </span>
-                      {activeCustomerFilterCount > 0 && (
-                        <button
-                          onClick={() => {
-                            setCustomerFilterGender("all");
-                            setCustomerFilterMembership("all");
-                            setCustomerFilterStatus("all");
-                            setCustomerPage(1);
-                          }}
-                          className="text-[11px] text-brand-gold hover:underline cursor-pointer font-support"
-                        >
-                          Clear Filters
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* Gender Filter */}
-                      <div className="relative">
-                        <select
-                          value={customerFilterGender}
-                          onChange={(e) => { setCustomerFilterGender(e.target.value); setCustomerPage(1); }}
-                          className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
-                        >
-                          <option value="all" className="bg-[#0B1A2F]">All Genders</option>
-                          <option value="Male" className="bg-[#0B1A2F]">Male</option>
-                          <option value="Female" className="bg-[#0B1A2F]">Female</option>
-                        </select>
-                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, y: -8 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -8 }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        {/* Search Input */}
+                        <div className="md:col-span-2 relative">
+                          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            placeholder="Search name, email, phone, city, caste..."
+                            value={customerSearchQuery}
+                            onChange={(e) => { setCustomerSearchQuery(e.target.value); setCustomerPage(1); }}
+                            className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder-muted-foreground/60 focus:outline-none focus:border-brand-gold"
+                            autoFocus
+                          />
+                          {customerSearchQuery && (
+                            <button
+                              onClick={() => { setCustomerSearchQuery(""); setCustomerPage(1); }}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white cursor-pointer"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Gender Filter */}
+                        <div className="relative">
+                          <select
+                            value={customerFilterGender}
+                            onChange={(e) => { setCustomerFilterGender(e.target.value); setCustomerPage(1); }}
+                            className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
+                          >
+                            <option value="all" className="bg-[#0B1A2F]">All Genders</option>
+                            <option value="Male" className="bg-[#0B1A2F]">Male</option>
+                            <option value="Female" className="bg-[#0B1A2F]">Female</option>
+                          </select>
+                          <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                        </div>
+
+                        {/* Membership Filter */}
+                        <div className="relative">
+                          <select
+                            value={customerFilterMembership}
+                            onChange={(e) => { setCustomerFilterMembership(e.target.value); setCustomerPage(1); }}
+                            className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
+                          >
+                            <option value="all" className="bg-[#0B1A2F]">All Memberships</option>
+                            <option value="Free" className="bg-[#0B1A2F]">Free</option>
+                            <option value="Silver" className="bg-[#0B1A2F]">Silver Member</option>
+                            <option value="Gold" className="bg-[#0B1A2F]">Gold Member</option>
+                            <option value="Platinum" className="bg-[#0B1A2F]">Platinum Member</option>
+                          </select>
+                          <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                        </div>
+
+                        {/* Approval / Verification Filter */}
+                        <div className="relative">
+                          <select
+                            value={customerFilterStatus}
+                            onChange={(e) => { setCustomerFilterStatus(e.target.value); setCustomerPage(1); }}
+                            className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
+                          >
+                            <option value="all" className="bg-[#0B1A2F]">All Statuses</option>
+                            <option value="Approved" className="bg-[#0B1A2F]">Approved</option>
+                            <option value="Pending" className="bg-[#0B1A2F]">Pending Approval</option>
+                            <option value="Rejected" className="bg-[#0B1A2F]">Rejected</option>
+                          </select>
+                          <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                        </div>
                       </div>
 
-                      {/* Membership Filter */}
-                      <div className="relative">
-                        <select
-                          value={customerFilterMembership}
-                          onChange={(e) => { setCustomerFilterMembership(e.target.value); setCustomerPage(1); }}
-                          className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
-                        >
-                          <option value="all" className="bg-[#0B1A2F]">All Memberships</option>
-                          <option value="Free" className="bg-[#0B1A2F]">Free</option>
-                          <option value="Silver" className="bg-[#0B1A2F]">Silver Member</option>
-                          <option value="Gold" className="bg-[#0B1A2F]">Gold Member</option>
-                          <option value="Platinum" className="bg-[#0B1A2F]">Platinum Member</option>
-                        </select>
-                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
-                      </div>
-
-                      {/* Approval / Verification Filter */}
-                      <div className="relative">
-                        <select
-                          value={customerFilterStatus}
-                          onChange={(e) => { setCustomerFilterStatus(e.target.value); setCustomerPage(1); }}
-                          className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
-                        >
-                          <option value="all" className="bg-[#0B1A2F]">All Statuses</option>
-                          <option value="Approved" className="bg-[#0B1A2F]">Approved</option>
-                          <option value="Pending" className="bg-[#0B1A2F]">Pending Approval</option>
-                          <option value="Rejected" className="bg-[#0B1A2F]">Rejected</option>
-                        </select>
-                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40 font-support">
+                        <span>
+                          Showing <strong className="text-white">{filteredCustomers.length}</strong> of <strong className="text-white">{allCustomers.length}</strong> customers
+                        </span>
+                        {(customerSearchQuery || customerFilterGender !== "all" || customerFilterMembership !== "all" || customerFilterStatus !== "all" || customerFilterVerified !== "all") && (
+                          <button
+                            onClick={() => {
+                              setCustomerSearchQuery("");
+                              setCustomerFilterGender("all");
+                              setCustomerFilterMembership("all");
+                              setCustomerFilterStatus("all");
+                              setCustomerFilterVerified("all");
+                              setCustomerPage(1);
+                            }}
+                            className="text-brand-gold hover:underline text-xs cursor-pointer"
+                          >
+                            Reset All Filters
+                          </button>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40 font-support">
-                  <span>
-                    Showing <strong className="text-white">{filteredCustomers.length}</strong> of <strong className="text-white">{allCustomers.length}</strong> customers
-                  </span>
-                  {(customerSearchQuery || customerFilterGender !== "all" || customerFilterMembership !== "all" || customerFilterStatus !== "all" || customerFilterVerified !== "all") && (
-                    <button
-                      onClick={() => {
-                        setCustomerSearchQuery("");
-                        setCustomerFilterGender("all");
-                        setCustomerFilterMembership("all");
-                        setCustomerFilterStatus("all");
-                        setCustomerFilterVerified("all");
-                        setCustomerPage(1);
-                      }}
-                      className="text-brand-gold hover:underline text-xs cursor-pointer"
-                    >
-                      Reset All Filters
-                    </button>
-                  )}
-                </div>
-              </div>
+              </AnimatePresence>
 
               {/* Data Table */}
               <div className="bg-card border border-border/80 rounded-2xl shadow-sm overflow-hidden">
