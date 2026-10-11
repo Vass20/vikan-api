@@ -80,7 +80,7 @@ export const Dialog: React.FC<DialogProps> = ({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 text-foreground">
+            <div className="flex-1 overflow-y-auto scrollbar-thin p-6 text-foreground">
               {children}
             </div>
           </motion.div>
