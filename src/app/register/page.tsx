@@ -63,6 +63,26 @@ export default function RegisterPage() {
   const [draftPassword, setDraftPassword] = useState("");
   const [draftMobile, setDraftMobile] = useState(registrationDraft.mobile || "");
 
+  const passwordStrength = useMemo(() => {
+    if (!draftPassword) return { score: 0, label: "", color: "", bg: "" };
+    let score = 0;
+    if (draftPassword.length >= 6) score += 1;
+    if (draftPassword.length >= 8) score += 1;
+    if (/[A-Z]/.test(draftPassword) && /[a-z]/.test(draftPassword)) score += 1;
+    if (/\d/.test(draftPassword)) score += 1;
+    if (/[^A-Za-z0-9]/.test(draftPassword)) score += 1;
+
+    if (score <= 2) {
+      return { score: 1, label: "Weak", color: "text-rose-400", bg: "bg-rose-500" };
+    } else if (score <= 3) {
+      return { score: 2, label: "Fair", color: "text-amber-400", bg: "bg-amber-500" };
+    } else if (score <= 4) {
+      return { score: 3, label: "Good", color: "text-sky-400", bg: "bg-sky-500" };
+    } else {
+      return { score: 4, label: "Strong", color: "text-emerald-400", bg: "bg-emerald-500" };
+    }
+  }, [draftPassword]);
+
   // Step 2
   const [draftReligion, setDraftReligion] = useState(registrationDraft.religion || "");
   const [draftCommunity, setDraftCommunity] = useState(registrationDraft.community || "");
@@ -582,15 +602,73 @@ export default function RegisterPage() {
                       error={errors.mobile}
                     />
 
-                    <Input
-                      label="Create secure password"
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={draftPassword}
-                      onChange={(e) => setDraftPassword(e.target.value)}
-                      error={errors.password}
-                    />
+                    <div>
+                      <Input
+                        label="Create secure password"
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={draftPassword}
+                        onChange={(e) => {
+                          setDraftPassword(e.target.value);
+                          if (errors.password) {
+                            setErrors((prev) => {
+                              const copy = { ...prev };
+                              delete copy.password;
+                              return copy;
+                            });
+                          }
+                        }}
+                        error={errors.password}
+                      />
+
+                      {draftPassword && (
+                        <div className="mt-2.5 p-3 rounded-xl bg-[#081626]/60 border border-brand-gold/20 space-y-2 animate-fadeIn">
+                          {/* Segmented Strength Bar & Status */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground font-medium text-[11px]">Password Strength:</span>
+                            <span className={`font-bold tracking-wide text-xs ${passwordStrength.color}`}>
+                              {passwordStrength.label}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-1.5 h-1.5 w-full">
+                            <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.score >= 1 ? passwordStrength.bg : "bg-white/10"}`} />
+                            <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.score >= 2 ? passwordStrength.bg : "bg-white/10"}`} />
+                            <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.score >= 3 ? passwordStrength.bg : "bg-white/10"}`} />
+                            <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.score >= 4 ? passwordStrength.bg : "bg-white/10"}`} />
+                          </div>
+
+                          {/* Requirement Chips */}
+                          <div className="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
+                            <span className={`flex items-center gap-1.5 ${draftPassword.length >= 8 ? "text-emerald-400 font-medium" : "text-muted-foreground/60"}`}>
+                              <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold ${draftPassword.length >= 8 ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-muted-foreground/50"}`}>
+                                {draftPassword.length >= 8 ? "✓" : "○"}
+                              </span>
+                              At least 8 characters
+                            </span>
+                            <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(draftPassword) && /[a-z]/.test(draftPassword) ? "text-emerald-400 font-medium" : "text-muted-foreground/60"}`}>
+                              <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold ${/[A-Z]/.test(draftPassword) && /[a-z]/.test(draftPassword) ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-muted-foreground/50"}`}>
+                                {/[A-Z]/.test(draftPassword) && /[a-z]/.test(draftPassword) ? "✓" : "○"}
+                              </span>
+                              Uppercase & lowercase
+                            </span>
+                            <span className={`flex items-center gap-1.5 ${/\d/.test(draftPassword) ? "text-emerald-400 font-medium" : "text-muted-foreground/60"}`}>
+                              <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold ${/\d/.test(draftPassword) ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-muted-foreground/50"}`}>
+                                {/\d/.test(draftPassword) ? "✓" : "○"}
+                              </span>
+                              At least 1 number
+                            </span>
+                            <span className={`flex items-center gap-1.5 ${/[^A-Za-z0-9]/.test(draftPassword) ? "text-emerald-400 font-medium" : "text-muted-foreground/60"}`}>
+                              <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold ${/[^A-Za-z0-9]/.test(draftPassword) ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-muted-foreground/50"}`}>
+                                {/[^A-Za-z0-9]/.test(draftPassword) ? "✓" : "○"}
+                              </span>
+                              At least 1 symbol (@$!%)
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
