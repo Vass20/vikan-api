@@ -127,6 +127,7 @@ export default function AdminPortalPage() {
   const [mounted, setMounted] = useState(false);
 
   // Customer Report Filters & States
+  const [showCustomerFilters, setShowCustomerFilters] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [customerFilterGender, setCustomerFilterGender] = useState("all");
   const [customerFilterMembership, setCustomerFilterMembership] = useState("all");
@@ -135,6 +136,10 @@ export default function AdminPortalPage() {
   const [selectedCustomerModal, setSelectedCustomerModal] = useState<any | null>(null);
   const [customerPage, setCustomerPage] = useState(1);
   const customersPerPage = 12;
+
+  const activeCustomerFilterCount = (customerFilterGender !== "all" ? 1 : 0) +
+    (customerFilterMembership !== "all" ? 1 : 0) +
+    (customerFilterStatus !== "all" ? 1 : 0);
 
   const filteredCustomers = React.useMemo(() => {
     return allCustomers.filter((c: any) => {
@@ -553,72 +558,117 @@ export default function AdminPortalPage() {
 
               {/* Filter Toolbar */}
               <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                  {/* Search Input */}
-                  <div className="md:col-span-2 relative">
+                {/* Search Bar + Filter Toggle */}
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                       type="text"
                       placeholder="Search name, email, phone, city, caste..."
                       value={customerSearchQuery}
                       onChange={(e) => { setCustomerSearchQuery(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-muted-foreground/60 focus:outline-none focus:border-brand-gold"
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder-muted-foreground/60 focus:outline-none focus:border-brand-gold"
                     />
                     {customerSearchQuery && (
                       <button
                         onClick={() => { setCustomerSearchQuery(""); setCustomerPage(1); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white cursor-pointer"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
 
-                  {/* Gender Filter */}
-                  <div className="relative">
-                    <select
-                      value={customerFilterGender}
-                      onChange={(e) => { setCustomerFilterGender(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
-                    >
-                      <option value="all" className="bg-[#0B1A2F]">All Genders</option>
-                      <option value="Male" className="bg-[#0B1A2F]">Male</option>
-                      <option value="Female" className="bg-[#0B1A2F]">Female</option>
-                    </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
-                  </div>
-
-                  {/* Membership Filter */}
-                  <div className="relative">
-                    <select
-                      value={customerFilterMembership}
-                      onChange={(e) => { setCustomerFilterMembership(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
-                    >
-                      <option value="all" className="bg-[#0B1A2F]">All Memberships</option>
-                      <option value="Free" className="bg-[#0B1A2F]">Free</option>
-                      <option value="Silver" className="bg-[#0B1A2F]">Silver Member</option>
-                      <option value="Gold" className="bg-[#0B1A2F]">Gold Member</option>
-                      <option value="Platinum" className="bg-[#0B1A2F]">Platinum Member</option>
-                    </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
-                  </div>
-
-                  {/* Approval / Verification Filter */}
-                  <div className="relative">
-                    <select
-                      value={customerFilterStatus}
-                      onChange={(e) => { setCustomerFilterStatus(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
-                    >
-                      <option value="all" className="bg-[#0B1A2F]">All Statuses</option>
-                      <option value="Approved" className="bg-[#0B1A2F]">Approved</option>
-                      <option value="Pending" className="bg-[#0B1A2F]">Pending Approval</option>
-                      <option value="Rejected" className="bg-[#0B1A2F]">Rejected</option>
-                    </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
-                  </div>
+                  {/* Filter Icon Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomerFilters(prev => !prev)}
+                    className={`px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                      showCustomerFilters || activeCustomerFilterCount > 0
+                        ? "bg-brand-gold/20 border-brand-gold text-brand-gold shadow-sm"
+                        : "bg-[#081626]/80 border-brand-gold/30 text-muted-foreground hover:text-white hover:border-brand-gold/60"
+                    }`}
+                    title={showCustomerFilters ? "Hide Filters" : "Show Filters"}
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden sm:inline">Filters</span>
+                    {activeCustomerFilterCount > 0 && (
+                      <span className="h-4 w-4 rounded-full bg-brand-gold text-brand-navy font-bold text-[10px] flex items-center justify-center">
+                        {activeCustomerFilterCount}
+                      </span>
+                    )}
+                  </button>
                 </div>
+
+                {/* Filter Section (conditionally displayed when filter icon clicked) */}
+                {showCustomerFilters && (
+                  <div className="pt-3 border-t border-border/40 space-y-2 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-brand-gold uppercase tracking-wider font-support">
+                        Filter Criteria:
+                      </span>
+                      {activeCustomerFilterCount > 0 && (
+                        <button
+                          onClick={() => {
+                            setCustomerFilterGender("all");
+                            setCustomerFilterMembership("all");
+                            setCustomerFilterStatus("all");
+                            setCustomerPage(1);
+                          }}
+                          className="text-[11px] text-brand-gold hover:underline cursor-pointer font-support"
+                        >
+                          Clear Filters
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Gender Filter */}
+                      <div className="relative">
+                        <select
+                          value={customerFilterGender}
+                          onChange={(e) => { setCustomerFilterGender(e.target.value); setCustomerPage(1); }}
+                          className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
+                        >
+                          <option value="all" className="bg-[#0B1A2F]">All Genders</option>
+                          <option value="Male" className="bg-[#0B1A2F]">Male</option>
+                          <option value="Female" className="bg-[#0B1A2F]">Female</option>
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                      </div>
+
+                      {/* Membership Filter */}
+                      <div className="relative">
+                        <select
+                          value={customerFilterMembership}
+                          onChange={(e) => { setCustomerFilterMembership(e.target.value); setCustomerPage(1); }}
+                          className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
+                        >
+                          <option value="all" className="bg-[#0B1A2F]">All Memberships</option>
+                          <option value="Free" className="bg-[#0B1A2F]">Free</option>
+                          <option value="Silver" className="bg-[#0B1A2F]">Silver Member</option>
+                          <option value="Gold" className="bg-[#0B1A2F]">Gold Member</option>
+                          <option value="Platinum" className="bg-[#0B1A2F]">Platinum Member</option>
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                      </div>
+
+                      {/* Approval / Verification Filter */}
+                      <div className="relative">
+                        <select
+                          value={customerFilterStatus}
+                          onChange={(e) => { setCustomerFilterStatus(e.target.value); setCustomerPage(1); }}
+                          className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
+                        >
+                          <option value="all" className="bg-[#0B1A2F]">All Statuses</option>
+                          <option value="Approved" className="bg-[#0B1A2F]">Approved</option>
+                          <option value="Pending" className="bg-[#0B1A2F]">Pending Approval</option>
+                          <option value="Rejected" className="bg-[#0B1A2F]">Rejected</option>
+                        </select>
+                        <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40 font-support">
                   <span>
