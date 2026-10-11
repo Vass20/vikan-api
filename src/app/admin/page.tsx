@@ -47,7 +47,7 @@ import {
   Phone,
   MapPin,
   Calendar,
-  ExternalLink,
+  ChevronDown,
   X
 } from "lucide-react";
 
@@ -575,24 +575,25 @@ export default function AdminPortalPage() {
                   </div>
 
                   {/* Gender Filter */}
-                  <div>
+                  <div className="relative">
                     <select
                       value={customerFilterGender}
                       onChange={(e) => { setCustomerFilterGender(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer"
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
                     >
                       <option value="all" className="bg-[#0B1A2F]">All Genders</option>
                       <option value="Male" className="bg-[#0B1A2F]">Male</option>
                       <option value="Female" className="bg-[#0B1A2F]">Female</option>
                     </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
                   </div>
 
                   {/* Membership Filter */}
-                  <div>
+                  <div className="relative">
                     <select
                       value={customerFilterMembership}
                       onChange={(e) => { setCustomerFilterMembership(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer"
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
                     >
                       <option value="all" className="bg-[#0B1A2F]">All Memberships</option>
                       <option value="Free" className="bg-[#0B1A2F]">Free</option>
@@ -600,20 +601,22 @@ export default function AdminPortalPage() {
                       <option value="Gold" className="bg-[#0B1A2F]">Gold Member</option>
                       <option value="Platinum" className="bg-[#0B1A2F]">Platinum Member</option>
                     </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
                   </div>
 
                   {/* Approval / Verification Filter */}
-                  <div>
+                  <div className="relative">
                     <select
                       value={customerFilterStatus}
                       onChange={(e) => { setCustomerFilterStatus(e.target.value); setCustomerPage(1); }}
-                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer"
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer appearance-none"
                     >
                       <option value="all" className="bg-[#0B1A2F]">All Statuses</option>
                       <option value="Approved" className="bg-[#0B1A2F]">Approved</option>
                       <option value="Pending" className="bg-[#0B1A2F]">Pending Approval</option>
                       <option value="Rejected" className="bg-[#0B1A2F]">Rejected</option>
                     </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-gold/70 pointer-events-none" />
                   </div>
                 </div>
 
@@ -816,23 +819,15 @@ export default function AdminPortalPage() {
 
                               {/* Actions */}
                               <td className="py-3 px-4 text-right">
-                                <div className="flex items-center justify-end gap-1.5">
+                                <div className="flex items-center justify-end">
                                   <button
                                     onClick={() => setSelectedCustomerModal(customer)}
-                                    className="p-1.5 rounded-lg bg-card border border-brand-gold/30 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all cursor-pointer"
+                                    className="p-1.5 rounded-lg bg-card border border-brand-gold/30 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all cursor-pointer flex items-center gap-1.5 px-2.5"
                                     title="View Full Customer Details"
                                   >
                                     <Eye className="h-3.5 w-3.5" />
+                                    <span className="text-[11px] font-medium">View</span>
                                   </button>
-                                  <a
-                                    href={`/profile/${customer.id}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="p-1.5 rounded-lg bg-card border border-border text-muted-foreground hover:text-white hover:border-brand-gold/40 transition-all cursor-pointer"
-                                    title="Open Profile Page in New Tab"
-                                  >
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                  </a>
                                 </div>
                               </td>
                             </tr>
@@ -1884,16 +1879,7 @@ export default function AdminPortalPage() {
             )}
 
             {/* Dialog Footer Actions */}
-            <div className="pt-2 flex items-center justify-between border-t border-border/40">
-              <a
-                href={`/profile/${selectedCustomerModal.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 rounded-xl bg-brand-gold text-brand-navy font-bold text-xs flex items-center gap-2 hover:bg-brand-gold/90 transition-all cursor-pointer"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Open Full Profile Page</span>
-              </a>
+            <div className="pt-2 flex items-center justify-end border-t border-border/40">
               <Button
                 variant="outline"
                 onClick={() => setSelectedCustomerModal(null)}

@@ -287,7 +287,11 @@ export const Navbar: React.FC = () => {
                           {currentUser.name}
                         </span>
                         <div className="flex items-center gap-1.5 mt-1">
-                          {myProfile?.isPremium ? (
+                          {isSuperAdmin ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-gold/20 text-brand-gold font-support uppercase border border-brand-gold/30">
+                              Super Admin
+                            </span>
+                          ) : myProfile?.isPremium ? (
                             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold gold-gradient text-brand-navy font-support uppercase">
                               <Award className="h-2.5 w-2.5" /> Premium
                             </span>
@@ -296,7 +300,7 @@ export const Navbar: React.FC = () => {
                               Free Account
                             </span>
                           )}
-                          {myProfile?.isVerified && (
+                          {!isSuperAdmin && myProfile?.isVerified && (
                             <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-navy text-brand-ivory dark:bg-brand-gold dark:text-brand-navy font-support uppercase">
                               ★ Verified
                             </span>
@@ -305,23 +309,27 @@ export const Navbar: React.FC = () => {
                       </div>
 
                       <div className="mt-1.5 flex flex-col gap-0.5">
-                        <Link
-                          href={`/profile/${myProfile?.id || currentUser.id}`}
-                          onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted/40 transition-colors"
-                        >
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          My Profile
-                        </Link>
-                        <Link
-                          href="/verification"
-                          onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted/40 transition-colors"
-                        >
-                          <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-                          Verification Status
-                        </Link>
-                        <hr className="border-border my-1" />
+                        {!isSuperAdmin && (
+                          <>
+                            <Link
+                              href={`/profile/${myProfile?.id || currentUser.id}`}
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted/40 transition-colors"
+                            >
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              My Profile
+                            </Link>
+                            <Link
+                              href="/verification"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted/40 transition-colors"
+                            >
+                              <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+                              Verification Status
+                            </Link>
+                            <hr className="border-border my-1" />
+                          </>
+                        )}
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-xs text-destructive hover:bg-destructive/5 transition-colors cursor-pointer"
