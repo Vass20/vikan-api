@@ -30,6 +30,50 @@ namespace VikanMatrimony.WebApi.Controllers
             return string.Equals(email, "admin@vikan.com", StringComparison.OrdinalIgnoreCase);
         }
 
+        [HttpGet("customers")]
+        public async Task<IActionResult> GetAllCustomers()
+        {
+            if (!IsAdmin()) return Forbid();
+
+            var customers = await _context.Profiles
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.Photos)
+                .Where(p => p.User.Email != "admin@vikan.com")
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.UserId,
+                    p.Name,
+                    p.Gender,
+                    p.DateOfBirth,
+                    p.Religion,
+                    p.Community,
+                    p.MotherTongue,
+                    p.MaritalStatus,
+                    p.Education,
+                    p.Occupation,
+                    p.Salary,
+                    p.City,
+                    p.State,
+                    p.Diet,
+                    p.ParentsNumber,
+                    p.MembershipType,
+                    p.IsPremium,
+                    p.IsVerified,
+                    p.IsApproved,
+                    p.ApprovalStatus,
+                    p.CreatedAt,
+                    Email = p.User.Email,
+                    PhoneNumber = p.User.PhoneNumber,
+                    Photos = p.Photos.Select(ph => ph.Url).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(customers);
+        }
+
         [HttpGet("pending-approvals")]
         public async Task<IActionResult> GetPendingApprovals()
         {

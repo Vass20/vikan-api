@@ -206,6 +206,10 @@ export const api = createApi({
       query: () => "/admin/tickets",
       providesTags: ["SupportTicket"],
     }),
+    getAllCustomers: builder.query<any[], void>({
+      query: () => "/admin/customers",
+      providesTags: ["Profile"],
+    }),
     updateTicketStatus: builder.mutation<any, { id: string; status: string }>({
       query: ({ id, status }) => ({
         url: `/admin/tickets/${id}/status`,
@@ -402,6 +406,7 @@ export const {
   useGetSafetyReportsQuery,
   useSuspendMemberMutation,
   useGetSupportTicketsQuery,
+  useGetAllCustomersQuery,
   useUpdateTicketStatusMutation,
   useGetMyVerificationsQuery,
   useSubmitVerificationMutation,

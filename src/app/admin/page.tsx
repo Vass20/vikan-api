@@ -17,6 +17,7 @@ import {
   useGetSafetyReportsQuery,
   useSuspendMemberMutation,
   useGetSupportTicketsQuery,
+  useGetAllCustomersQuery,
   useUpdateTicketStatusMutation
 } from "@/lib/redux/api";
 import { Footer } from "@/components/layout/Footer";
@@ -36,7 +37,18 @@ import {
   Users,
   Settings,
   Award,
-  Check
+  Check,
+  Download,
+  Printer,
+  Search,
+  Filter,
+  Eye,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  ExternalLink,
+  X
 } from "lucide-react";
 
 export default function AdminPortalPage() {
@@ -48,6 +60,7 @@ export default function AdminPortalPage() {
   const { data: verificationsData } = useGetPendingVerificationsQuery(undefined, { skip: !authUser });
   const { data: reportsData } = useGetSafetyReportsQuery(undefined, { skip: !authUser });
   const { data: ticketsData } = useGetSupportTicketsQuery(undefined, { skip: !authUser });
+  const { data: customersData, isLoading: isLoadingCustomers } = useGetAllCustomersQuery(undefined, { skip: !authUser });
 
   const [approveProfileApi, { isLoading: isApprovingProfile }] = useApproveProfileMutation();
   const [rejectProfileApi, { isLoading: isRejectingProfile }] = useRejectProfileMutation();
@@ -67,6 +80,7 @@ export default function AdminPortalPage() {
   const pendingRequests = verificationsData || [];
   const reports = reportsData || [];
   const tickets = ticketsData || [];
+  const allCustomers = customersData || [];
 
   const totalUsers = metrics?.totalMembers || 0;
   const premiumCount = metrics?.premiumMembers || 0;
@@ -105,12 +119,151 @@ export default function AdminPortalPage() {
   const premiumPercentage = totalUsers > 0 ? (premiumUsersCount * 100 / totalUsers) : 0;
   const freePercentage = totalUsers > 0 ? (freeUsersCount * 100 / totalUsers) : 100;
 
-  const [activeTab, setActiveTab] = useState<"approvals" | "verification" | "cms" | "reports" | "metrics" | "tickets">("approvals");
+  const [activeTab, setActiveTab] = useState<"customers" | "approvals" | "verification" | "cms" | "reports" | "metrics" | "tickets">("customers");
   const [processingProfileId, setProcessingProfileId] = useState<string | null>(null);
   const [rejectingProfile, setRejectingProfile] = useState<any | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedFullImage, setSelectedFullImage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Customer Report Filters & States
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
+  const [customerFilterGender, setCustomerFilterGender] = useState("all");
+  const [customerFilterMembership, setCustomerFilterMembership] = useState("all");
+  const [customerFilterStatus, setCustomerFilterStatus] = useState("all");
+  const [customerFilterVerified, setCustomerFilterVerified] = useState("all");
+  const [selectedCustomerModal, setSelectedCustomerModal] = useState<any | null>(null);
+  const [customerPage, setCustomerPage] = useState(1);
+  const customersPerPage = 12;
+
+  const filteredCustomers = React.useMemo(() => {
+    return allCustomers.filter((c: any) => {
+      // Search text
+      if (customerSearchQuery.trim()) {
+        const q = customerSearchQuery.toLowerCase();
+        const matchesName = (c.name || "").toLowerCase().includes(q);
+        const matchesEmail = (c.email || "").toLowerCase().includes(q);
+        const matchesPhone = (c.phoneNumber || "").toLowerCase().includes(q);
+        const matchesParents = (c.parentsNumber || "").toLowerCase().includes(q);
+        const matchesCity = (c.city || "").toLowerCase().includes(q);
+        const matchesCaste = (c.community || "").toLowerCase().includes(q);
+        const matchesId = (c.id || "").toLowerCase().includes(q);
+        if (!matchesName && !matchesEmail && !matchesPhone && !matchesParents && !matchesCity && !matchesCaste && !matchesId) {
+          return false;
+        }
+      }
+
+      // Gender
+      if (customerFilterGender !== "all" && (c.gender || "").toLowerCase() !== customerFilterGender.toLowerCase()) {
+        return false;
+      }
+
+      // Membership
+      if (customerFilterMembership !== "all") {
+        const mem = (c.membershipType || "Free").toLowerCase();
+        if (!mem.includes(customerFilterMembership.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Approval Status
+      if (customerFilterStatus !== "all") {
+        const status = (c.approvalStatus || (c.isApproved ? "Approved" : "Pending")).toLowerCase();
+        if (status !== customerFilterStatus.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // Verification
+      if (customerFilterVerified !== "all") {
+        if (customerFilterVerified === "verified" && !c.isVerified) return false;
+        if (customerFilterVerified === "unverified" && c.isVerified) return false;
+      }
+
+      return true;
+    });
+  }, [allCustomers, customerSearchQuery, customerFilterGender, customerFilterMembership, customerFilterStatus, customerFilterVerified]);
+
+  const totalCustomerPages = Math.ceil(filteredCustomers.length / customersPerPage) || 1;
+  const paginatedCustomers = React.useMemo(() => {
+    const start = (customerPage - 1) * customersPerPage;
+    return filteredCustomers.slice(start, start + customersPerPage);
+  }, [filteredCustomers, customerPage, customersPerPage]);
+
+  const exportCustomersToCsv = () => {
+    if (filteredCustomers.length === 0) {
+      showToast("No customer records to export", "error");
+      return;
+    }
+
+    const headers = [
+      "ID",
+      "Name",
+      "Email",
+      "Phone Number",
+      "Parents Contact",
+      "Gender",
+      "DOB",
+      "Age",
+      "Religion",
+      "Community / Caste",
+      "Mother Tongue",
+      "Marital Status",
+      "City",
+      "State",
+      "Education",
+      "Occupation",
+      "Salary",
+      "Diet",
+      "Membership",
+      "Is Verified",
+      "Approval Status",
+      "Registration Date"
+    ];
+
+    const rows = filteredCustomers.map((c: any) => {
+      const age = c.dateOfBirth
+        ? Math.floor((new Date().getTime() - new Date(c.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+        : "";
+      const regDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "";
+
+      return [
+        `"${c.id || ""}"`,
+        `"${(c.name || "").replace(/"/g, '""')}"`,
+        `"${(c.email || "").replace(/"/g, '""')}"`,
+        `"${(c.phoneNumber || "").replace(/"/g, '""')}"`,
+        `"${(c.parentsNumber || "").replace(/"/g, '""')}"`,
+        `"${c.gender || ""}"`,
+        `"${c.dateOfBirth ? new Date(c.dateOfBirth).toISOString().split('T')[0] : ""}"`,
+        `"${age}"`,
+        `"${(c.religion || "").replace(/"/g, '""')}"`,
+        `"${(c.community || "").replace(/"/g, '""')}"`,
+        `"${(c.motherTongue || "").replace(/"/g, '""')}"`,
+        `"${(c.maritalStatus || "").replace(/"/g, '""')}"`,
+        `"${(c.city || "").replace(/"/g, '""')}"`,
+        `"${(c.state || "").replace(/"/g, '""')}"`,
+        `"${(c.education || "").replace(/"/g, '""')}"`,
+        `"${(c.occupation || "").replace(/"/g, '""')}"`,
+        `"${(c.salary || "").replace(/"/g, '""')}"`,
+        `"${(c.diet || "").replace(/"/g, '""')}"`,
+        `"${(c.membershipType || "Free").replace(/"/g, '""')}"`,
+        `"${c.isVerified ? "Yes" : "No"}"`,
+        `"${c.approvalStatus || (c.isApproved ? "Approved" : "Pending")}"`,
+        `"${regDate}"`
+      ].join(",");
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `vikan_customers_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast(`Exported ${filteredCustomers.length} customer records to CSV!`, "success");
+  };
 
   // CMS forms
   const [storyName, setStoryName] = useState("");
@@ -221,9 +374,10 @@ export default function AdminPortalPage() {
                 <div className="relative">
                   <select
                     value={activeTab}
-                    onChange={(e) => setActiveTab(e.target.value as any)}
+                    onChange={(e) => { setActiveTab(e.target.value as any); setCustomerPage(1); }}
                     className="w-full bg-[#0B1A2F] border-2 border-brand-gold/50 text-brand-gold text-xs font-bold font-support rounded-xl px-4 py-3 outline-none focus:border-brand-gold cursor-pointer shadow-lg appearance-none"
                   >
+                    <option value="customers" className="bg-[#0B1A2F] text-white">📋 Customers Directory & Report ({allCustomers.length})</option>
                     <option value="approvals" className="bg-[#0B1A2F] text-white">👤 Profile Approvals ({pendingApprovals.length})</option>
                     <option value="verification" className="bg-[#0B1A2F] text-white">🛡️ Verification Queue ({pendingRequests.length})</option>
                     <option value="reports" className="bg-[#0B1A2F] text-white">🚩 Compliance Reports ({reports.length})</option>
@@ -239,6 +393,17 @@ export default function AdminPortalPage() {
 
               {/* Desktop Tab Buttons */}
               <div className="hidden lg:flex flex-wrap items-center bg-[#081626]/80 rounded-2xl p-1.5 border border-brand-gold/25 gap-2 shadow-inner">
+                <button
+                  onClick={() => { setActiveTab("customers"); setCustomerPage(1); }}
+                  className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
+                    activeTab === "customers"
+                      ? "bg-brand-gold text-brand-navy border-transparent shadow-md font-bold"
+                      : "bg-transparent text-[#E5DCD0]/70 hover:text-white border-brand-gold/15 hover:border-brand-gold/40"
+                  }`}
+                >
+                  <Users className="h-4 w-4" />
+                  Customers Report ({allCustomers.length})
+                </button>
                 <button
                   onClick={() => setActiveTab("approvals")}
                   className={`py-2 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer border whitespace-nowrap flex items-center gap-2 ${
@@ -308,6 +473,403 @@ export default function AdminPortalPage() {
               </div>
             </div>
           </div>
+
+          {/* Tab: Customers Directory & Report */}
+          {activeTab === "customers" && (
+            <div className="space-y-6">
+              {/* Report Header Card */}
+              <div className="bg-card border border-border/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-6 w-6 text-brand-gold" />
+                    <h3 className="font-serif text-xl font-bold text-foreground">Registered Customers Directory & Report</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-support mt-1">
+                    Audit, filter, and view complete profiles of all registered members. Export records to spreadsheet or generate a report.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={exportCustomersToCsv}
+                    className="px-4 py-2.5 rounded-xl bg-brand-gold text-brand-navy font-bold text-xs flex items-center gap-2 hover:bg-brand-gold/90 transition-all cursor-pointer shadow-md"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Export CSV</span>
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="px-4 py-2.5 rounded-xl bg-[#081626] border border-brand-gold/40 text-brand-gold font-bold text-xs flex items-center gap-2 hover:bg-brand-gold/10 transition-all cursor-pointer"
+                  >
+                    <Printer className="h-4 w-4" />
+                    <span>Print Report</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block font-support">Total Customers</span>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-serif text-2xl font-bold text-foreground">{allCustomers.length}</span>
+                    <Users className="h-5 w-5 text-brand-gold opacity-70" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground mt-1 block">Active on platform</span>
+                </div>
+
+                <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block font-support">Premium Members</span>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-serif text-2xl font-bold text-brand-gold">
+                      {allCustomers.filter((c: any) => c.isPremium || (c.membershipType && c.membershipType !== "Free" && c.membershipType !== "Free Member")).length}
+                    </span>
+                    <Award className="h-5 w-5 text-brand-gold opacity-70" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground mt-1 block">Silver / Gold / Platinum</span>
+                </div>
+
+                <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block font-support">ID Verified</span>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-serif text-2xl font-bold text-emerald-400">
+                      {allCustomers.filter((c: any) => c.isVerified).length}
+                    </span>
+                    <FileCheck2 className="h-5 w-5 text-emerald-400 opacity-70" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground mt-1 block">Verified badge awarded</span>
+                </div>
+
+                <div className="bg-card border border-border/70 rounded-2xl p-4 shadow-sm">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block font-support">Pending Approvals</span>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-serif text-2xl font-bold text-amber-400">
+                      {allCustomers.filter((c: any) => !c.isApproved || c.approvalStatus === "Pending").length}
+                    </span>
+                    <ShieldAlert className="h-5 w-5 text-amber-400 opacity-70" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground mt-1 block">Awaiting admin review</span>
+                </div>
+              </div>
+
+              {/* Filter Toolbar */}
+              <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                  {/* Search Input */}
+                  <div className="md:col-span-2 relative">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search name, email, phone, city, caste..."
+                      value={customerSearchQuery}
+                      onChange={(e) => { setCustomerSearchQuery(e.target.value); setCustomerPage(1); }}
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-muted-foreground/60 focus:outline-none focus:border-brand-gold"
+                    />
+                    {customerSearchQuery && (
+                      <button
+                        onClick={() => { setCustomerSearchQuery(""); setCustomerPage(1); }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Gender Filter */}
+                  <div>
+                    <select
+                      value={customerFilterGender}
+                      onChange={(e) => { setCustomerFilterGender(e.target.value); setCustomerPage(1); }}
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer"
+                    >
+                      <option value="all" className="bg-[#0B1A2F]">All Genders</option>
+                      <option value="Male" className="bg-[#0B1A2F]">Male</option>
+                      <option value="Female" className="bg-[#0B1A2F]">Female</option>
+                    </select>
+                  </div>
+
+                  {/* Membership Filter */}
+                  <div>
+                    <select
+                      value={customerFilterMembership}
+                      onChange={(e) => { setCustomerFilterMembership(e.target.value); setCustomerPage(1); }}
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer"
+                    >
+                      <option value="all" className="bg-[#0B1A2F]">All Memberships</option>
+                      <option value="Free" className="bg-[#0B1A2F]">Free</option>
+                      <option value="Silver" className="bg-[#0B1A2F]">Silver Member</option>
+                      <option value="Gold" className="bg-[#0B1A2F]">Gold Member</option>
+                      <option value="Platinum" className="bg-[#0B1A2F]">Platinum Member</option>
+                    </select>
+                  </div>
+
+                  {/* Approval / Verification Filter */}
+                  <div>
+                    <select
+                      value={customerFilterStatus}
+                      onChange={(e) => { setCustomerFilterStatus(e.target.value); setCustomerPage(1); }}
+                      className="w-full bg-[#081626]/80 border border-brand-gold/30 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-brand-gold cursor-pointer"
+                    >
+                      <option value="all" className="bg-[#0B1A2F]">All Statuses</option>
+                      <option value="Approved" className="bg-[#0B1A2F]">Approved</option>
+                      <option value="Pending" className="bg-[#0B1A2F]">Pending Approval</option>
+                      <option value="Rejected" className="bg-[#0B1A2F]">Rejected</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40 font-support">
+                  <span>
+                    Showing <strong className="text-white">{filteredCustomers.length}</strong> of <strong className="text-white">{allCustomers.length}</strong> customers
+                  </span>
+                  {(customerSearchQuery || customerFilterGender !== "all" || customerFilterMembership !== "all" || customerFilterStatus !== "all" || customerFilterVerified !== "all") && (
+                    <button
+                      onClick={() => {
+                        setCustomerSearchQuery("");
+                        setCustomerFilterGender("all");
+                        setCustomerFilterMembership("all");
+                        setCustomerFilterStatus("all");
+                        setCustomerFilterVerified("all");
+                        setCustomerPage(1);
+                      }}
+                      className="text-brand-gold hover:underline text-xs cursor-pointer"
+                    >
+                      Reset All Filters
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="bg-card border border-border/80 rounded-2xl shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#081626]/90 border-b border-border/80 text-muted-foreground uppercase text-[10px] font-bold tracking-wider">
+                      <tr>
+                        <th className="py-3.5 px-4">Customer</th>
+                        <th className="py-3.5 px-4">Contact Details</th>
+                        <th className="py-3.5 px-4">Background</th>
+                        <th className="py-3.5 px-4">Location & Career</th>
+                        <th className="py-3.5 px-4">Membership</th>
+                        <th className="py-3.5 px-4">Status</th>
+                        <th className="py-3.5 px-4">Registered</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40">
+                      {paginatedCustomers.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                            <Users className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                            <p className="font-medium text-sm">No customer records found</p>
+                            <p className="text-xs text-muted-foreground/70 mt-1">Try adjusting your search query or filters.</p>
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedCustomers.map((customer: any) => {
+                          const age = customer.dateOfBirth
+                            ? Math.floor((new Date().getTime() - new Date(customer.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+                            : null;
+                          const photo = customer.photos?.[0] || null;
+
+                          return (
+                            <tr key={customer.id} className="hover:bg-muted/10 transition-colors">
+                              {/* Customer Identity */}
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-3">
+                                  {photo ? (
+                                    <img
+                                      src={photo}
+                                      alt={customer.name}
+                                      className="h-10 w-10 rounded-full object-cover border border-brand-gold/30 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="h-10 w-10 rounded-full bg-brand-gold/15 text-brand-gold font-bold flex items-center justify-center shrink-0 border border-brand-gold/30">
+                                      {customer.name?.charAt(0)?.toUpperCase() || "U"}
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-bold text-foreground text-xs">{customer.name}</div>
+                                    <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                      <span>{customer.gender || "N/A"}</span>
+                                      {age && <span>• {age} yrs</span>}
+                                    </div>
+                                    <span className="text-[10px] font-mono text-muted-foreground/60 block truncate max-w-[120px]">
+                                      ID: {customer.id?.substring(0, 8)}...
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Contact Information */}
+                              <td className="py-3 px-4">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1.5 text-foreground text-[11px]">
+                                    <Mail className="h-3 w-3 text-muted-foreground shrink-0" />
+                                    <a href={`mailto:${customer.email}`} className="hover:text-brand-gold transition-colors truncate max-w-[180px]">
+                                      {customer.email || "N/A"}
+                                    </a>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
+                                    <Phone className="h-3 w-3 shrink-0" />
+                                    <span>{customer.phoneNumber || "N/A"}</span>
+                                  </div>
+                                  {customer.parentsNumber && (
+                                    <div className="text-[10px] text-muted-foreground/80">
+                                      Parents: {customer.parentsNumber}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Background */}
+                              <td className="py-3 px-4">
+                                <div className="space-y-0.5">
+                                  <div className="font-medium text-foreground text-[11px]">
+                                    {customer.religion || "N/A"}
+                                  </div>
+                                  <div className="text-brand-gold/90 text-[11px]">
+                                    {customer.community || "N/A"}
+                                  </div>
+                                  {customer.motherTongue && (
+                                    <div className="text-[10px] text-muted-foreground">
+                                      Tongue: {customer.motherTongue}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Location & Career */}
+                              <td className="py-3 px-4">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1 text-[11px] text-foreground">
+                                    <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+                                    <span>{customer.city ? `${customer.city}, ${customer.state || ""}` : "Location N/A"}</span>
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground truncate max-w-[150px]">
+                                    {customer.occupation || customer.education || "Occupation N/A"}
+                                  </div>
+                                  {customer.salary && (
+                                    <div className="text-[10px] text-emerald-400 font-medium">
+                                      {customer.salary}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Membership */}
+                              <td className="py-3 px-4">
+                                {customer.membershipType?.includes("Gold") ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/40 text-brand-gold font-bold text-[10px]">
+                                    <Award className="h-3 w-3" /> Gold Member
+                                  </span>
+                                ) : customer.membershipType?.includes("Silver") ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-400/15 border border-slate-400/40 text-slate-300 font-bold text-[10px]">
+                                    <Award className="h-3 w-3" /> Silver Member
+                                  </span>
+                                ) : customer.membershipType?.includes("Platinum") ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/15 border border-purple-500/40 text-purple-300 font-bold text-[10px]">
+                                    <Award className="h-3 w-3" /> Platinum
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-muted/30 border border-muted-foreground/20 text-muted-foreground text-[10px]">
+                                    Free Member
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3 px-4">
+                                <div className="space-y-1">
+                                  <div>
+                                    {customer.isApproved || customer.approvalStatus === "Approved" ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium text-[10px] border border-emerald-500/30">
+                                        ✓ Approved
+                                      </span>
+                                    ) : customer.approvalStatus === "Rejected" ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 font-medium text-[10px] border border-rose-500/30">
+                                        ✗ Rejected
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-medium text-[10px] border border-amber-500/30">
+                                        ○ Pending
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div>
+                                    {customer.isVerified ? (
+                                      <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                                        <FileCheck2 className="h-3 w-3" /> Verified ID
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] text-muted-foreground/70">
+                                        Unverified
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Registration Date */}
+                              <td className="py-3 px-4 text-muted-foreground text-[11px] whitespace-nowrap">
+                                {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : "N/A"}
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-3 px-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => setSelectedCustomerModal(customer)}
+                                    className="p-1.5 rounded-lg bg-card border border-brand-gold/30 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all cursor-pointer"
+                                    title="View Full Customer Details"
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </button>
+                                  <a
+                                    href={`/profile/${customer.id}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1.5 rounded-lg bg-card border border-border text-muted-foreground hover:text-white hover:border-brand-gold/40 transition-all cursor-pointer"
+                                    title="Open Profile Page in New Tab"
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Footer */}
+                {totalCustomerPages > 1 && (
+                  <div className="bg-[#081626]/70 p-4 border-t border-border flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground font-support">
+                      Page <strong className="text-white">{customerPage}</strong> of <strong className="text-white">{totalCustomerPages}</strong>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCustomerPage(p => Math.max(1, p - 1))}
+                        disabled={customerPage <= 1}
+                        className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold disabled:opacity-40 hover:bg-muted/20 cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => setCustomerPage(p => Math.min(totalCustomerPages, p + 1))}
+                        disabled={customerPage >= totalCustomerPages}
+                        className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold disabled:opacity-40 hover:bg-muted/20 cursor-pointer disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Tab 0: New Profile Approvals */}
           {activeTab === "approvals" && (
@@ -1224,6 +1786,120 @@ export default function AdminPortalPage() {
                 className="bg-destructive hover:bg-destructive/90 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 Confirm Rejection & Send Email
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      {/* CUSTOMER QUICK DETAILS MODAL */}
+      <Dialog
+        isOpen={!!selectedCustomerModal}
+        onClose={() => setSelectedCustomerModal(null)}
+        title={`Customer Record: ${selectedCustomerModal?.name || "Member"}`}
+      >
+        {selectedCustomerModal && (
+          <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 text-left">
+            {/* Header Identity */}
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-[#081626]/80 border border-brand-gold/30">
+              {selectedCustomerModal.photos?.[0] ? (
+                <img
+                  src={selectedCustomerModal.photos[0]}
+                  alt={selectedCustomerModal.name}
+                  className="h-16 w-16 rounded-xl object-cover border border-brand-gold"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-xl bg-brand-gold/15 text-brand-gold font-bold text-2xl flex items-center justify-center border border-brand-gold">
+                  {selectedCustomerModal.name?.charAt(0) || "U"}
+                </div>
+              )}
+              <div className="flex-1">
+                <h4 className="font-serif text-lg font-bold text-white">{selectedCustomerModal.name}</h4>
+                <p className="text-xs text-muted-foreground">
+                  {selectedCustomerModal.gender} • {selectedCustomerModal.religion} • {selectedCustomerModal.community}
+                </p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold text-[10px] font-bold">
+                    {selectedCustomerModal.membershipType || "Free Member"}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedCustomerModal.isApproved ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}`}>
+                    {selectedCustomerModal.approvalStatus || (selectedCustomerModal.isApproved ? "Approved" : "Pending")}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid of Key Info */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Email Address</span>
+                <span className="text-white font-medium break-all">{selectedCustomerModal.email || "N/A"}</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Phone Number</span>
+                <span className="text-white font-medium">{selectedCustomerModal.phoneNumber || "N/A"}</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Parents Contact</span>
+                <span className="text-white font-medium">{selectedCustomerModal.parentsNumber || "N/A"}</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Location</span>
+                <span className="text-white font-medium">{selectedCustomerModal.city ? `${selectedCustomerModal.city}, ${selectedCustomerModal.state || ""}` : "N/A"}</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Education</span>
+                <span className="text-white font-medium">{selectedCustomerModal.education || "N/A"}</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Occupation & Salary</span>
+                <span className="text-white font-medium">{selectedCustomerModal.occupation || "N/A"} ({selectedCustomerModal.salary || "N/A"})</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Diet / Habits</span>
+                <span className="text-white font-medium">{selectedCustomerModal.diet || "N/A"}</span>
+              </div>
+              <div className="p-3 rounded-lg bg-card border border-border">
+                <span className="text-[10px] uppercase text-muted-foreground block font-bold">Registered On</span>
+                <span className="text-white font-medium">{selectedCustomerModal.createdAt ? new Date(selectedCustomerModal.createdAt).toLocaleDateString() : "N/A"}</span>
+              </div>
+            </div>
+
+            {/* Photos preview */}
+            {selectedCustomerModal.photos && selectedCustomerModal.photos.length > 0 && (
+              <div>
+                <span className="text-xs font-bold text-muted-foreground uppercase block mb-2">Uploaded Photos ({selectedCustomerModal.photos.length})</span>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {selectedCustomerModal.photos.map((pUrl: string, idx: number) => (
+                    <img
+                      key={idx}
+                      src={pUrl}
+                      alt="Customer"
+                      onClick={() => setSelectedFullImage(pUrl)}
+                      className="h-20 w-20 rounded-lg object-cover border border-border cursor-pointer hover:border-brand-gold transition-colors shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Dialog Footer Actions */}
+            <div className="pt-2 flex items-center justify-between border-t border-border/40">
+              <a
+                href={`/profile/${selectedCustomerModal.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl bg-brand-gold text-brand-navy font-bold text-xs flex items-center gap-2 hover:bg-brand-gold/90 transition-all cursor-pointer"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>Open Full Profile Page</span>
+              </a>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedCustomerModal(null)}
+                className="text-xs"
+              >
+                Close
               </Button>
             </div>
           </div>
