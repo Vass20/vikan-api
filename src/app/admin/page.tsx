@@ -1792,9 +1792,10 @@ export default function AdminPortalPage() {
         isOpen={!!selectedCustomerModal}
         onClose={() => setSelectedCustomerModal(null)}
         title={`Customer Record: ${selectedCustomerModal?.name || "Member"}`}
+        size="lg"
       >
         {selectedCustomerModal && (
-          <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 text-left">
+          <div className="space-y-4 text-left">
             {/* Header Identity */}
             <div className="flex items-center gap-4 p-4 rounded-xl bg-[#081626]/80 border border-brand-gold/30">
               {selectedCustomerModal.photos?.[0] ? (
