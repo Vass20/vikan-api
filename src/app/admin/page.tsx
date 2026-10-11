@@ -40,7 +40,6 @@ import {
   Award,
   Check,
   Download,
-  Printer,
   Search,
   Filter,
   Eye,
@@ -522,13 +521,6 @@ export default function AdminPortalPage() {
                   >
                     <Download className="h-4 w-4" />
                     <span>Export CSV</span>
-                  </button>
-                  <button
-                    onClick={() => window.print()}
-                    className="px-4 py-2.5 rounded-xl bg-[#081626] border border-brand-gold/40 text-brand-gold font-bold text-xs flex items-center gap-2 hover:bg-brand-gold/10 transition-all cursor-pointer"
-                  >
-                    <Printer className="h-4 w-4" />
-                    <span>Print Report</span>
                   </button>
                 </div>
               </div>
