@@ -66,8 +66,16 @@ export default function RegisterPage() {
   // Step 2
   const [draftReligion, setDraftReligion] = useState(registrationDraft.religion || "");
   const [draftCommunity, setDraftCommunity] = useState(registrationDraft.community || "");
+  const [customCommunity, setCustomCommunity] = useState("");
   const [draftTongue, setDraftTongue] = useState(registrationDraft.motherTongue || "");
   const [draftMarital, setDraftMarital] = useState(registrationDraft.maritalStatus || "");
+
+  const getEffectiveCommunity = () => {
+    if (draftCommunity === "Others") {
+      return customCommunity.trim() || "Others";
+    }
+    return draftCommunity.trim();
+  };
 
   const communityOptions = useMemo(() => {
     if (!castes || !draftReligion) return [];
@@ -82,7 +90,12 @@ export default function RegisterPage() {
     if (communityOptions.length > 0) {
       const match = communityOptions.find(o => o.value === draftCommunity);
       if (!match) {
-        setDraftCommunity("");
+        if (draftCommunity && draftCommunity !== "Others") {
+          setCustomCommunity(draftCommunity);
+          setDraftCommunity("Others");
+        } else if (!draftCommunity) {
+          setDraftCommunity("");
+        }
       }
     }
   }, [draftReligion, communityOptions]);
@@ -178,6 +191,7 @@ export default function RegisterPage() {
 
   // Save changes to Zustand draft store on input blur/change
   const saveStepData = () => {
+    const finalCommunity = getEffectiveCommunity();
     updateDraft({
       name: draftName,
       gender: draftGender as any,
@@ -185,7 +199,7 @@ export default function RegisterPage() {
       email: draftEmail,
       mobile: draftMobile,
       religion: draftReligion,
-      community: draftCommunity,
+      community: finalCommunity,
       motherTongue: draftTongue,
       maritalStatus: draftMarital,
       education: draftEdu,
@@ -208,7 +222,7 @@ export default function RegisterPage() {
         heightMin: draftPrefHeightMin,
         heightMax: draftPrefHeightMax,
         religions: [draftReligion],
-        communities: [draftCommunity],
+        communities: [finalCommunity],
         education: [],
         occupations: [],
         diet: ["Vegetarian"],
@@ -230,7 +244,11 @@ export default function RegisterPage() {
       if (!draftPassword || draftPassword.length < 6) stepErrors.password = "Password must be at least 6 characters.";
     }
     if (registrationStep === 2) {
-      if (!draftCommunity.trim()) stepErrors.community = "Community/Caste is required.";
+      if (!draftCommunity.trim()) {
+        stepErrors.community = "Community/Caste is required.";
+      } else if (draftCommunity === "Others" && !customCommunity.trim()) {
+        stepErrors.customCommunity = "Please enter your community / caste.";
+      }
     }
     if (registrationStep === 3) {
       if (!draftCity.trim()) stepErrors.city = "City is required.";
@@ -278,6 +296,7 @@ export default function RegisterPage() {
           }
         }
 
+        const finalCommunity = getEffectiveCommunity();
         await registerApi({
           email: draftEmail,
           password: draftPassword,
@@ -285,7 +304,7 @@ export default function RegisterPage() {
           gender: draftGender === "male" ? "Male" : "Female",
           dateOfBirth: draftDob,
           religion: draftReligion,
-          community: draftCommunity,
+          community: finalCommunity,
           motherTongue: draftTongue,
           maritalStatus: draftMarital,
           city: draftCity,
@@ -592,13 +611,55 @@ export default function RegisterPage() {
                     />
 
                     {communityOptions.length > 0 ? (
-                      <Select
-                        label="Community / Caste"
-                        value={draftCommunity}
-                        onChange={(e) => setDraftCommunity(e.target.value)}
-                        options={communityOptions}
-                        error={errors.community}
-                      />
+                      <>
+                        <Select
+                          label="Community / Caste"
+                          value={draftCommunity}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setDraftCommunity(val);
+                            if (val !== "Others") {
+                              setCustomCommunity("");
+                            }
+                            if (errors.community || errors.customCommunity) {
+                              setErrors((prev) => {
+                                const copy = { ...prev };
+                                delete copy.community;
+                                delete copy.customCommunity;
+                                return copy;
+                              });
+                            }
+                          }}
+                          options={communityOptions}
+                          error={errors.community}
+                        />
+
+                        {draftCommunity === "Others" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Input
+                              label="Specify Community / Caste"
+                              required
+                              placeholder="Please enter your community / caste"
+                              value={customCommunity}
+                              onChange={(e) => {
+                                setCustomCommunity(e.target.value);
+                                if (errors.customCommunity) {
+                                  setErrors((prev) => {
+                                    const copy = { ...prev };
+                                    delete copy.customCommunity;
+                                    return copy;
+                                  });
+                                }
+                              }}
+                              error={errors.customCommunity}
+                            />
+                          </motion.div>
+                        )}
+                      </>
                     ) : (
                       <Input
                         label="Community / Caste"
