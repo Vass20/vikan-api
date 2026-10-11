@@ -156,9 +156,7 @@ app.UseCors(policy => policy
         var uri = new Uri(origin);
         return uri.Host == "localhost" 
             || uri.Host == "vikanmatrimony.in"
-            || uri.Host.EndsWith("vikanmatrimony.in")
-            || uri.Host == "vikan-seven.vercel.app" 
-            || uri.Host.EndsWith(".vercel.app");
+            || uri.Host.EndsWith("vikanmatrimony.in");
     })
     .AllowAnyMethod()
     .AllowAnyHeader()
