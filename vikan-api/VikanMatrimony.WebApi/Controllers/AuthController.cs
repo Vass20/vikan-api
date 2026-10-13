@@ -257,7 +257,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 }
 
                 var fileUrl = $"/uploads/{fileName}";
-                return Ok(new { Url = fileUrl, url = fileUrl, fileName = fileName });
+                return Ok(new { url = fileUrl, fileName = fileName });
             }
             catch (Exception ex)
             {

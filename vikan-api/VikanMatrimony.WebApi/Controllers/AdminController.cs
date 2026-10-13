@@ -170,7 +170,7 @@ namespace VikanMatrimony.WebApi.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { Message = "Government ID proof attached successfully.", Url = fileUrl, url = fileUrl, DocumentType = docType });
+            return Ok(new { Message = "Government ID proof attached successfully.", url = fileUrl, DocumentType = docType });
         }
 
         [HttpPost("profiles/{id}/approve")]
