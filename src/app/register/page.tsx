@@ -15,6 +15,60 @@ import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
 import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear } from "@/lib/community-data";
 
+async function compressImage(file: File, maxDim = 1600, quality = 0.82): Promise<File> {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new (window as any).Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+            const compressedFile = new File([blob], cleanName, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const {
@@ -416,11 +470,13 @@ export default function RegisterPage() {
         let finalPhotoUrl = photoUrl;
         if (photoFile) {
           try {
+            const compressedPhoto = await compressImage(photoFile);
             const formData = new FormData();
-            formData.append("file", photoFile);
+            formData.append("file", compressedPhoto);
             const photoRes = await uploadRegistrationPhotoApi(formData).unwrap();
-            if (photoRes?.url) {
-              finalPhotoUrl = photoRes.url;
+            const uploadedPhotoUrl = (photoRes as any)?.url || (photoRes as any)?.Url || (photoRes as any)?.fileUrl || "";
+            if (uploadedPhotoUrl) {
+              finalPhotoUrl = uploadedPhotoUrl;
             }
           } catch (photoErr) {
             console.error("Photo upload failed:", photoErr);
@@ -430,15 +486,31 @@ export default function RegisterPage() {
         let finalIdProofUrl = idProofUrl;
         if (idProofFile) {
           try {
+            const compressedId = idProofFile.type.startsWith("image/") ? await compressImage(idProofFile) : idProofFile;
             const idFormData = new FormData();
-            idFormData.append("file", idProofFile);
+            idFormData.append("file", compressedId);
             const idRes = await uploadRegistrationPhotoApi(idFormData).unwrap();
-            if (idRes?.url) {
-              finalIdProofUrl = idRes.url;
+            const uploadedIdUrl = (idRes as any)?.url || (idRes as any)?.Url || (idRes as any)?.fileUrl || "";
+            if (uploadedIdUrl) {
+              finalIdProofUrl = uploadedIdUrl;
+            } else {
+              throw new Error("Server returned an empty document URL.");
             }
-          } catch (idErr) {
+          } catch (idErr: any) {
             console.error("ID proof upload failed:", idErr);
+            const errorMsg = idErr?.data?.message || idErr?.data?.Message || idErr?.message || "Failed to upload ID proof document. Please check the file and try again.";
+            setIsLoading(false);
+            setErrors((prev) => ({ ...prev, idProof: errorMsg }));
+            showToast(errorMsg, "error");
+            return;
           }
+        }
+
+        if (!finalIdProofUrl) {
+          setIsLoading(false);
+          setErrors((prev) => ({ ...prev, idProof: "A Government ID proof document is mandatory for account verification." }));
+          showToast("Please attach a valid Government ID document before submitting.", "error");
+          return;
         }
 
         const finalCommunity = getEffectiveCommunity();

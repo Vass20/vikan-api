@@ -168,6 +168,12 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
 app.UseStaticFiles();
 app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
@@ -195,6 +201,8 @@ using (var scope = app.Services.CreateScope())
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""HoroscopeMatch"" text NOT NULL DEFAULT 'Not Required';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""BloodGroup"" text NOT NULL DEFAULT 'B+ (Positive)';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Generation"" text NOT NULL DEFAULT '';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""IdProofUrl"" text NOT NULL DEFAULT '';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""IdProofType"" text NOT NULL DEFAULT '';
         ");
     }
     catch (Exception ex)

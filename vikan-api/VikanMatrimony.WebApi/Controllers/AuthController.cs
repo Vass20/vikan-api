@@ -20,19 +20,22 @@ namespace VikanMatrimony.WebApi.Controllers
         private readonly IConfiguration _configuration;
         private readonly Data.ApplicationDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IWebHostEnvironment _env;
 
         public AuthController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IConfiguration configuration,
             Data.ApplicationDbContext context,
-            IEmailService emailService)
+            IEmailService emailService,
+            IWebHostEnvironment env)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _context = context;
             _emailService = emailService;
+            _env = env;
         }
 
         [HttpPost("send-otp")]
@@ -218,17 +221,21 @@ namespace VikanMatrimony.WebApi.Controllers
         }
 
         [HttpPost("upload-photo")]
-        public async Task<IActionResult> UploadRegistrationPhoto(IFormFile file)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadRegistrationPhoto([FromForm] IFormFile file)
         {
-            if (file == null || file.Length == 0) return BadRequest("No file uploaded");
+            if (file == null || file.Length == 0) return BadRequest(new { Message = "No file uploaded" });
 
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            var root = !string.IsNullOrWhiteSpace(_env.WebRootPath) ? _env.WebRootPath : Path.Combine(_env.ContentRootPath, "wwwroot");
+            var uploadsFolder = Path.Combine(root, "uploads");
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
             }
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var ext = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
+            var fileName = $"{Guid.NewGuid():N}{ext}";
             var filePath = Path.Combine(uploadsFolder, fileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -237,7 +244,7 @@ namespace VikanMatrimony.WebApi.Controllers
             }
 
             var fileUrl = $"/uploads/{fileName}";
-            return Ok(new { Url = fileUrl });
+            return Ok(new { Url = fileUrl, url = fileUrl, fileName = fileName });
         }
 
         [HttpPost("register")]
@@ -277,6 +284,8 @@ namespace VikanMatrimony.WebApi.Controllers
                 FamilyValues = request.FamilyValues,
                 FamilyDetails = request.FamilyDetails,
                 Generation = request.Generation?.Trim() ?? string.Empty,
+                IdProofUrl = request.IdProofUrl?.Trim() ?? string.Empty,
+                IdProofType = string.IsNullOrWhiteSpace(request.IdProofType) ? "Government ID" : request.IdProofType.Trim(),
                 IsApproved = false,
                 ApprovalStatus = "Pending",
                 IsVerified = false,

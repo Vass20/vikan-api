@@ -38,6 +38,8 @@ namespace VikanMatrimony.WebApi.Models
         public string HoroscopeMatch { get; set; } = "Not Required";
         public string BloodGroup { get; set; } = "B+ (Positive)";
         public string Generation { get; set; } = string.Empty;
+        public string IdProofUrl { get; set; } = string.Empty;
+        public string IdProofType { get; set; } = string.Empty;
 
         public bool IsVerified { get; set; } = false;
         public bool IsApproved { get; set; } = false;

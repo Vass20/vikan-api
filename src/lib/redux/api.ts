@@ -191,6 +191,14 @@ export const api = createApi({
       }),
       invalidatesTags: ["AdminMetrics"],
     }),
+    attachAdminIdProof: builder.mutation<any, { profileId: string; formData: FormData }>({
+      query: ({ profileId, formData }) => ({
+        url: `/admin/profiles/${profileId}/attach-id-proof`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["AdminMetrics", "Profile", "Verification"],
+    }),
     getSafetyReports: builder.query<any, void>({
       query: () => "/admin/reports",
       providesTags: ["SafetyReport"],
@@ -400,6 +408,7 @@ export const {
   useGetPendingApprovalsQuery,
   useApproveProfileMutation,
   useRejectProfileMutation,
+  useAttachAdminIdProofMutation,
   useGetPendingVerificationsQuery,
   useApproveVerificationMutation,
   useRejectVerificationMutation,

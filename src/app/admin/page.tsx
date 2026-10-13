@@ -19,7 +19,8 @@ import {
   useSuspendMemberMutation,
   useGetSupportTicketsQuery,
   useGetAllCustomersQuery,
-  useUpdateTicketStatusMutation
+  useUpdateTicketStatusMutation,
+  useAttachAdminIdProofMutation
 } from "@/lib/redux/api";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ import {
   MapPin,
   Calendar,
   ChevronDown,
+  Upload,
   X
 } from "lucide-react";
 
@@ -72,6 +74,36 @@ export default function AdminPortalPage() {
   const [rejectVerificationApi] = useRejectVerificationMutation();
   const [suspendMemberApi] = useSuspendMemberMutation();
   const [updateTicketStatusApi] = useUpdateTicketStatusMutation();
+  const [attachAdminIdProofApi, { isLoading: isAttachingAdminId }] = useAttachAdminIdProofMutation();
+
+  const [selectedProfileForIdUpload, setSelectedProfileForIdUpload] = useState<any | null>(null);
+  const [isIdUploadModalOpen, setIsIdUploadModalOpen] = useState(false);
+  const [adminIdFile, setAdminIdFile] = useState<File | null>(null);
+  const [adminIdType, setAdminIdType] = useState("Aadhaar Card");
+  const [adminIdUploadError, setAdminIdUploadError] = useState("");
+
+  const handleAdminAttachIdProof = async () => {
+    if (!selectedProfileForIdUpload) return;
+    if (!adminIdFile) {
+      setAdminIdUploadError("Please choose an ID proof document or image file.");
+      return;
+    }
+    setAdminIdUploadError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", adminIdFile);
+      formData.append("documentType", adminIdType);
+      await attachAdminIdProofApi({ profileId: selectedProfileForIdUpload.id, formData }).unwrap();
+      showToast("Government ID document attached successfully!", "success");
+      setIsIdUploadModalOpen(false);
+      setSelectedProfileForIdUpload(null);
+      setAdminIdFile(null);
+    } catch (err: any) {
+      const msg = err?.data?.message || err?.data?.Message || "Failed to attach ID document. Please try again.";
+      setAdminIdUploadError(msg);
+      showToast(msg, "error");
+    }
+  };
 
   const {
     profiles,
@@ -1000,19 +1032,51 @@ export default function AdminPortalPage() {
                                   <p className="text-[11px] text-muted-foreground font-support mt-0.5">
                                     Inspect document details before approving or rejecting.
                                   </p>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(prof.idProofUrl))}
-                                    className="text-[11px] text-brand-gold hover:underline font-semibold flex items-center gap-1 mt-0.5 cursor-pointer"
-                                  >
-                                    <Eye className="h-3 w-3" /> View ID Proof (Enlarge Fullscreen)
-                                  </button>
+                                  <div className="flex items-center gap-3 mt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(prof.idProofUrl))}
+                                      className="text-[11px] text-brand-gold hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Eye className="h-3 w-3" /> View ID Proof (Enlarge Fullscreen)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedProfileForIdUpload(prof);
+                                        setAdminIdType(prof.idProofType || "Government ID");
+                                        setAdminIdFile(null);
+                                        setAdminIdUploadError("");
+                                        setIsIdUploadModalOpen(true);
+                                      }}
+                                      className="text-[11px] text-muted-foreground hover:text-brand-gold underline font-semibold flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Upload className="h-3 w-3" /> Replace ID
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-support mt-3">
-                                <ShieldAlert className="h-4 w-4 shrink-0" />
-                                <span>No Government ID document attached with registration.</span>
+                              <div className="flex items-center justify-between flex-wrap gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-support mt-3">
+                                <div className="flex items-center gap-2">
+                                  <ShieldAlert className="h-4 w-4 shrink-0 text-amber-400" />
+                                  <span>No Government ID document attached with registration.</span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="gold"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedProfileForIdUpload(prof);
+                                    setAdminIdType("Aadhaar Card");
+                                    setAdminIdFile(null);
+                                    setAdminIdUploadError("");
+                                    setIsIdUploadModalOpen(true);
+                                  }}
+                                  className="h-7 text-xs px-2.5 py-0 flex items-center gap-1 shrink-0"
+                                >
+                                  <Upload className="h-3.5 w-3.5" /> Attach ID Document
+                                </Button>
                               </div>
                             )}
                             
@@ -1961,7 +2025,8 @@ export default function AdminPortalPage() {
             )}
 
             {/* Government ID Document Preview */}
-            {selectedCustomerModal.idProofUrl && (
+            {/* Government ID Document Preview */}
+            {selectedCustomerModal.idProofUrl ? (
               <div className="p-3.5 rounded-xl bg-brand-gold/5 border border-brand-gold/30">
                 <span className="text-xs font-bold text-muted-foreground uppercase block mb-2 font-support">
                   Government ID Document ({selectedCustomerModal.idProofType || "Government ID"})
@@ -1980,15 +2045,52 @@ export default function AdminPortalPage() {
                     <span className="text-muted-foreground text-[11px] block">
                       Type: <strong className="text-white">{selectedCustomerModal.idProofType || "Government ID"}</strong>
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(selectedCustomerModal.idProofUrl))}
-                      className="text-brand-gold hover:underline text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
-                    >
-                      <Eye className="h-3 w-3" /> Click to Enlarge Document Fullscreen
-                    </button>
+                    <div className="flex items-center gap-3 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(selectedCustomerModal.idProofUrl))}
+                        className="text-brand-gold hover:underline text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Eye className="h-3 w-3" /> Click to Enlarge Document Fullscreen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProfileForIdUpload(selectedCustomerModal);
+                          setAdminIdType(selectedCustomerModal.idProofType || "Government ID");
+                          setAdminIdFile(null);
+                          setAdminIdUploadError("");
+                          setIsIdUploadModalOpen(true);
+                        }}
+                        className="text-muted-foreground hover:text-brand-gold underline text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Upload className="h-3 w-3" /> Replace ID
+                      </button>
+                    </div>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between flex-wrap gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-support">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span>No Government ID document attached with registration.</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="gold"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedProfileForIdUpload(selectedCustomerModal);
+                    setAdminIdType("Aadhaar Card");
+                    setAdminIdFile(null);
+                    setAdminIdUploadError("");
+                    setIsIdUploadModalOpen(true);
+                  }}
+                  className="h-7 text-xs px-2.5 py-0 flex items-center gap-1 shrink-0"
+                >
+                  <Upload className="h-3.5 w-3.5" /> Attach ID Document
+                </Button>
               </div>
             )}
 
@@ -2004,6 +2106,112 @@ export default function AdminPortalPage() {
             </div>
           </div>
         )}
+      </Dialog>
+
+      {/* ATTACH / REPLACE ID PROOF MODAL */}
+      <Dialog
+        isOpen={isIdUploadModalOpen}
+        onClose={() => {
+          if (!isAttachingAdminId) {
+            setIsIdUploadModalOpen(false);
+            setSelectedProfileForIdUpload(null);
+            setAdminIdFile(null);
+            setAdminIdUploadError("");
+          }
+        }}
+        title={`Attach Government ID Proof for ${selectedProfileForIdUpload?.name || "Member"}`}
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-brand-gold/10 border border-brand-gold/20 rounded-xl text-xs text-foreground font-support">
+            Attaching an ID document will update the member's profile record and record a pending verification entry for Superadmin review.
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground font-support mb-1.5 uppercase tracking-wider">
+              Document Type
+            </label>
+            <select
+              value={adminIdType}
+              onChange={(e) => setAdminIdType(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-card border border-border text-foreground text-xs focus:outline-none focus:border-brand-gold"
+            >
+              <option value="Aadhaar Card">Aadhaar Card</option>
+              <option value="PAN Card">PAN Card</option>
+              <option value="Driving License">Driving License</option>
+              <option value="Voter ID">Voter ID</option>
+              <option value="Passport">Passport</option>
+              <option value="Government ID">Other Government ID</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground font-support mb-1.5 uppercase tracking-wider">
+              Choose Document File (JPG, PNG, WEBP, PDF - Max 10 MB)
+            </label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setAdminIdFile(file);
+                  setAdminIdUploadError("");
+                }
+              }}
+              className="block w-full text-xs text-slate-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-xs file:font-semibold
+                file:bg-brand-gold/15 file:text-brand-gold
+                hover:file:bg-brand-gold/25
+                cursor-pointer file:cursor-pointer"
+            />
+            {adminIdFile && (
+              <p className="text-[11px] text-emerald-400 font-support mt-2 flex items-center gap-1">
+                <Check className="h-3 w-3" /> Selected: {adminIdFile.name} ({(adminIdFile.size / (1024 * 1024)).toFixed(2)} MB)
+              </p>
+            )}
+            {adminIdUploadError && (
+              <p className="text-xs text-destructive font-support mt-2">
+                {adminIdUploadError}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/40">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isAttachingAdminId}
+              onClick={() => {
+                setIsIdUploadModalOpen(false);
+                setSelectedProfileForIdUpload(null);
+                setAdminIdFile(null);
+                setAdminIdUploadError("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="gold"
+              size="sm"
+              disabled={isAttachingAdminId || !adminIdFile}
+              onClick={handleAdminAttachIdProof}
+            >
+              {isAttachingAdminId ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-3.5 w-3.5 border-2 border-brand-dark border-t-transparent rounded-full animate-spin" />
+                  <span>Uploading...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>Attach Document</span>
+                </div>
+              )}
+            </Button>
+          </div>
+        </div>
       </Dialog>
     </>
   );

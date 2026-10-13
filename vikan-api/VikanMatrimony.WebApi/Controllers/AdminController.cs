@@ -17,11 +17,13 @@ namespace VikanMatrimony.WebApi.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IWebHostEnvironment _env;
 
-        public AdminController(ApplicationDbContext context, IEmailService emailService)
+        public AdminController(ApplicationDbContext context, IEmailService emailService, IWebHostEnvironment env)
         {
             _context = context;
             _emailService = emailService;
+            _env = env;
         }
 
         private bool IsAdmin()
@@ -70,8 +72,8 @@ namespace VikanMatrimony.WebApi.Controllers
                     Email = p.User.Email,
                     PhoneNumber = p.User.PhoneNumber,
                     Photos = p.Photos.Select(ph => ph.Url).ToList(),
-                    IdProofUrl = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentUrl).FirstOrDefault() ?? string.Empty,
-                    IdProofType = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentType).FirstOrDefault() ?? string.Empty
+                    IdProofUrl = !string.IsNullOrEmpty(p.IdProofUrl) ? p.IdProofUrl : (p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentUrl).FirstOrDefault() ?? string.Empty),
+                    IdProofType = !string.IsNullOrEmpty(p.IdProofType) ? p.IdProofType : (p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentType).FirstOrDefault() ?? string.Empty)
                 })
                 .ToListAsync();
 
@@ -113,12 +115,60 @@ namespace VikanMatrimony.WebApi.Controllers
                     Email = p.User.Email,
                     PhoneNumber = p.User.PhoneNumber,
                     Photos = p.Photos.Select(ph => ph.Url).ToList(),
-                    IdProofUrl = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentUrl).FirstOrDefault() ?? string.Empty,
-                    IdProofType = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentType).FirstOrDefault() ?? string.Empty
+                    IdProofUrl = !string.IsNullOrEmpty(p.IdProofUrl) ? p.IdProofUrl : (p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentUrl).FirstOrDefault() ?? string.Empty),
+                    IdProofType = !string.IsNullOrEmpty(p.IdProofType) ? p.IdProofType : (p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentType).FirstOrDefault() ?? string.Empty)
                 })
                 .ToListAsync();
 
             return Ok(pendingProfiles);
+        }
+
+        [HttpPost("profiles/{id}/attach-id-proof")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AttachIdProof(string id, [FromForm] IFormFile file, [FromForm] string? documentType)
+        {
+            if (!IsAdmin()) return Forbid();
+            if (file == null || file.Length == 0) return BadRequest(new { Message = "No file selected." });
+
+            var profile = await _context.Profiles
+                .Include(p => p.Verifications)
+                .Include(p => p.Photos)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (profile == null) return NotFound(new { Message = "Profile not found." });
+
+            var root = !string.IsNullOrWhiteSpace(_env.WebRootPath) ? _env.WebRootPath : Path.Combine(_env.ContentRootPath, "wwwroot");
+            var uploadsFolder = Path.Combine(root, "uploads");
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            var ext = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
+            var fileName = $"{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var fileUrl = $"/uploads/{fileName}";
+            var docType = string.IsNullOrWhiteSpace(documentType) ? "Government ID" : documentType.Trim();
+
+            profile.IdProofUrl = fileUrl;
+            profile.IdProofType = docType;
+
+            profile.Verifications.Add(new Verification
+            {
+                DocumentType = docType,
+                DocumentUrl = fileUrl,
+                FaceScanUrl = profile.Photos.FirstOrDefault()?.Url ?? string.Empty,
+                Status = "Pending",
+                SubmittedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Government ID proof attached successfully.", Url = fileUrl, url = fileUrl, DocumentType = docType });
         }
 
         [HttpPost("profiles/{id}/approve")]
