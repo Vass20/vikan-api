@@ -21,10 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
 import {
   Send,
-  Image as ImageIcon,
-  Paperclip,
-  Smile,
-  Mic,
   MoreVertical,
   ShieldAlert,
   Lock,
@@ -493,25 +489,6 @@ export default function ChatPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSend} className="px-6 py-4 border-t border-border bg-card flex items-center gap-3">
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => showToast("Demo feature: Attachment uploads are mocked.", "info")}
-                        className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
-                        title="Upload photos"
-                      >
-                        <ImageIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => showToast("Demo feature: Document attachments are mocked.", "info")}
-                        className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
-                        title="Attach file"
-                      >
-                        <Paperclip className="h-5 w-5" />
-                      </button>
-                    </div>
-
                     <input
                       type="text"
                       value={inputText}
@@ -520,23 +497,14 @@ export default function ChatPage() {
                       className="flex-1 px-4 py-2.5 border border-border bg-muted/10 hover:bg-muted/5 focus:bg-card focus:border-brand-gold focus:ring-1 focus:ring-brand-gold rounded-full outline-none text-xs md:text-sm font-sans"
                     />
 
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => showToast("Demo feature: Voice recording is simulated.", "info")}
-                        className="p-2 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
-                      >
-                        <Mic className="h-5 w-5" />
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={!inputText.trim()}
-                        className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
-                        title="Send message"
-                      >
-                        <Send className="h-5 w-5 text-brand-navy" />
-                      </button>
-                    </div>
+                    <button
+                      type="submit"
+                      disabled={!inputText.trim()}
+                      className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-brand-gold hover:bg-brand-gold/90 text-brand-navy disabled:opacity-40 disabled:pointer-events-none cursor-pointer transition-colors"
+                      title="Send message"
+                    >
+                      <Send className="h-5 w-5 text-brand-navy" />
+                    </button>
                   </form>
                 )}
               </>
