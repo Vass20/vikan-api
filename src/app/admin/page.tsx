@@ -25,8 +25,12 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
+import { AppConst } from "@/lib/AppConst";
 import {
   ShieldAlert,
+  ShieldCheck,
+  FileText,
+  ExternalLink,
   Flame,
   FileCheck2,
   Coins,
@@ -938,11 +942,11 @@ export default function AdminPortalPage() {
                         <div className="flex items-start gap-4 flex-1 min-w-0">
                           <button
                             type="button"
-                            onClick={() => setSelectedFullImage(primaryPhoto)}
+                            onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(primaryPhoto))}
                             className="h-20 w-20 rounded-xl overflow-hidden bg-[#051121] border border-brand-gold/20 shrink-0 hover:scale-105 transition-all cursor-zoom-in relative"
                             title="Click to view full photo"
                           >
-                            <img src={primaryPhoto} alt={prof.name} className="h-full w-full object-cover" />
+                            <img src={AppConst.getPhotoUrl(primaryPhoto)} alt={prof.name} className="h-full w-full object-cover" />
                           </button>
 
                           <div className="flex-1 min-w-0 text-left">
@@ -966,6 +970,51 @@ export default function AdminPortalPage() {
                               <div><strong className="text-foreground">Education:</strong> {prof.education || "N/A"}</div>
                               <div><strong className="text-foreground">Occupation:</strong> {prof.occupation || "N/A"} ({prof.salary || "N/A"})</div>
                             </div>
+
+                            {/* Government ID Document Box */}
+                            {prof.idProofUrl ? (
+                              <div className="flex items-center gap-3 p-3 rounded-xl bg-brand-gold/5 border border-brand-gold/25 mt-3">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(prof.idProofUrl))}
+                                  className="h-14 w-20 rounded-lg overflow-hidden bg-[#051121] border border-brand-gold/40 shrink-0 hover:scale-105 transition-all cursor-zoom-in relative group"
+                                  title="Click to view full ID proof"
+                                >
+                                  <img
+                                    src={AppConst.getPhotoUrl(prof.idProofUrl)}
+                                    alt="ID Proof"
+                                    className="h-full w-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px] font-bold">
+                                    <Eye className="h-4 w-4" />
+                                  </div>
+                                </button>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                                    <span className="text-xs font-bold text-foreground font-support">Government ID Proof:</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-gold/20 text-brand-gold border border-brand-gold/30">
+                                      {prof.idProofType || "Government ID"}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground font-support mt-0.5">
+                                    Inspect document details before approving or rejecting.
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(prof.idProofUrl))}
+                                    className="text-[11px] text-brand-gold hover:underline font-semibold flex items-center gap-1 mt-0.5 cursor-pointer"
+                                  >
+                                    <Eye className="h-3 w-3" /> View ID Proof (Enlarge Fullscreen)
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-support mt-3">
+                                <ShieldAlert className="h-4 w-4 shrink-0" />
+                                <span>No Government ID document attached with registration.</span>
+                              </div>
+                            )}
                             
                             <span className="text-[10px] text-muted-foreground/60 font-support block mt-2">
                               Registered on: {new Date(prof.createdAt).toLocaleString()}
@@ -1907,6 +1956,38 @@ export default function AdminPortalPage() {
                       className="h-20 w-20 rounded-lg object-cover border border-border cursor-pointer hover:border-brand-gold transition-colors shrink-0"
                     />
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Government ID Document Preview */}
+            {selectedCustomerModal.idProofUrl && (
+              <div className="p-3.5 rounded-xl bg-brand-gold/5 border border-brand-gold/30">
+                <span className="text-xs font-bold text-muted-foreground uppercase block mb-2 font-support">
+                  Government ID Document ({selectedCustomerModal.idProofType || "Government ID"})
+                </span>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={AppConst.getPhotoUrl(selectedCustomerModal.idProofUrl)}
+                    alt="ID Proof"
+                    onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(selectedCustomerModal.idProofUrl))}
+                    className="h-20 w-32 rounded-lg object-cover border border-brand-gold/40 cursor-pointer hover:scale-105 transition-all shrink-0"
+                  />
+                  <div className="text-xs space-y-1">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <ShieldCheck className="h-4 w-4" /> Identity Document Uploaded
+                    </span>
+                    <span className="text-muted-foreground text-[11px] block">
+                      Type: <strong className="text-white">{selectedCustomerModal.idProofType || "Government ID"}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(selectedCustomerModal.idProofUrl))}
+                      className="text-brand-gold hover:underline text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="h-3 w-3" /> Click to Enlarge Document Fullscreen
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

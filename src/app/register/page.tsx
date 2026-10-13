@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2 } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2, ShieldCheck, FileText } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
@@ -48,12 +48,44 @@ export default function RegisterPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
  
   const [photoFile, setPhotoFile] = useState<File | null>(null);
- 
+  const [draftIdProofType, setDraftIdProofType] = useState<string>("Aadhaar Card");
+  const [idProofFile, setIdProofFile] = useState<File | null>(null);
+  const [idProofUrl, setIdProofUrl] = useState<string>("");
+  const [idProofPreview, setIdProofPreview] = useState<string>("");
+
+  const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB max upload size
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      showToast(`Photo size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds 5 MB limit. Please select a smaller photo.`, "error");
+      return;
+    }
     setPhotoFile(file);
     setPhotoUrl(URL.createObjectURL(file));
+  };
+
+  const handleIdProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const err = `ID Proof file size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the 5 MB limit. Please upload a file under 5 MB.`;
+      setErrors((prev) => ({ ...prev, idProof: err }));
+      showToast(err, "error");
+      return;
+    }
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy.idProof;
+      return copy;
+    });
+    setIdProofFile(file);
+    if (file.type.startsWith("image/")) {
+      setIdProofPreview(URL.createObjectURL(file));
+    } else {
+      setIdProofPreview("");
+    }
   };
 
   // Auto-saved draft helper
@@ -319,6 +351,11 @@ export default function RegisterPage() {
         stepErrors.parentsNumber = "Parents contact number must be a 10-digit number.";
       }
     }
+    if (registrationStep === 6) {
+      if (!idProofFile && !idProofUrl.trim()) {
+        stepErrors.idProof = "Please upload a Government ID proof document for account verification.";
+      }
+    }
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -357,6 +394,20 @@ export default function RegisterPage() {
           }
         }
 
+        let finalIdProofUrl = idProofUrl;
+        if (idProofFile) {
+          try {
+            const idFormData = new FormData();
+            idFormData.append("file", idProofFile);
+            const idRes = await uploadRegistrationPhotoApi(idFormData).unwrap();
+            if (idRes?.url) {
+              finalIdProofUrl = idRes.url;
+            }
+          } catch (idErr) {
+            console.error("ID proof upload failed:", idErr);
+          }
+        }
+
         const finalCommunity = getEffectiveCommunity();
         await registerApi({
           email: draftEmail,
@@ -384,7 +435,9 @@ export default function RegisterPage() {
           familyDetails: draftFamDetails,
           partnerAgeMin: draftPrefAgeMin,
           partnerAgeMax: draftPrefAgeMax,
-          photoUrl: finalPhotoUrl
+          photoUrl: finalPhotoUrl,
+          idProofType: draftIdProofType,
+          idProofUrl: finalIdProofUrl
         }).unwrap();
 
         completeRegistration();
@@ -404,7 +457,7 @@ export default function RegisterPage() {
     { num: 3, title: "Career & Education" },
     { num: 4, title: "Family Alignment" },
     { num: 5, title: "Partner Preferences" },
-    { num: 6, title: "Photo upload" }
+    { num: 6, title: "Photo & ID Verification" }
   ];
 
   return (
@@ -427,7 +480,7 @@ export default function RegisterPage() {
             </h1>
             
             <p className="text-sm text-muted-foreground font-support leading-relaxed mb-6">
-              Thank you for joining Vikan Matrimony, <strong className="text-foreground">{draftName}</strong>. Your profile has been submitted to the Superadmin team for security verification and quality review.
+              Thank you for joining Vikan Matrimony, <strong className="text-foreground">{draftName}</strong>. Your profile details and Government ID proof have been submitted to the Superadmin moderation team for verification and approval.
             </p>
             
             <div className="p-4 bg-brand-gold/5 border border-brand-gold/20 rounded-xl text-left text-xs font-support space-y-2 mb-8">
@@ -1076,50 +1129,220 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* Step 6: Photos */}
+                {/* Step 6: Photo & ID Verification */}
                 {registrationStep === 6 && (
-                  <div className="space-y-6 text-center">
-                    <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#3B6C9E] dark:border-[#3B6C9E] rounded-xl bg-muted/10">
-                      {photoUrl ? (
-                        <div className="relative h-44 w-44 rounded-xl overflow-hidden bg-muted mb-4 border border-brand-gold">
-                          <img src={photoUrl} alt="Uploaded" className="h-full w-full object-cover" />
+                  <div className="space-y-6 text-left">
+                    {/* Section 1: Profile Photo */}
+                    <div className="p-5 rounded-2xl bg-card border border-border/70 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-brand-gold/10 text-brand-gold">
+                          <Image className="h-4 w-4" />
                         </div>
-                      ) : (
-                        <Image className="h-16 w-16 text-muted-foreground mb-4" />
-                      )}
-                      
-                      <Input
-                        label="Profile Portrait Photo URL (Stock / Web link)"
-                        placeholder="Paste image link here"
-                        value={photoUrl}
-                        onChange={(e) => setPhotoUrl(e.target.value)}
-                      />
-                      
-                      <div className="w-full flex items-center justify-center gap-2 mt-4 pt-4 border-t border-[#3B6C9E]/30">
-                        <label className="text-xs font-semibold text-[#E5DCD0]/80 shrink-0">Or Upload File:</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="block w-full text-xs text-slate-500
-                            file:mr-4 file:py-1.5 file:px-3
-                            file:rounded-full file:border-0
-                            file:text-xs file:font-semibold
-                            file:bg-brand-gold/10 file:text-brand-gold
-                            hover:file:bg-brand-gold/20
-                            cursor-pointer file:cursor-pointer"
-                        />
+                        <div>
+                          <h3 className="font-serif text-sm font-bold text-foreground">1. Profile Portrait Photo</h3>
+                          <p className="text-[11px] text-muted-foreground font-support">
+                            Upload your profile picture (Max file size: 5 MB).
+                          </p>
+                        </div>
                       </div>
-                      
-                      <span className="text-[10px] text-muted-foreground font-support mt-2 leading-tight">
-                        Provide a clean portrait link. For testing, you can paste any image URL, or leave blank to auto-generate a luxury portrait.
-                      </span>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border border-dashed border-[#3B6C9E]/50 rounded-xl bg-muted/10">
+                        {photoUrl ? (
+                          <div className="relative h-24 w-24 rounded-xl overflow-hidden bg-muted border border-brand-gold shrink-0">
+                            <img src={photoUrl} alt="Portrait Preview" className="h-full w-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="h-24 w-24 rounded-xl bg-muted/20 border border-border flex items-center justify-center shrink-0 text-muted-foreground">
+                            <Image className="h-8 w-8 opacity-40" />
+                          </div>
+                        )}
+
+                        <div className="flex-1 w-full space-y-2.5">
+                          <label className="block text-xs font-semibold text-foreground font-support">
+                            Choose Portrait Photo File <span className="text-muted-foreground font-normal">(Max 5 MB)</span>
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="block w-full text-xs text-slate-500
+                              file:mr-4 file:py-1.5 file:px-3
+                              file:rounded-full file:border-0
+                              file:text-xs file:font-semibold
+                              file:bg-brand-gold/10 file:text-brand-gold
+                              hover:file:bg-brand-gold/20
+                              cursor-pointer file:cursor-pointer"
+                          />
+                          <div className="pt-2 border-t border-border/40">
+                            <Input
+                              label="Or Paste Portrait Image Link"
+                              placeholder="https://..."
+                              value={photoUrl}
+                              onChange={(e) => setPhotoUrl(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground font-support text-left p-3.5 bg-brand-gold/5 border border-brand-gold/20 rounded-lg">
+                    {/* Section 2: Government ID Proof */}
+                    <div className="p-5 rounded-2xl bg-card border border-brand-gold/40 shadow-md space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-brand-gold/15 text-brand-gold">
+                          <ShieldCheck className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-serif text-sm font-bold text-foreground">2. Government ID Proof</h3>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold uppercase tracking-wider">
+                              Required
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground font-support">
+                            Mandatory for Superadmin identity verification before account approval.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <Select
+                          label="ID Document Type"
+                          value={draftIdProofType}
+                          onChange={(e) => {
+                            setDraftIdProofType(e.target.value);
+                            if (errors.idProofType) {
+                              setErrors((prev) => {
+                                const copy = { ...prev };
+                                delete copy.idProofType;
+                                return copy;
+                              });
+                            }
+                          }}
+                          options={[
+                            { value: "Aadhaar Card", label: "Aadhaar Card" },
+                            { value: "PAN Card", label: "PAN Card" },
+                            { value: "Driving License", label: "Driving License" },
+                            { value: "Voter ID", label: "Voter ID" },
+                            { value: "Passport", label: "Passport" }
+                          ]}
+                          error={errors.idProofType}
+                        />
+
+                        {/* ID Upload Dropzone */}
+                        <div className={`p-4 border-2 border-dashed rounded-xl transition-all ${
+                          errors.idProof
+                            ? "border-destructive bg-destructive/5"
+                            : idProofFile || idProofUrl
+                            ? "border-emerald-500/50 bg-emerald-500/5"
+                            : "border-[#3B6C9E]/50 hover:border-brand-gold/60 bg-muted/10"
+                        }`}>
+                          {idProofFile || idProofUrl ? (
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                              {idProofPreview ? (
+                                <div className="relative h-24 w-32 rounded-lg overflow-hidden bg-muted border border-brand-gold/40 shrink-0">
+                                  <img src={idProofPreview} alt="ID Document Preview" className="h-full w-full object-cover" />
+                                </div>
+                              ) : (
+                                <div className="h-24 w-32 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex flex-col items-center justify-center shrink-0 text-emerald-400">
+                                  <FileText className="h-8 w-8 mb-1" />
+                                  <span className="text-[10px] font-bold">Document</span>
+                                </div>
+                              )}
+
+                              <div className="flex-1 min-w-0 space-y-1 text-left">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                    <Check className="h-3.5 w-3.5 stroke-[3]" /> Document Attached
+                                  </span>
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-brand-gold/15 text-brand-gold">
+                                    {draftIdProofType}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-mono font-medium text-foreground truncate max-w-xs">
+                                  {idProofFile?.name || idProofUrl}
+                                </p>
+                                {idProofFile && (
+                                  <p className="text-[11px] text-muted-foreground font-support">
+                                    Size: {(idProofFile.size / (1024 * 1024)).toFixed(2)} MB
+                                  </p>
+                                )}
+                                <div className="pt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIdProofFile(null);
+                                      setIdProofUrl("");
+                                      setIdProofPreview("");
+                                    }}
+                                    className="text-xs text-rose-400 hover:text-rose-300 font-semibold underline cursor-pointer"
+                                  >
+                                    Remove &amp; Choose Another
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-4 space-y-2">
+                              <ShieldCheck className="h-10 w-10 text-brand-gold mx-auto opacity-70" />
+                              <div className="space-y-1">
+                                <label className="block text-xs font-bold text-foreground font-support">
+                                  Upload Government ID Proof
+                                </label>
+                                <p className="text-[11px] text-muted-foreground font-support">
+                                  Accepted file types: JPG, PNG, WEBP, PDF • <strong className="text-foreground">Max upload size: 5 MB</strong>
+                                </p>
+                              </div>
+                              <div className="pt-2 max-w-xs mx-auto">
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                                  onChange={handleIdProofFileChange}
+                                  className="block w-full text-xs text-slate-500
+                                    file:mr-4 file:py-1.5 file:px-3
+                                    file:rounded-full file:border-0
+                                    file:text-xs file:font-semibold
+                                    file:bg-brand-gold/15 file:text-brand-gold
+                                    hover:file:bg-brand-gold/25
+                                    cursor-pointer file:cursor-pointer"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {errors.idProof && (
+                            <span className="text-xs text-destructive font-support font-medium mt-2 block">
+                              {errors.idProof}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Optional ID URL Fallback */}
+                        {!idProofFile && (
+                          <div className="pt-2">
+                            <Input
+                              label="Or Document Image URL (Optional)"
+                              placeholder="https://... (or choose a file above)"
+                              value={idProofUrl}
+                              onChange={(e) => {
+                                setIdProofUrl(e.target.value);
+                                if (errors.idProof) {
+                                  setErrors((prev) => {
+                                    const copy = { ...prev };
+                                    delete copy.idProof;
+                                    return copy;
+                                  });
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 text-xs text-muted-foreground font-support text-left p-3.5 bg-brand-gold/5 border border-brand-gold/20 rounded-xl">
                       <Shield className="h-5 w-5 text-brand-gold flex-shrink-0" />
                       <span>
-                        **Privacy Seal**: Photo visibility can be locked to "Premium Only" or "Interests Accepted Only" inside security settings.
+                        <strong>🔒 Privacy &amp; Encryption</strong>: Your Government ID proof is encrypted and exclusively accessible by the Superadmin moderation team to review and approve your account. It is never displayed on your public profile.
                       </span>
                     </div>
                   </div>

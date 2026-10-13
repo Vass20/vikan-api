@@ -39,6 +39,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.Photos)
+                .Include(p => p.Verifications)
                 .Where(p => p.User.Email != "admin@vikan.com")
                 .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new
@@ -67,7 +68,9 @@ namespace VikanMatrimony.WebApi.Controllers
                     p.CreatedAt,
                     Email = p.User.Email,
                     PhoneNumber = p.User.PhoneNumber,
-                    Photos = p.Photos.Select(ph => ph.Url).ToList()
+                    Photos = p.Photos.Select(ph => ph.Url).ToList(),
+                    IdProofUrl = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentUrl).FirstOrDefault() ?? string.Empty,
+                    IdProofType = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentType).FirstOrDefault() ?? string.Empty
                 })
                 .ToListAsync();
 
@@ -83,6 +86,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 .AsNoTracking()
                 .Include(p => p.User)
                 .Include(p => p.Photos)
+                .Include(p => p.Verifications)
                 .Where(p => (!p.IsApproved || p.ApprovalStatus == "Pending") && p.User.Email != "admin@vikan.com")
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(100)
@@ -106,7 +110,9 @@ namespace VikanMatrimony.WebApi.Controllers
                     p.CreatedAt,
                     Email = p.User.Email,
                     PhoneNumber = p.User.PhoneNumber,
-                    Photos = p.Photos.Select(ph => ph.Url).ToList()
+                    Photos = p.Photos.Select(ph => ph.Url).ToList(),
+                    IdProofUrl = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentUrl).FirstOrDefault() ?? string.Empty,
+                    IdProofType = p.Verifications.OrderByDescending(v => v.SubmittedAt).Select(v => v.DocumentType).FirstOrDefault() ?? string.Empty
                 })
                 .ToListAsync();
 
@@ -120,6 +126,7 @@ namespace VikanMatrimony.WebApi.Controllers
 
             var profile = await _context.Profiles
                 .Include(p => p.User)
+                .Include(p => p.Verifications)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (profile == null) return NotFound(new { Message = "Profile not found" });
@@ -127,6 +134,10 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.IsApproved = true;
             profile.ApprovalStatus = "Approved";
             profile.IsVerified = true;
+            foreach (var v in profile.Verifications)
+            {
+                v.Status = "Approved";
+            }
 
             await _context.SaveChangesAsync();
 
@@ -167,12 +178,18 @@ namespace VikanMatrimony.WebApi.Controllers
 
             var profile = await _context.Profiles
                 .Include(p => p.User)
+                .Include(p => p.Verifications)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (profile == null) return NotFound(new { Message = "Profile not found" });
 
             profile.IsApproved = false;
             profile.ApprovalStatus = "Rejected";
+            profile.IsVerified = false;
+            foreach (var v in profile.Verifications)
+            {
+                v.Status = "Rejected";
+            }
 
             await _context.SaveChangesAsync();
 

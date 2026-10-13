@@ -296,6 +296,18 @@ namespace VikanMatrimony.WebApi.Controllers
                     IsPrimary = true
                 });
             }
+
+            if (!string.IsNullOrWhiteSpace(request.IdProofUrl))
+            {
+                profile.Verifications.Add(new Verification
+                {
+                    DocumentType = string.IsNullOrWhiteSpace(request.IdProofType) ? "Government ID" : request.IdProofType,
+                    DocumentUrl = request.IdProofUrl,
+                    FaceScanUrl = request.PhotoUrl ?? string.Empty,
+                    Status = "Pending",
+                    SubmittedAt = DateTime.UtcNow
+                });
+            }
  
             _context.Profiles.Add(profile);
             await _context.SaveChangesAsync();
@@ -416,6 +428,8 @@ namespace VikanMatrimony.WebApi.Controllers
         public int PartnerAgeMin { get; set; } = 21;
         public int PartnerAgeMax { get; set; } = 35;
         public string PhotoUrl { get; set; } = string.Empty;
+        public string IdProofType { get; set; } = string.Empty;
+        public string IdProofUrl { get; set; } = string.Empty;
     }
 
     public class LoginRequest
