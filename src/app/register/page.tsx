@@ -260,7 +260,7 @@ export default function RegisterPage() {
       } else if (!isEmailVerified) {
         stepErrors.email = "Please click the verify tick to validate your email with an OTP.";
       }
-      if (!draftMobile.trim() || draftMobile.length < 10) stepErrors.mobile = "Enter a 10-digit mobile number.";
+      if (!draftMobile.trim() || draftMobile.length !== 10) stepErrors.mobile = "Enter a 10-digit mobile number.";
       if (!draftPassword || draftPassword.length < 6) stepErrors.password = "Password must be at least 6 characters.";
     }
     if (registrationStep === 2) {
@@ -274,7 +274,7 @@ export default function RegisterPage() {
       if (!draftCity.trim()) stepErrors.city = "City is required.";
     }
     if (registrationStep === 4) {
-      if (draftParentsNumber.trim() && draftParentsNumber.length < 10) {
+      if (draftParentsNumber.trim() && draftParentsNumber.length !== 10) {
         stepErrors.parentsNumber = "Parents contact number must be a 10-digit number.";
       }
     }
@@ -595,10 +595,23 @@ export default function RegisterPage() {
                     <Input
                       label="Mobile Number"
                       type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={10}
                       required
                       placeholder="10 digit number"
                       value={draftMobile}
-                      onChange={(e) => setDraftMobile(e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setDraftMobile(val);
+                        if (errors.mobile) {
+                          setErrors((prev) => {
+                            const copy = { ...prev };
+                            delete copy.mobile;
+                            return copy;
+                          });
+                        }
+                      }}
                       error={errors.mobile}
                     />
 
@@ -912,9 +925,22 @@ export default function RegisterPage() {
                     <Input
                       label="Parents Contact Number"
                       type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={10}
                       placeholder="Enter 10-digit number"
                       value={draftParentsNumber}
-                      onChange={(e) => setDraftParentsNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setDraftParentsNumber(val);
+                        if (errors.parentsNumber) {
+                          setErrors((prev) => {
+                            const copy = { ...prev };
+                            delete copy.parentsNumber;
+                            return copy;
+                          });
+                        }
+                      }}
                       error={errors.parentsNumber}
                     />
 
