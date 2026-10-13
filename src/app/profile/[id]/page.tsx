@@ -197,6 +197,35 @@ export default function ProfileDetailPage() {
     }).length;
   }, [sentInterests]);
 
+  // Community, Caste and Generation / Gen Z calculations
+  const birthYear = useMemo(() => {
+    return profile?.dateOfBirth ? getBirthYear(profile.dateOfBirth) : null;
+  }, [profile?.dateOfBirth]);
+
+  const userGeneration = useMemo(() => {
+    if (profile?.generation && profile.generation.trim()) {
+      return profile.generation.trim();
+    }
+    if (birthYear) {
+      return getGenerationByYear(birthYear) || null;
+    }
+    return null;
+  }, [profile?.generation, birthYear]);
+
+  const isGenZ = useMemo(() => {
+    if (userGeneration && userGeneration.toLowerCase().includes("gen z")) {
+      return true;
+    }
+    if (birthYear !== null && birthYear >= 1997 && birthYear <= 2012) {
+      return true;
+    }
+    return false;
+  }, [userGeneration, birthYear]);
+
+  const commDetails = useMemo(() => {
+    return parseCommunityAndCaste(profile?.community, profile?.caste);
+  }, [profile?.community, profile?.caste]);
+
   // Add visitor log and check auth on mount
   useEffect(() => {
     setMounted(true);
@@ -284,35 +313,6 @@ export default function ProfileDetailPage() {
   const isConnected = isReceivedAccepted || isSentAccepted;
   const isSent = !!isSentPending || !!isSentAccepted;
   const isShort = (shortlistedData || []).some((s: any) => s.profile?.id === profile?.id || s.targetProfile?.id === profile?.id || s.id === profile?.id);
-
-  // Community, Caste and Generation / Gen Z calculations
-  const birthYear = useMemo(() => {
-    return profile?.dateOfBirth ? getBirthYear(profile.dateOfBirth) : null;
-  }, [profile?.dateOfBirth]);
-
-  const userGeneration = useMemo(() => {
-    if (profile?.generation && profile.generation.trim()) {
-      return profile.generation.trim();
-    }
-    if (birthYear) {
-      return getGenerationByYear(birthYear) || null;
-    }
-    return null;
-  }, [profile?.generation, birthYear]);
-
-  const isGenZ = useMemo(() => {
-    if (userGeneration && userGeneration.toLowerCase().includes("gen z")) {
-      return true;
-    }
-    if (birthYear !== null && birthYear >= 1997 && birthYear <= 2012) {
-      return true;
-    }
-    return false;
-  }, [userGeneration, birthYear]);
-
-  const commDetails = useMemo(() => {
-    return parseCommunityAndCaste(profile?.community, profile?.caste);
-  }, [profile?.community, profile?.caste]);
 
   // Match score calculation details
   let matchScore = 75;
