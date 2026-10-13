@@ -21,6 +21,7 @@ export interface Profile {
   religion: string;
   community: string;
   subCommunity: string;
+  caste?: string;
   motherTongue: string;
   education: string;
   occupation: string;

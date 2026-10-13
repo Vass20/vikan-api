@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { AppConst } from "@/lib/AppConst";
+import { DEFAULT_COMMUNITIES } from "@/lib/community-data";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -59,8 +60,17 @@ function SearchContent() {
   const isFree = !myProfile?.membershipType || myProfile?.membershipType === "Free" || myProfile?.membershipType === "Free Member" || myProfile?.membershipType === "Free Package";
 
   const communityOptions = useMemo(() => {
-    if (!castes || !religion || religion === "all") return [];
-    return castes[religion] || [];
+    if (!religion || religion === "all") return [];
+    const apiList: string[] = castes?.[religion] || [];
+    const defaultList: string[] = DEFAULT_COMMUNITIES[religion] || [];
+    const set = new Set<string>();
+    [...defaultList, ...apiList].forEach((c) => {
+      const trimmed = c.trim();
+      if (trimmed && !/^(others?)$/i.test(trimmed)) {
+        set.add(trimmed);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [castes, religion]);
 
   // Reset community if religion changes and current community is not valid
@@ -221,7 +231,16 @@ function SearchContent() {
 
     // 5. Community / Caste
     if (community !== "all") {
-      if (!p.community || p.community.toLowerCase() !== community.toLowerCase()) return false;
+      if (!p.community) return false;
+      const targetComm = community.toLowerCase();
+      const profComm = p.community.toLowerCase();
+      if (
+        profComm !== targetComm &&
+        !profComm.includes(targetComm) &&
+        !targetComm.includes(profComm)
+      ) {
+        return false;
+      }
     }
 
     // 6. Mother Tongue

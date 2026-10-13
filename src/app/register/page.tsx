@@ -13,6 +13,7 @@ import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2 } f
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
+import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES } from "@/lib/community-data";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -84,41 +85,76 @@ export default function RegisterPage() {
   }, [draftPassword]);
 
   // Step 2
+  const initialComm = registrationDraft.community || "";
+  const initialParts = initialComm.split(" - ");
   const [draftReligion, setDraftReligion] = useState(registrationDraft.religion || "");
-  const [draftCommunity, setDraftCommunity] = useState(registrationDraft.community || "");
+  const [draftCommunity, setDraftCommunity] = useState(() => {
+    if (!initialComm) return "";
+    if (initialComm.startsWith("Caste No Bar")) return "Caste No Bar";
+    return initialParts[0] || "";
+  });
+  const [draftCaste, setDraftCaste] = useState(() => {
+    if (registrationDraft.caste) return registrationDraft.caste;
+    if (registrationDraft.subCommunity) return registrationDraft.subCommunity;
+    if (initialComm.startsWith("Caste No Bar (") && initialComm.endsWith(")")) {
+      return initialComm.slice("Caste No Bar (".length, -1);
+    }
+    if (initialParts.length > 1) return initialParts.slice(1).join(" - ");
+    return "";
+  });
   const [customCommunity, setCustomCommunity] = useState("");
   const [draftTongue, setDraftTongue] = useState(registrationDraft.motherTongue || "");
   const [draftMarital, setDraftMarital] = useState(registrationDraft.maritalStatus || "");
 
-  const getEffectiveCommunity = () => {
-    if (draftCommunity === "Others") {
-      return customCommunity.trim() || "Others";
-    }
-    return draftCommunity.trim();
-  };
-
   const communityOptions = useMemo(() => {
-    if (!castes || !draftReligion) return [];
-    const list = castes[draftReligion] || [];
+    if (!draftReligion) return [];
+    const apiList: string[] = castes?.[draftReligion] || [];
+    const defaultList: string[] = DEFAULT_COMMUNITIES[draftReligion] || [];
+
+    const set = new Set<string>();
+    [...defaultList, ...apiList].forEach((c) => {
+      const trimmed = c.trim();
+      if (trimmed && !/^(others?|caste no bar)$/i.test(trimmed)) {
+        set.add(trimmed);
+      }
+    });
+
+    const sorted = Array.from(set).sort((a, b) => a.localeCompare(b));
+
     return [
-      { value: "", label: "Select..." },
-      ...list.map((c: string) => ({ value: c, label: c }))
+      { value: "", label: "Select Community..." },
+      { value: "Caste No Bar", label: "Caste No Bar" },
+      ...sorted.map((c) => ({ value: c, label: c })),
+      { value: "Others", label: "Others" }
     ];
   }, [castes, draftReligion]);
 
+  const getEffectiveCommunity = () => {
+    let comm = draftCommunity.trim();
+    if (comm === "Others") {
+      comm = customCommunity.trim() || "Others";
+    }
+    if (!comm) return "";
+
+    const caste = draftCaste.trim();
+    if (caste) {
+      if (comm === "Caste No Bar") {
+        return `Caste No Bar (${caste})`;
+      }
+      return `${comm} - ${caste}`;
+    }
+    return comm;
+  };
+
   useEffect(() => {
-    if (communityOptions.length > 0) {
-      const match = communityOptions.find(o => o.value === draftCommunity);
-      if (!match) {
-        if (draftCommunity && draftCommunity !== "Others") {
-          setCustomCommunity(draftCommunity);
-          setDraftCommunity("Others");
-        } else if (!draftCommunity) {
-          setDraftCommunity("");
-        }
+    if (draftReligion && communityOptions.length > 0 && draftCommunity) {
+      const match = communityOptions.find((o) => o.value === draftCommunity);
+      if (!match && draftCommunity !== "Others") {
+        setCustomCommunity(draftCommunity);
+        setDraftCommunity("Others");
       }
     }
-  }, [draftReligion, communityOptions]);
+  }, [draftReligion, communityOptions, draftCommunity]);
 
   // Step 3
   const [draftEdu, setDraftEdu] = useState(registrationDraft.education || "");
@@ -220,6 +256,8 @@ export default function RegisterPage() {
       mobile: draftMobile,
       religion: draftReligion,
       community: finalCommunity,
+      subCommunity: draftCaste.trim(),
+      caste: draftCaste.trim(),
       motherTongue: draftTongue,
       maritalStatus: draftMarital,
       education: draftEdu,
@@ -264,10 +302,13 @@ export default function RegisterPage() {
       if (!draftPassword || draftPassword.length < 6) stepErrors.password = "Password must be at least 6 characters.";
     }
     if (registrationStep === 2) {
+      if (!draftReligion.trim()) {
+        stepErrors.religion = "Please select your religion.";
+      }
       if (!draftCommunity.trim()) {
-        stepErrors.community = "Community/Caste is required.";
+        stepErrors.community = "Please select your community.";
       } else if (draftCommunity === "Others" && !customCommunity.trim()) {
-        stepErrors.customCommunity = "Please enter your community / caste.";
+        stepErrors.customCommunity = "Please enter your community name.";
       }
     }
     if (registrationStep === 3) {
@@ -691,20 +732,36 @@ export default function RegisterPage() {
                     <Select
                       label="Religion"
                       value={draftReligion}
-                      onChange={(e) => setDraftReligion(e.target.value)}
-                      options={[
-                        { value: "", label: "Select..." },
-                        { value: "Hindu", label: "Hindu" },
-                        { value: "Muslim", label: "Muslim" },
-                        { value: "Christian", label: "Christian" },
-                        { value: "Jain", label: "Jain" }
-                      ]}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setDraftReligion(val);
+                        setDraftCommunity("");
+                        setCustomCommunity("");
+                        setDraftCaste("");
+                        if (errors.religion || errors.community || errors.customCommunity || errors.caste) {
+                          setErrors((prev) => {
+                            const copy = { ...prev };
+                            delete copy.religion;
+                            delete copy.community;
+                            delete copy.customCommunity;
+                            delete copy.caste;
+                            return copy;
+                          });
+                        }
+                      }}
+                      options={RELIGION_OPTIONS}
+                      error={errors.religion}
                     />
 
-                    {communityOptions.length > 0 ? (
-                      <>
+                    {draftReligion && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-4"
+                      >
                         <Select
-                          label="Community / Caste"
+                          label="Community"
                           value={draftCommunity}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -732,9 +789,9 @@ export default function RegisterPage() {
                             transition={{ duration: 0.2 }}
                           >
                             <Input
-                              label="Specify Community / Caste"
+                              label="Specify Community"
                               required
-                              placeholder="Please enter your community / caste"
+                              placeholder="Enter your community"
                               value={customCommunity}
                               onChange={(e) => {
                                 setCustomCommunity(e.target.value);
@@ -750,16 +807,32 @@ export default function RegisterPage() {
                             />
                           </motion.div>
                         )}
-                      </>
-                    ) : (
-                      <Input
-                        label="Community / Caste"
-                        required
-                        placeholder="E.g. Brahmin / Rajput / Jat / Sunni"
-                        value={draftCommunity}
-                        onChange={(e) => setDraftCommunity(e.target.value)}
-                        error={errors.community}
-                      />
+
+                        {draftCommunity && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Input
+                              label="Caste"
+                              placeholder="Enter your caste (e.g. Iyer, Vadama, Thuluva)"
+                              value={draftCaste}
+                              onChange={(e) => {
+                                setDraftCaste(e.target.value);
+                                if (errors.caste) {
+                                  setErrors((prev) => {
+                                    const copy = { ...prev };
+                                    delete copy.caste;
+                                    return copy;
+                                  });
+                                }
+                              }}
+                              error={errors.caste}
+                            />
+                          </motion.div>
+                        )}
+                      </motion.div>
                     )}
 
                     <Select
