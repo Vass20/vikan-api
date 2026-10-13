@@ -221,30 +221,48 @@ namespace VikanMatrimony.WebApi.Controllers
         }
 
         [HttpPost("upload-photo")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadRegistrationPhoto([FromForm] IFormFile file)
+        public async Task<IActionResult> UploadRegistrationPhoto(IFormFile? file)
         {
-            if (file == null || file.Length == 0) return BadRequest(new { Message = "No file uploaded" });
-
-            var root = !string.IsNullOrWhiteSpace(_env.WebRootPath) ? _env.WebRootPath : Path.Combine(_env.ContentRootPath, "wwwroot");
-            var uploadsFolder = Path.Combine(root, "uploads");
-            if (!Directory.Exists(uploadsFolder))
+            try
             {
-                Directory.CreateDirectory(uploadsFolder);
+                var targetFile = file;
+                if (targetFile == null && Request.HasFormContentType && Request.Form.Files.Count > 0)
+                {
+                    targetFile = Request.Form.Files["file"] ?? Request.Form.Files[0];
+                }
+
+                if (targetFile == null || targetFile.Length == 0)
+                {
+                    return BadRequest(new { Message = "No file uploaded or file is empty." });
+                }
+
+                var root = !string.IsNullOrWhiteSpace(_env.WebRootPath) 
+                    ? _env.WebRootPath 
+                    : (!string.IsNullOrWhiteSpace(_env.ContentRootPath) ? Path.Combine(_env.ContentRootPath, "wwwroot") : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
+
+                var uploadsFolder = Path.Combine(root, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var ext = Path.GetExtension(targetFile.FileName);
+                if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
+                var fileName = $"{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    await targetFile.CopyToAsync(stream);
+                }
+
+                var fileUrl = $"/uploads/{fileName}";
+                return Ok(new { Url = fileUrl, url = fileUrl, fileName = fileName });
             }
-
-            var ext = Path.GetExtension(file.FileName);
-            if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
-            var fileName = $"{Guid.NewGuid():N}{ext}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            catch (Exception ex)
             {
-                await file.CopyToAsync(stream);
+                return StatusCode(500, new { Message = "File upload failed: " + ex.Message, Details = ex.ToString() });
             }
-
-            var fileUrl = $"/uploads/{fileName}";
-            return Ok(new { Url = fileUrl, url = fileUrl, fileName = fileName });
         }
 
         [HttpPost("register")]
