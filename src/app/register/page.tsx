@@ -13,7 +13,7 @@ import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2, Sh
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
-import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES } from "@/lib/community-data";
+import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear } from "@/lib/community-data";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -92,6 +92,36 @@ export default function RegisterPage() {
   const [draftName, setDraftName] = useState(registrationDraft.name || "");
   const [draftGender, setDraftGender] = useState<"female" | "male">(registrationDraft.gender === "male" ? "male" : "female");
   const [draftDob, setDraftDob] = useState(registrationDraft.dob || "");
+  const initialBirthYear = getBirthYear(registrationDraft.dob || "");
+  const initialGen = initialBirthYear ? (getGenerationByYear(initialBirthYear) || "") : ((registrationDraft as any).generation || "");
+  const [draftGeneration, setDraftGeneration] = useState(initialGen || "");
+
+  const generationOptions = useMemo(() => {
+    const birthYear = getBirthYear(draftDob);
+    if (birthYear) {
+      const gen = getGenerationByYear(birthYear);
+      if (gen) {
+        const conf = GENERATION_CONFIGS.find((c) => c.key === gen);
+        return [
+          { value: gen, label: conf ? conf.label : gen }
+        ];
+      }
+    }
+    return [
+      { value: "", label: "Select Generation..." },
+      ...GENERATION_CONFIGS.map((g) => ({ value: g.key, label: g.label }))
+    ];
+  }, [draftDob]);
+
+  useEffect(() => {
+    const birthYear = getBirthYear(draftDob);
+    if (birthYear) {
+      const gen = getGenerationByYear(birthYear);
+      if (gen && draftGeneration !== gen) {
+        setDraftGeneration(gen);
+      }
+    }
+  }, [draftDob]);
   const [draftEmail, setDraftEmail] = useState(registrationDraft.email || "");
   const [draftPassword, setDraftPassword] = useState("");
   const [draftMobile, setDraftMobile] = useState(registrationDraft.mobile || "");
@@ -284,6 +314,7 @@ export default function RegisterPage() {
       name: draftName,
       gender: draftGender as any,
       dob: draftDob,
+      generation: draftGeneration,
       email: draftEmail,
       mobile: draftMobile,
       religion: draftReligion,
@@ -325,6 +356,8 @@ export default function RegisterPage() {
     const stepErrors: Record<string, string> = {};
     if (registrationStep === 1) {
       if (!draftName.trim()) stepErrors.name = "Full name is required.";
+      if (!draftDob.trim()) stepErrors.dob = "Date of birth is required.";
+      if (!draftGeneration.trim()) stepErrors.generation = "Generation is required.";
       if (!draftEmail.trim() || !draftEmail.includes("@")) {
         stepErrors.email = "Enter a valid email.";
       } else if (!isEmailVerified) {
@@ -415,6 +448,7 @@ export default function RegisterPage() {
           name: draftName,
           gender: draftGender === "male" ? "Male" : "Female",
           dateOfBirth: draftDob,
+          generation: draftGeneration,
           religion: draftReligion,
           community: finalCommunity,
           motherTongue: draftTongue,
@@ -583,13 +617,56 @@ export default function RegisterPage() {
                       </div>
                     </div>
 
-                    <Input
-                      label="Date of Birth"
-                      type="date"
-                      required
-                      value={draftDob}
-                      onChange={(e) => setDraftDob(e.target.value)}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input
+                        label="Date of Birth"
+                        type="date"
+                        required
+                        value={draftDob}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDraftDob(val);
+                          const year = getBirthYear(val);
+                          if (year) {
+                            const gen = getGenerationByYear(year);
+                            if (gen) setDraftGeneration(gen);
+                          }
+                          if (errors.dob || errors.generation) {
+                            setErrors((prev) => {
+                              const copy = { ...prev };
+                              delete copy.dob;
+                              delete copy.generation;
+                              return copy;
+                            });
+                          }
+                        }}
+                        error={errors.dob}
+                      />
+
+                      <div>
+                        <Select
+                          label="Generation"
+                          value={draftGeneration}
+                          onChange={(e) => {
+                            setDraftGeneration(e.target.value);
+                            if (errors.generation) {
+                              setErrors((prev) => {
+                                const copy = { ...prev };
+                                delete copy.generation;
+                                return copy;
+                              });
+                            }
+                          }}
+                          options={generationOptions}
+                          error={errors.generation}
+                        />
+                        {getBirthYear(draftDob) && draftGeneration && (
+                          <span className="text-[11px] text-brand-gold font-support mt-1 block">
+                            ✨ Auto-matched: {draftGeneration} (Born {getBirthYear(draftDob)})
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
                     <div className="space-y-2">
                       <div className="flex flex-col gap-1.5 text-left">

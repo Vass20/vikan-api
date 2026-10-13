@@ -105,3 +105,43 @@ export const DEFAULT_COMMUNITIES: Record<string, string[]> = {
   ],
   Other: []
 };
+
+export interface GenerationConfig {
+  key: string;
+  label: string;
+  minYear: number;
+  maxYear: number;
+}
+
+export const GENERATION_CONFIGS: GenerationConfig[] = [
+  { key: "Gen Z", label: "Gen Z (1997 – 2012)", minYear: 1997, maxYear: 2012 },
+  { key: "Millennials", label: "Millennials (1981 – 1996)", minYear: 1981, maxYear: 1996 },
+  { key: "Gen X", label: "Gen X (1965 – 1980)", minYear: 1965, maxYear: 1980 },
+  { key: "Boomers", label: "Boomers (1946 – 1964)", minYear: 1946, maxYear: 1964 },
+  { key: "Traditionalists", label: "Traditionalists (1945 & earlier)", minYear: 1900, maxYear: 1945 }
+];
+
+export function getBirthYear(dob: string): number | null {
+  if (!dob) return null;
+  const match = dob.match(/^(\d{4})/);
+  if (match) {
+    const y = parseInt(match[1], 10);
+    if (!isNaN(y) && y >= 1920 && y <= new Date().getFullYear()) {
+      return y;
+    }
+  }
+  const d = new Date(dob);
+  if (!isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    if (y >= 1920 && y <= new Date().getFullYear()) {
+      return y;
+    }
+  }
+  return null;
+}
+
+export function getGenerationByYear(year: number): string | null {
+  const matched = GENERATION_CONFIGS.find((g) => year >= g.minYear && year <= g.maxYear);
+  return matched ? matched.key : null;
+}
+

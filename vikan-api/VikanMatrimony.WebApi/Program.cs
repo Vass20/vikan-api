@@ -194,6 +194,7 @@ using (var scope = app.Services.CreateScope())
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""AstroStarDetails"" text NOT NULL DEFAULT 'Nadi: Manglik (No)';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""HoroscopeMatch"" text NOT NULL DEFAULT 'Not Required';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""BloodGroup"" text NOT NULL DEFAULT 'B+ (Positive)';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Generation"" text NOT NULL DEFAULT '';
         ");
     }
     catch (Exception ex)

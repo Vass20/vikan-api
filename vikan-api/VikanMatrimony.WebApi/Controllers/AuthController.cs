@@ -276,6 +276,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 FamilyStatus = request.FamilyStatus,
                 FamilyValues = request.FamilyValues,
                 FamilyDetails = request.FamilyDetails,
+                Generation = request.Generation?.Trim() ?? string.Empty,
                 IsApproved = false,
                 ApprovalStatus = "Pending",
                 IsVerified = false,
@@ -430,6 +431,7 @@ namespace VikanMatrimony.WebApi.Controllers
         public string PhotoUrl { get; set; } = string.Empty;
         public string IdProofType { get; set; } = string.Empty;
         public string IdProofUrl { get; set; } = string.Empty;
+        public string Generation { get; set; } = string.Empty;
     }
 
     public class LoginRequest
