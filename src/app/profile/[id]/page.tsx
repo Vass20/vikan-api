@@ -55,6 +55,37 @@ import {
   ImageOff,
   Trash2
 } from "lucide-react";
+import {
+  GENERATION_CONFIGS,
+  getBirthYear,
+  getGenerationByYear
+} from "@/lib/community-data";
+
+export function parseCommunityAndCaste(rawCommunity?: string, directCaste?: string) {
+  let community = (rawCommunity || "").trim();
+  let caste = (directCaste || "").trim();
+
+  if (!caste && community) {
+    if (community.includes(" - ")) {
+      const parts = community.split(" - ");
+      community = parts[0].trim();
+      caste = parts.slice(1).join(" - ").trim();
+    } else if (community.toLowerCase().startsWith("caste no bar")) {
+      const match = community.match(/caste no bar\s*\((.*?)\)/i);
+      if (match && match[1]) {
+        community = "Caste no bar";
+        caste = match[1].trim();
+      } else {
+        caste = "Caste no bar";
+      }
+    }
+  }
+
+  return {
+    community: community || "Not specified",
+    caste: caste || "Not specified"
+  };
+}
 
 export default function ProfileDetailPage() {
   const params = useParams();
@@ -140,6 +171,8 @@ export default function ProfileDetailPage() {
   const [editMotherTongue, setEditMotherTongue] = useState("");
   const [editReligion, setEditReligion] = useState("");
   const [editCommunity, setEditCommunity] = useState("");
+  const [editCaste, setEditCaste] = useState("");
+  const [editGeneration, setEditGeneration] = useState("");
   const [editSmoking, setEditSmoking] = useState("");
   const [editDrinking, setEditDrinking] = useState("");
   const [editParentsNumber, setEditParentsNumber] = useState("");
@@ -199,7 +232,11 @@ export default function ProfileDetailPage() {
       setEditMaritalStatus(profile.maritalStatus || "");
       setEditMotherTongue(profile.motherTongue || "");
       setEditReligion(profile.religion || "");
+      const parsedComm = parseCommunityAndCaste(profile.community, profile.caste);
       setEditCommunity(profile.community || "");
+      setEditCaste(profile.caste || (parsedComm.caste !== "Not specified" ? parsedComm.caste : ""));
+      const bYear = profile.dateOfBirth ? getBirthYear(profile.dateOfBirth) : null;
+      setEditGeneration(profile.generation || (bYear ? getGenerationByYear(bYear) || "" : ""));
       setEditSmoking(profile.smoking || "");
       setEditDrinking(profile.drinking || "");
       setEditParentsNumber(profile.parentsNumber || "");
@@ -247,6 +284,35 @@ export default function ProfileDetailPage() {
   const isConnected = isReceivedAccepted || isSentAccepted;
   const isSent = !!isSentPending || !!isSentAccepted;
   const isShort = (shortlistedData || []).some((s: any) => s.profile?.id === profile?.id || s.targetProfile?.id === profile?.id || s.id === profile?.id);
+
+  // Community, Caste and Generation / Gen Z calculations
+  const birthYear = useMemo(() => {
+    return profile?.dateOfBirth ? getBirthYear(profile.dateOfBirth) : null;
+  }, [profile?.dateOfBirth]);
+
+  const userGeneration = useMemo(() => {
+    if (profile?.generation && profile.generation.trim()) {
+      return profile.generation.trim();
+    }
+    if (birthYear) {
+      return getGenerationByYear(birthYear) || null;
+    }
+    return null;
+  }, [profile?.generation, birthYear]);
+
+  const isGenZ = useMemo(() => {
+    if (userGeneration && userGeneration.toLowerCase().includes("gen z")) {
+      return true;
+    }
+    if (birthYear !== null && birthYear >= 1997 && birthYear <= 2012) {
+      return true;
+    }
+    return false;
+  }, [userGeneration, birthYear]);
+
+  const commDetails = useMemo(() => {
+    return parseCommunityAndCaste(profile?.community, profile?.caste);
+  }, [profile?.community, profile?.caste]);
 
   // Match score calculation details
   let matchScore = 75;
@@ -420,6 +486,8 @@ export default function ProfileDetailPage() {
         motherTongue: editMotherTongue,
         religion: editReligion,
         community: editCommunity,
+        caste: editCaste,
+        generation: editGeneration,
         astroStarDetails: editAstroStarDetails,
         horoscopeMatch: editHoroscopeMatch,
         bloodGroup: editBloodGroup,
@@ -514,7 +582,7 @@ export default function ProfileDetailPage() {
                 )}
 
                 {/* Photo Badges */}
-                <div className="absolute top-4 left-4 flex gap-1.5">
+                <div className="absolute top-4 left-4 flex flex-wrap gap-1.5 z-10">
                   {profile.isVerified && (
                     <span className="flex items-center gap-1 bg-[#020914]/90 backdrop-blur-sm text-brand-ivory text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-[#F7F3EE]/25 shadow-sm uppercase font-support">
                       <ShieldCheck className="h-3 w-3 text-brand-gold fill-brand-navy" /> Verified
@@ -525,6 +593,15 @@ export default function ProfileDetailPage() {
                       ★ Premium
                     </span>
                   )}
+                  {isGenZ ? (
+                    <span className="flex items-center gap-1 bg-gradient-to-r from-purple-700/95 to-pink-700/95 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-pink-400/50 shadow-sm uppercase font-support">
+                      ⚡ Gen Z
+                    </span>
+                  ) : userGeneration ? (
+                    <span className="bg-[#020914]/90 backdrop-blur-sm text-amber-200 text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-amber-300/30 shadow-sm uppercase font-support">
+                      {userGeneration}
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
@@ -551,19 +628,69 @@ export default function ProfileDetailPage() {
               {/* Header info & actions */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-6">
                 <div>
-                  <h1 className="font-serif text-3xl font-bold text-white flex items-center gap-2">
-                    {profile.name}
-                    {profile.isVerified && (
-                      <ShieldCheck className="h-6 w-6 text-brand-gold fill-brand-gold/10" />
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h1 className="font-serif text-3xl font-bold text-white flex items-center gap-2">
+                      {profile.name}
+                      {profile.isVerified && (
+                        <ShieldCheck className="h-6 w-6 text-brand-gold fill-brand-gold/10" />
+                      )}
+                    </h1>
+                    {isGenZ ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500/25 to-pink-500/25 text-pink-300 border border-pink-500/40 shadow-sm">
+                        ⚡ Gen Z {birthYear ? `(${birthYear})` : ""}
+                      </span>
+                    ) : userGeneration ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-brand-gold/15 text-brand-gold border border-brand-gold/30">
+                        {userGeneration} {birthYear ? `(${birthYear})` : ""}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="text-sm text-[#E5DCD0]/80 font-support mt-2 flex flex-wrap items-center gap-1.5">
+                    <span>{profile.dateOfBirth ? (new Date().getFullYear() - new Date(profile.dateOfBirth).getFullYear()) : 25} Years, {profile.height || "5 ft 6 in"}</span>
+                    <span className="text-brand-gold/40">•</span>
+                    <span>{profile.religion}</span>
+                    <span className="text-brand-gold/40">•</span>
+                    <span className="font-medium text-white">{commDetails.community}</span>
+                    {commDetails.caste && commDetails.caste !== "Not specified" && (
+                      <>
+                        <span className="text-brand-gold/40">•</span>
+                        <span className="text-brand-gold font-medium">Caste: {commDetails.caste}</span>
+                      </>
                     )}
-                  </h1>
-                  <p className="text-sm text-[#E5DCD0]/70 font-support mt-2">
-                    {profile.dateOfBirth ? (new Date().getFullYear() - new Date(profile.dateOfBirth).getFullYear()) : 25} Years, {profile.height || "5 ft 6 in"} | {profile.religion} | {profile.community}
                   </p>
-                  <p className="text-xs text-[#E5DCD0]/60 font-support mt-1">
+
+                  {/* Highlights Pills: Community, Caste, Gen Z */}
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-[#051121]/80 text-[#E5DCD0] border border-brand-gold/25 shadow-sm">
+                      <Users className="h-3.5 w-3.5 text-brand-gold" />
+                      <span className="text-[#E5DCD0]/60 text-[11px] uppercase tracking-wide">Community:</span>
+                      <span className="font-semibold text-white">{commDetails.community}</span>
+                    </span>
+
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-[#051121]/80 text-[#E5DCD0] border border-brand-gold/25 shadow-sm">
+                      <span className="text-brand-gold font-bold">❖</span>
+                      <span className="text-[#E5DCD0]/60 text-[11px] uppercase tracking-wide">Caste:</span>
+                      <span className="font-semibold text-brand-gold">{commDetails.caste}</span>
+                    </span>
+
+                    {isGenZ ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-300 border border-pink-500/35 shadow-sm">
+                        <span>⚡</span>
+                        <span>Gen Z Generation</span>
+                      </span>
+                    ) : userGeneration ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-brand-gold/10 text-brand-gold border border-brand-gold/25 shadow-sm">
+                        <span>Generation:</span>
+                        <span className="font-semibold">{userGeneration}</span>
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="text-xs text-[#E5DCD0]/60 font-support mt-2">
                     {profile.city}, {profile.state}, India
                   </p>
-                  <p className="text-xs text-brand-gold font-support mt-2 font-semibold tracking-wide">
+                  <p className="text-xs text-brand-gold font-support mt-1 font-semibold tracking-wide">
                     {profile.occupation}
                   </p>
                 </div>
@@ -761,6 +888,32 @@ export default function ProfileDetailPage() {
                           <td className="font-semibold py-3">
                             {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) : "15 Jan 1998"}
                           </td>
+                        </tr>
+                        <tr className="border-b border-border/5">
+                          <td className="text-[#E5DCD0]/60 py-3">Generation</td>
+                          <td className="font-semibold py-3">
+                            {isGenZ ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-pink-300 border border-pink-500/40">
+                                ⚡ Gen Z (1997 – 2012)
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-gold/15 text-brand-gold border border-brand-gold/30">
+                                {userGeneration || "Not specified"}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                        <tr className="border-b border-border/5">
+                          <td className="text-[#E5DCD0]/60 py-3">Religion</td>
+                          <td className="font-semibold py-3">{profile.religion || "Not specified"}</td>
+                        </tr>
+                        <tr className="border-b border-border/5">
+                          <td className="text-[#E5DCD0]/60 py-3">Community</td>
+                          <td className="font-semibold py-3">{commDetails.community}</td>
+                        </tr>
+                        <tr className="border-b border-border/5">
+                          <td className="text-[#E5DCD0]/60 py-3">Caste</td>
+                          <td className="font-semibold py-3 text-brand-gold">{commDetails.caste}</td>
                         </tr>
                         <tr className="border-b border-border/5">
                           <td className="text-[#E5DCD0]/60 py-3">Education</td>
@@ -1246,7 +1399,15 @@ export default function ProfileDetailPage() {
               label="Date of Birth"
               type="date"
               value={editDob}
-              onChange={(e) => setEditDob(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setEditDob(val);
+                const yr = getBirthYear(val);
+                if (yr) {
+                  const gen = getGenerationByYear(yr);
+                  if (gen) setEditGeneration(gen);
+                }
+              }}
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
             <Select
@@ -1288,14 +1449,43 @@ export default function ProfileDetailPage() {
                 { value: "Hindu", label: "Hindu" },
                 { value: "Muslim", label: "Muslim" },
                 { value: "Christian", label: "Christian" },
-                { value: "Jain", label: "Jain" }
+                { value: "Jain", label: "Jain" },
+                { value: "Sikh", label: "Sikh" },
+                { value: "Buddhist", label: "Buddhist" },
+                { value: "Parsi", label: "Parsi" },
+                { value: "Jewish", label: "Jewish" },
+                { value: "Other", label: "Other" }
               ]}
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
             <Input
-              label="Community / Caste"
+              label="Community"
               value={editCommunity}
               onChange={(e) => setEditCommunity(e.target.value)}
+              placeholder="E.g. Vanniyar, Nadar, etc."
+              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Caste / Sub-caste"
+              value={editCaste}
+              onChange={(e) => setEditCaste(e.target.value)}
+              placeholder="E.g. Padayachi, Iyer, Cast no bar"
+              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+            />
+            <Select
+              label="Generation"
+              value={editGeneration}
+              onChange={(e) => setEditGeneration(e.target.value)}
+              options={[
+                { value: "", label: "Auto-detect / Not specified" },
+                ...GENERATION_CONFIGS.map((g) => ({
+                  value: g.key,
+                  label: g.label
+                }))
+              ]}
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
           </div>

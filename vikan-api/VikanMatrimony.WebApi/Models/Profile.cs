@@ -14,6 +14,7 @@ namespace VikanMatrimony.WebApi.Models
         public DateTime DateOfBirth { get; set; }
         public string Religion { get; set; } = string.Empty;
         public string Community { get; set; } = string.Empty;
+        public string Caste { get; set; } = string.Empty;
         public string MotherTongue { get; set; } = string.Empty;
         public string MaritalStatus { get; set; } = "Never Married";
         

@@ -101,6 +101,19 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.MotherTongue = request.MotherTongue?.Trim() ?? string.Empty;
             profile.Religion = request.Religion?.Trim() ?? string.Empty;
             profile.Community = request.Community?.Trim() ?? string.Empty;
+            if (request.Caste != null)
+            {
+                profile.Caste = request.Caste.Trim();
+            }
+            else if (string.IsNullOrWhiteSpace(profile.Caste) && profile.Community.Contains(" - "))
+            {
+                profile.Caste = profile.Community.Split(" - ")[1].Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Generation))
+            {
+                profile.Generation = request.Generation.Trim();
+            }
 
             if (request.DateOfBirth.HasValue)
             {
@@ -133,6 +146,8 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.DateOfBirth,
                 profile.Religion,
                 profile.Community,
+                profile.Caste,
+                profile.Generation,
                 profile.MotherTongue,
                 profile.MaritalStatus,
                 profile.Education,
@@ -502,6 +517,8 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.DateOfBirth,
                 profile.Religion,
                 profile.Community,
+                profile.Caste,
+                profile.Generation,
                 profile.MotherTongue,
                 profile.MaritalStatus,
                 profile.Education,
@@ -753,6 +770,8 @@ namespace VikanMatrimony.WebApi.Controllers
         public string MotherTongue { get; set; } = string.Empty;
         public string Religion { get; set; } = string.Empty;
         public string Community { get; set; } = string.Empty;
+        public string Caste { get; set; } = string.Empty;
+        public string Generation { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
     }
 

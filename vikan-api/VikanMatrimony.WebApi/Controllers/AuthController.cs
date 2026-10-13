@@ -268,6 +268,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth, DateTimeKind.Utc),
                 Religion = request.Religion,
                 Community = request.Community,
+                Caste = !string.IsNullOrWhiteSpace(request.Caste) ? request.Caste.Trim() : (request.Community != null && request.Community.Contains(" - ") ? request.Community.Split(" - ")[1].Trim() : string.Empty),
                 MotherTongue = request.MotherTongue,
                 MaritalStatus = request.MaritalStatus,
                 City = request.City,
@@ -419,6 +420,7 @@ namespace VikanMatrimony.WebApi.Controllers
         public DateTime DateOfBirth { get; set; }
         public string Religion { get; set; } = null!;
         public string Community { get; set; } = null!;
+        public string Caste { get; set; } = string.Empty;
         public string MotherTongue { get; set; } = null!;
         public string MaritalStatus { get; set; } = string.Empty;
         public string City { get; set; } = null!;
