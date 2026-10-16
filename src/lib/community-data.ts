@@ -115,10 +115,7 @@ export interface GenerationConfig {
 
 export const GENERATION_CONFIGS: GenerationConfig[] = [
   { key: "Gen Z", label: "Gen Z (1997 – 2012)", minYear: 1997, maxYear: 2012 },
-  { key: "Millennials", label: "Millennials (1981 – 1996)", minYear: 1981, maxYear: 1996 },
-  { key: "Gen X", label: "Gen X (1965 – 1980)", minYear: 1965, maxYear: 1980 },
-  { key: "Boomers", label: "Boomers (1946 – 1964)", minYear: 1946, maxYear: 1964 },
-  { key: "Traditionalists", label: "Traditionalists (1945 & earlier)", minYear: 1900, maxYear: 1945 }
+  { key: "Millennials", label: "Millennials (1981 – 1996)", minYear: 1981, maxYear: 1996 }
 ];
 
 export function getBirthYear(dob: string): number | null {
