@@ -11,6 +11,35 @@ export const RELIGION_OPTIONS = [
   { value: "Other", label: "Other" }
 ];
 
+export interface CommunityOption {
+  value: string;
+  label: string;
+}
+
+export const MAIN_COMMUNITY_OPTIONS: CommunityOption[] = [
+  { value: "OC", label: "OC (Forward Community / General)" },
+  { value: "BC", label: "BC (Backward Class)" },
+  { value: "BCM", label: "BCM (Backward Class Muslim)" },
+  { value: "MBC", label: "MBC (Most Backward Class)" },
+  { value: "SC", label: "SC (Scheduled Caste)" },
+  { value: "ST", label: "ST (Scheduled Tribe)" },
+  { value: "DNC", label: "DNC (Denotified Community)" },
+  { value: "Caste No Bar", label: "Caste No Bar" },
+  { value: "Others", label: "Others" }
+];
+
+export const MAIN_COMMUNITIES: string[] = [
+  "OC",
+  "BC",
+  "BCM",
+  "MBC",
+  "SC",
+  "ST",
+  "DNC",
+  "Caste No Bar",
+  "Others"
+];
+
 export const DEFAULT_COMMUNITIES: Record<string, string[]> = {
   Hindu: [
     "Adi Dravidar (SC)",

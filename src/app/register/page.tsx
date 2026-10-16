@@ -13,7 +13,7 @@ import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2, Sh
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
-import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear } from "@/lib/community-data";
+import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, MAIN_COMMUNITY_OPTIONS, MAIN_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear } from "@/lib/community-data";
 
 async function compressImage(file: File, maxDim = 1600, quality = 0.82): Promise<File> {
   if (!file.type.startsWith("image/")) {
@@ -224,6 +224,14 @@ export default function RegisterPage() {
 
   const communityOptions = useMemo(() => {
     if (!draftReligion) return [];
+    return [
+      { value: "", label: "Select Community..." },
+      ...MAIN_COMMUNITY_OPTIONS
+    ];
+  }, [draftReligion]);
+
+  const casteSuggestions = useMemo(() => {
+    if (!draftReligion) return [];
     const apiList: string[] = castes?.[draftReligion] || [];
     const defaultList: string[] = DEFAULT_COMMUNITIES[draftReligion] || [];
 
@@ -235,14 +243,7 @@ export default function RegisterPage() {
       }
     });
 
-    const sorted = Array.from(set).sort((a, b) => a.localeCompare(b));
-
-    return [
-      { value: "", label: "Select Community..." },
-      { value: "Caste No Bar", label: "Caste No Bar" },
-      ...sorted.map((c) => ({ value: c, label: c })),
-      { value: "Others", label: "Others" }
-    ];
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [castes, draftReligion]);
 
   const getEffectiveCommunity = () => {
@@ -250,22 +251,17 @@ export default function RegisterPage() {
     if (comm === "Others") {
       comm = customCommunity.trim() || "Others";
     }
-    if (!comm) return "";
-
-    const caste = draftCaste.trim();
-    if (caste) {
-      if (comm === "Caste No Bar") {
-        return `Caste No Bar (${caste})`;
-      }
-      return `${comm} - ${caste}`;
-    }
     return comm;
   };
 
   useEffect(() => {
     if (draftReligion && communityOptions.length > 0 && draftCommunity) {
-      const match = communityOptions.find((o) => o.value === draftCommunity);
-      if (!match && draftCommunity !== "Others") {
+      const match = communityOptions.find(
+        (o) => o.value.toLowerCase() === draftCommunity.toLowerCase() || o.label.toLowerCase().startsWith(draftCommunity.toLowerCase())
+      );
+      if (match && match.value !== draftCommunity && draftCommunity !== "Others") {
+        setDraftCommunity(match.value);
+      } else if (!match && draftCommunity !== "Others") {
         setCustomCommunity(draftCommunity);
         setDraftCommunity("Others");
       }
@@ -523,6 +519,7 @@ export default function RegisterPage() {
           generation: draftGeneration,
           religion: draftReligion,
           community: finalCommunity,
+          caste: draftCaste.trim(),
           motherTongue: draftTongue,
           maritalStatus: draftMarital,
           city: draftCity,
@@ -1010,30 +1007,34 @@ export default function RegisterPage() {
                           </motion.div>
                         )}
 
-                        {draftCommunity && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <Input
-                              label="Caste"
-                              placeholder="Enter your caste (e.g. Iyer, Vadama, Thuluva)"
-                              value={draftCaste}
-                              onChange={(e) => {
-                                setDraftCaste(e.target.value);
-                                if (errors.caste) {
-                                  setErrors((prev) => {
-                                    const copy = { ...prev };
-                                    delete copy.caste;
-                                    return copy;
-                                  });
-                                }
-                              }}
-                              error={errors.caste}
-                            />
-                          </motion.div>
-                        )}
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Input
+                            label="Caste"
+                            list="caste-suggestions"
+                            placeholder="Enter your caste (e.g. Kallar, Vanniyar, Brahmin, Nadar, Mudaliyar, etc.)"
+                            value={draftCaste}
+                            onChange={(e) => {
+                              setDraftCaste(e.target.value);
+                              if (errors.caste) {
+                                setErrors((prev) => {
+                                  const copy = { ...prev };
+                                  delete copy.caste;
+                                  return copy;
+                                });
+                              }
+                            }}
+                            error={errors.caste}
+                          />
+                          <datalist id="caste-suggestions">
+                            {(casteSuggestions || []).map((c) => (
+                              <option key={c} value={c} />
+                            ))}
+                          </datalist>
+                        </motion.div>
                       </motion.div>
                     )}
 

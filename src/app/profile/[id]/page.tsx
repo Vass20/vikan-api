@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import {
   GENERATION_CONFIGS,
+  MAIN_COMMUNITY_OPTIONS,
   getBirthYear,
   getGenerationByYear
 } from "@/lib/community-data";
@@ -1458,11 +1459,17 @@ export default function ProfileDetailPage() {
               ]}
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
-            <Input
+            <Select
               label="Community"
               value={editCommunity}
               onChange={(e) => setEditCommunity(e.target.value)}
-              placeholder="E.g. Vanniyar, Nadar, etc."
+              options={[
+                { value: "", label: "Select Community..." },
+                ...MAIN_COMMUNITY_OPTIONS,
+                ...(editCommunity && !MAIN_COMMUNITY_OPTIONS.some((o) => o.value.toLowerCase() === editCommunity.toLowerCase())
+                  ? [{ value: editCommunity, label: editCommunity }]
+                  : [])
+              ]}
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
           </div>
@@ -1472,7 +1479,7 @@ export default function ProfileDetailPage() {
               label="Caste / Sub-caste"
               value={editCaste}
               onChange={(e) => setEditCaste(e.target.value)}
-              placeholder="E.g. Padayachi, Iyer, Cast no bar"
+              placeholder="E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
             <Select

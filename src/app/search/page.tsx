@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { AppConst } from "@/lib/AppConst";
-import { DEFAULT_COMMUNITIES } from "@/lib/community-data";
+import { DEFAULT_COMMUNITIES, MAIN_COMMUNITIES } from "@/lib/community-data";
 import { Navbar } from "@/components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -64,13 +64,16 @@ function SearchContent() {
     const apiList: string[] = castes?.[religion] || [];
     const defaultList: string[] = DEFAULT_COMMUNITIES[religion] || [];
     const set = new Set<string>();
+    MAIN_COMMUNITIES.forEach((mc) => {
+      if (!/^(others?)$/i.test(mc)) set.add(mc);
+    });
     [...defaultList, ...apiList].forEach((c) => {
       const trimmed = c.trim();
       if (trimmed && !/^(others?)$/i.test(trimmed)) {
         set.add(trimmed);
       }
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    return Array.from(set);
   }, [castes, religion]);
 
   // Reset community if religion changes and current community is not valid
@@ -231,14 +234,13 @@ function SearchContent() {
 
     // 5. Community / Caste
     if (community !== "all") {
-      if (!p.community) return false;
+      if (!p.community && !p.caste) return false;
       const targetComm = community.toLowerCase();
-      const profComm = p.community.toLowerCase();
-      if (
-        profComm !== targetComm &&
-        !profComm.includes(targetComm) &&
-        !targetComm.includes(profComm)
-      ) {
+      const profComm = (p.community || "").toLowerCase();
+      const profCaste = (p.caste || "").toLowerCase();
+      const matchesCommunity = profComm === targetComm || profComm.includes(targetComm) || targetComm.includes(profComm);
+      const matchesCaste = profCaste === targetComm || profCaste.includes(targetComm) || targetComm.includes(profCaste);
+      if (!matchesCommunity && !matchesCaste) {
         return false;
       }
     }
@@ -743,7 +745,7 @@ function SearchContent() {
                         </div>
 
                         <p className="text-xs text-muted-foreground font-support mt-1">
-                          {p.dateOfBirth ? (new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 25} Yrs • {p.height || "5 ft 7 in"} • {p.religion} • {p.community}
+                          {p.dateOfBirth ? (new Date().getFullYear() - new Date(p.dateOfBirth).getFullYear()) : 25} Yrs • {p.height || "5 ft 7 in"} • {p.religion} • {p.community}{p.caste ? ` (${p.caste})` : ""}
                         </p>
                         <p className="text-xs text-muted-foreground font-support truncate mt-1">
                           {p.education.split(" (")[0]}

@@ -799,7 +799,7 @@ export default function AdminPortalPage() {
                                     {customer.religion || "N/A"}
                                   </div>
                                   <div className="text-brand-gold/90 text-[11px]">
-                                    {customer.community || "N/A"}
+                                    {customer.community || "N/A"}{customer.caste ? ` • ${customer.caste}` : ""}
                                   </div>
                                   {customer.motherTongue && (
                                     <div className="text-[10px] text-muted-foreground">
@@ -997,7 +997,7 @@ export default function AdminPortalPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground font-support">
                               <div><strong className="text-foreground">Email:</strong> {prof.email}</div>
                               {prof.phoneNumber && <div><strong className="text-foreground">Phone:</strong> {prof.phoneNumber}</div>}
-                              <div><strong className="text-foreground">Community:</strong> {prof.religion} • {prof.community}</div>
+                              <div><strong className="text-foreground">Community:</strong> {prof.religion} • {prof.community}{prof.caste ? ` (${prof.caste})` : ""}</div>
                               <div><strong className="text-foreground">Location:</strong> {prof.city}, {prof.state}</div>
                               <div><strong className="text-foreground">Education:</strong> {prof.education || "N/A"}</div>
                               <div><strong className="text-foreground">Occupation:</strong> {prof.occupation || "N/A"} ({prof.salary || "N/A"})</div>
@@ -1941,7 +1941,7 @@ export default function AdminPortalPage() {
               <div className="flex-1">
                 <h4 className="font-serif text-lg font-bold text-white">{selectedCustomerModal.name}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {selectedCustomerModal.gender} • {selectedCustomerModal.religion} • {selectedCustomerModal.community}
+                  {selectedCustomerModal.gender} • {selectedCustomerModal.religion} • {selectedCustomerModal.community}{selectedCustomerModal.caste ? ` (${selectedCustomerModal.caste})` : ""}
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
                   <span className="px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold text-[10px] font-bold">

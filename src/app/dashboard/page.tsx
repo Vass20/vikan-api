@@ -447,7 +447,7 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground font-support mt-1">
-                              {p.age} Yrs • {p.height} • {p.religion} • {p.community}
+                              {p.age} Yrs • {p.height} • {p.religion} • {p.community}{(p as any).caste ? ` (${(p as any).caste})` : ""}
                             </p>
                             <p className="text-xs text-muted-foreground font-support truncate mt-1">
                               {p.education.split(" (")[0]}
