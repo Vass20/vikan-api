@@ -1839,24 +1839,6 @@ export default function AdminPortalPage() {
         </div>
       </main>
 
-      {/* FULL IMAGE VIEWER MODAL */}
-      <Dialog isOpen={!!selectedFullImage} onClose={() => setSelectedFullImage(null)} title="Document Image Preview">
-        <div className="bg-[#051121] p-2 rounded-xl border border-brand-gold/30 flex items-center justify-center max-h-[80vh] overflow-hidden">
-          {selectedFullImage && (
-            <img 
-              src={selectedFullImage} 
-              alt="Verification Document Preview" 
-              className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-lg"
-            />
-          )}
-        </div>
-        <div className="mt-4 flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => setSelectedFullImage(null)}>
-            Close Preview
-          </Button>
-        </div>
-      </Dialog>
-
       {/* REJECT PROFILE MODAL */}
       <Dialog
         isOpen={!!rejectingProfile}
@@ -1945,9 +1927,11 @@ export default function AdminPortalPage() {
             <div className="flex items-center gap-4 p-4 rounded-xl bg-[#081626]/80 border border-brand-gold/30">
               {selectedCustomerModal.photos?.[0] ? (
                 <img
-                  src={selectedCustomerModal.photos[0]}
+                  src={AppConst.getPhotoUrl(selectedCustomerModal.photos[0])}
                   alt={selectedCustomerModal.name}
-                  className="h-16 w-16 rounded-xl object-cover border border-brand-gold"
+                  onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(selectedCustomerModal.photos[0]))}
+                  className="h-16 w-16 rounded-xl object-cover border border-brand-gold cursor-pointer hover:opacity-90 transition-opacity"
+                  title="Click to view full photo"
                 />
               ) : (
                 <div className="h-16 w-16 rounded-xl bg-brand-gold/15 text-brand-gold font-bold text-2xl flex items-center justify-center border border-brand-gold">
@@ -2014,10 +1998,11 @@ export default function AdminPortalPage() {
                   {selectedCustomerModal.photos.map((pUrl: string, idx: number) => (
                     <img
                       key={idx}
-                      src={pUrl}
+                      src={AppConst.getPhotoUrl(pUrl)}
                       alt="Customer"
-                      onClick={() => setSelectedFullImage(pUrl)}
-                      className="h-20 w-20 rounded-lg object-cover border border-border cursor-pointer hover:border-brand-gold transition-colors shrink-0"
+                      onClick={() => setSelectedFullImage(AppConst.getPhotoUrl(pUrl))}
+                      className="h-20 w-20 rounded-lg object-cover border border-border cursor-pointer hover:border-brand-gold transition-colors shrink-0 hover:scale-105"
+                      title="Click to preview full image"
                     />
                   ))}
                 </div>
@@ -2211,6 +2196,30 @@ export default function AdminPortalPage() {
               )}
             </Button>
           </div>
+        </div>
+      </Dialog>
+
+      {/* FULL IMAGE VIEWER MODAL (Positioned with high zIndex so it renders cleanly above Customer Record & other modals) */}
+      <Dialog
+        isOpen={!!selectedFullImage}
+        onClose={() => setSelectedFullImage(null)}
+        title="Document Image Preview"
+        size="lg"
+        zIndex={100}
+      >
+        <div className="bg-[#051121] p-3 rounded-xl border border-brand-gold/30 flex items-center justify-center max-h-[80vh] overflow-hidden">
+          {selectedFullImage && (
+            <img
+              src={selectedFullImage}
+              alt="Document or Photo Preview"
+              className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-2xl"
+            />
+          )}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button variant="outline" size="sm" onClick={() => setSelectedFullImage(null)} className="cursor-pointer">
+            Close Preview
+          </Button>
         </div>
       </Dialog>
     </>
