@@ -653,7 +653,7 @@ export default function ProfileDetailPage() {
                     <span>{profile.religion}</span>
                     <span className="text-brand-gold/40">•</span>
                     <span className="font-medium text-white">{commDetails.community}</span>
-                    {commDetails.caste && commDetails.caste !== "Not specified" && (
+                    {commDetails.caste && commDetails.caste !== "Not specified" && !/caste\s*no\s*bar/i.test(commDetails.caste) && !/caste\s*no\s*bar/i.test(commDetails.community) && (
                       <>
                         <span className="text-brand-gold/40">•</span>
                         <span className="text-brand-gold font-medium">Caste: {commDetails.caste}</span>
@@ -669,11 +669,13 @@ export default function ProfileDetailPage() {
                       <span className="font-semibold text-white">{commDetails.community}</span>
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-[#051121]/80 text-[#E5DCD0] border border-brand-gold/25 shadow-sm">
-                      <span className="text-brand-gold font-bold">❖</span>
-                      <span className="text-[#E5DCD0]/60 text-[11px] uppercase tracking-wide">Caste:</span>
-                      <span className="font-semibold text-brand-gold">{commDetails.caste}</span>
-                    </span>
+                    {commDetails.caste && commDetails.caste !== "Not specified" && !/caste\s*no\s*bar/i.test(commDetails.caste) && !/caste\s*no\s*bar/i.test(commDetails.community) && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-[#051121]/80 text-[#E5DCD0] border border-brand-gold/25 shadow-sm">
+                        <span className="text-brand-gold font-bold">❖</span>
+                        <span className="text-[#E5DCD0]/60 text-[11px] uppercase tracking-wide">Caste:</span>
+                        <span className="font-semibold text-brand-gold">{commDetails.caste}</span>
+                      </span>
+                    )}
 
                     {isGenZ ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-300 border border-pink-500/35 shadow-sm">
@@ -1462,7 +1464,13 @@ export default function ProfileDetailPage() {
             <Select
               label="Community"
               value={editCommunity}
-              onChange={(e) => setEditCommunity(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setEditCommunity(val);
+                if (/caste\s*no\s*bar/i.test(val)) {
+                  setEditCaste("");
+                }
+              }}
               options={[
                 { value: "", label: "Select Community..." },
                 ...MAIN_COMMUNITY_OPTIONS,
@@ -1474,14 +1482,16 @@ export default function ProfileDetailPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Caste / Sub-caste"
-              value={editCaste}
-              onChange={(e) => setEditCaste(e.target.value)}
-              placeholder="E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
+          <div className={`grid ${!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+            {!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" && (
+              <Input
+                label="Caste / Sub-caste"
+                value={editCaste}
+                onChange={(e) => setEditCaste(e.target.value)}
+                placeholder="E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            )}
             <Select
               label="Generation"
               value={editGeneration}

@@ -17,27 +17,31 @@ export interface CommunityOption {
 }
 
 export const MAIN_COMMUNITY_OPTIONS: CommunityOption[] = [
-  { value: "OC", label: "OC (Forward Community / General)" },
-  { value: "BC", label: "BC (Backward Class)" },
-  { value: "BCM", label: "BCM (Backward Class Muslim)" },
-  { value: "MBC", label: "MBC (Most Backward Class)" },
-  { value: "SC", label: "SC (Scheduled Caste)" },
-  { value: "ST", label: "ST (Scheduled Tribe)" },
-  { value: "DNC", label: "DNC (Denotified Community)" },
+  { value: "Other Backward Class (OBC)", label: "Other Backward Class (OBC)" },
+  { value: "Backward Class (BC)", label: "Backward Class (BC)" },
+  { value: "Backward Class Muslim (BCM)", label: "Backward Class Muslim (BCM)" },
+  { value: "Most Backward Class (MBC)", label: "Most Backward Class (MBC)" },
+  { value: "Denotified Communities (DNC)", label: "Denotified Communities (DNC)" },
+  { value: "Scheduled Caste (SC)", label: "Scheduled Caste (SC)" },
+  { value: "Scheduled Caste – Arunthathiyar (SCA)", label: "Scheduled Caste – Arunthathiyar (SCA)" },
+  { value: "Scheduled Tribe (ST)", label: "Scheduled Tribe (ST)" },
   { value: "Caste No Bar", label: "Caste No Bar" },
-  { value: "Others", label: "Others" }
+  { value: "Other Community", label: "Other Community" },
+  { value: "Prefer Not to Say", label: "Prefer Not to Say" }
 ];
 
 export const MAIN_COMMUNITIES: string[] = [
-  "OC",
-  "BC",
-  "BCM",
-  "MBC",
-  "SC",
-  "ST",
-  "DNC",
+  "Other Backward Class (OBC)",
+  "Backward Class (BC)",
+  "Backward Class Muslim (BCM)",
+  "Most Backward Class (MBC)",
+  "Denotified Communities (DNC)",
+  "Scheduled Caste (SC)",
+  "Scheduled Caste – Arunthathiyar (SCA)",
+  "Scheduled Tribe (ST)",
   "Caste No Bar",
-  "Others"
+  "Other Community",
+  "Prefer Not to Say"
 ];
 
 export const DEFAULT_COMMUNITIES: Record<string, string[]> = {

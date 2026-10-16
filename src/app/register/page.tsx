@@ -246,10 +246,13 @@ export default function RegisterPage() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [castes, draftReligion]);
 
+  const isCasteNoBar = (comm: string) => /caste\s*no\s*bar/i.test(comm.trim());
+  const isOtherCommunity = (comm: string) => /^(other\s*community|others?)$/i.test(comm.trim());
+
   const getEffectiveCommunity = () => {
     let comm = draftCommunity.trim();
-    if (comm === "Others") {
-      comm = customCommunity.trim() || "Others";
+    if (isOtherCommunity(comm)) {
+      comm = customCommunity.trim() || "Other Community";
     }
     return comm;
   };
@@ -257,13 +260,17 @@ export default function RegisterPage() {
   useEffect(() => {
     if (draftReligion && communityOptions.length > 0 && draftCommunity) {
       const match = communityOptions.find(
-        (o) => o.value.toLowerCase() === draftCommunity.toLowerCase() || o.label.toLowerCase().startsWith(draftCommunity.toLowerCase())
+        (o) =>
+          o.value.toLowerCase() === draftCommunity.toLowerCase() ||
+          o.label.toLowerCase() === draftCommunity.toLowerCase() ||
+          o.value.toLowerCase().includes(`(${draftCommunity.toLowerCase()})`) ||
+          o.label.toLowerCase().includes(`(${draftCommunity.toLowerCase()})`)
       );
-      if (match && match.value !== draftCommunity && draftCommunity !== "Others") {
+      if (match && match.value !== draftCommunity && !isOtherCommunity(draftCommunity)) {
         setDraftCommunity(match.value);
-      } else if (!match && draftCommunity !== "Others") {
+      } else if (!match && !isOtherCommunity(draftCommunity)) {
         setCustomCommunity(draftCommunity);
-        setDraftCommunity("Others");
+        setDraftCommunity("Other Community");
       }
     }
   }, [draftReligion, communityOptions, draftCommunity]);
@@ -422,7 +429,7 @@ export default function RegisterPage() {
       }
       if (!draftCommunity.trim()) {
         stepErrors.community = "Please select your community.";
-      } else if (draftCommunity === "Others" && !customCommunity.trim()) {
+      } else if (isOtherCommunity(draftCommunity) && !customCommunity.trim()) {
         stepErrors.customCommunity = "Please enter your community name.";
       }
     }
@@ -965,14 +972,18 @@ export default function RegisterPage() {
                           onChange={(e) => {
                             const val = e.target.value;
                             setDraftCommunity(val);
-                            if (val !== "Others") {
+                            if (!isOtherCommunity(val)) {
                               setCustomCommunity("");
                             }
-                            if (errors.community || errors.customCommunity) {
+                            if (isCasteNoBar(val)) {
+                              setDraftCaste("");
+                            }
+                            if (errors.community || errors.customCommunity || errors.caste) {
                               setErrors((prev) => {
                                 const copy = { ...prev };
                                 delete copy.community;
                                 delete copy.customCommunity;
+                                delete copy.caste;
                                 return copy;
                               });
                             }
@@ -981,7 +992,7 @@ export default function RegisterPage() {
                           error={errors.community}
                         />
 
-                        {draftCommunity === "Others" && (
+                        {isOtherCommunity(draftCommunity) && (
                           <motion.div
                             initial={{ opacity: 0, y: -6 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -1007,34 +1018,36 @@ export default function RegisterPage() {
                           </motion.div>
                         )}
 
-                        <motion.div
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Input
-                            label="Caste"
-                            list="caste-suggestions"
-                            placeholder="Enter your caste (e.g. Kallar, Vanniyar, Brahmin, Nadar, Mudaliyar, etc.)"
-                            value={draftCaste}
-                            onChange={(e) => {
-                              setDraftCaste(e.target.value);
-                              if (errors.caste) {
-                                setErrors((prev) => {
-                                  const copy = { ...prev };
-                                  delete copy.caste;
-                                  return copy;
-                                });
-                              }
-                            }}
-                            error={errors.caste}
-                          />
-                          <datalist id="caste-suggestions">
-                            {(casteSuggestions || []).map((c) => (
-                              <option key={c} value={c} />
-                            ))}
-                          </datalist>
-                        </motion.div>
+                        {draftCommunity && !isCasteNoBar(draftCommunity) && draftCommunity !== "Prefer Not to Say" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Input
+                              label="Caste"
+                              list="caste-suggestions"
+                              placeholder="Enter your caste (e.g. Kallar, Vanniyar, Brahmin, Nadar, Mudaliyar, etc.)"
+                              value={draftCaste}
+                              onChange={(e) => {
+                                setDraftCaste(e.target.value);
+                                if (errors.caste) {
+                                  setErrors((prev) => {
+                                    const copy = { ...prev };
+                                    delete copy.caste;
+                                    return copy;
+                                  });
+                                }
+                              }}
+                              error={errors.caste}
+                            />
+                            <datalist id="caste-suggestions">
+                              {(casteSuggestions || []).map((c) => (
+                                <option key={c} value={c} />
+                              ))}
+                            </datalist>
+                          </motion.div>
+                        )}
                       </motion.div>
                     )}
 
