@@ -76,7 +76,9 @@ namespace VikanMatrimony.WebApi.Controllers
                 return BadRequest(new { Message = "Name is required." });
             }
 
-            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == profileId);
+            var profile = await _context.Profiles
+                .Include(p => p.PartnerPreferences)
+                .FirstOrDefaultAsync(p => p.Id == profileId);
             if (profile == null) return NotFound();
 
             profile.Name = request.Name.Trim();
@@ -122,6 +124,35 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth.Value, DateTimeKind.Utc);
             }
 
+            if (request.PartnerAgeMin.HasValue || request.PartnerAgeMax.HasValue || request.PartnerHeightMin != null || request.PartnerHeightMax != null)
+            {
+                if (profile.PartnerPreferences == null)
+                {
+                    profile.PartnerPreferences = new PartnerPreferences
+                    {
+                        ProfileId = profile.Id
+                    };
+                    _context.PartnerPreferences.Add(profile.PartnerPreferences);
+                }
+
+                if (request.PartnerAgeMin.HasValue && request.PartnerAgeMin.Value > 0)
+                {
+                    profile.PartnerPreferences.AgeMin = request.PartnerAgeMin.Value;
+                }
+                if (request.PartnerAgeMax.HasValue && request.PartnerAgeMax.Value > 0)
+                {
+                    profile.PartnerPreferences.AgeMax = request.PartnerAgeMax.Value;
+                }
+                if (!string.IsNullOrWhiteSpace(request.PartnerHeightMin))
+                {
+                    profile.PartnerPreferences.HeightMin = request.PartnerHeightMin.Trim();
+                }
+                if (!string.IsNullOrWhiteSpace(request.PartnerHeightMax))
+                {
+                    profile.PartnerPreferences.HeightMax = request.PartnerHeightMax.Trim();
+                }
+            }
+
             await _context.SaveChangesAsync();
             return Ok(profile);
         }
@@ -135,6 +166,7 @@ namespace VikanMatrimony.WebApi.Controllers
             var profile = await _context.Profiles
                 .AsNoTracking()
                 .Include(p => p.Photos)
+                .Include(p => p.PartnerPreferences)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (profile == null) return NotFound();
@@ -173,6 +205,17 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.MembershipType,
                 profile.OnlineStatus,
                 profile.LastActive,
+                PartnerPreferences = profile.PartnerPreferences == null ? null : new
+                {
+                    profile.PartnerPreferences.Id,
+                    profile.PartnerPreferences.AgeMin,
+                    profile.PartnerPreferences.AgeMax,
+                    profile.PartnerPreferences.HeightMin,
+                    profile.PartnerPreferences.HeightMax,
+                    profile.PartnerPreferences.Religions,
+                    profile.PartnerPreferences.Communities,
+                    profile.PartnerPreferences.MaritalStatuses
+                },
                 Photos = profile.Photos.OrderByDescending(ph => ph.IsPrimary).ThenBy(ph => ph.CreatedAt).Select(ph => ph.Url).ToList()
             });
         }
@@ -780,6 +823,10 @@ namespace VikanMatrimony.WebApi.Controllers
         public string Caste { get; set; } = string.Empty;
         public string Generation { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
+        public int? PartnerAgeMin { get; set; }
+        public int? PartnerAgeMax { get; set; }
+        public string? PartnerHeightMin { get; set; }
+        public string? PartnerHeightMax { get; set; }
     }
 
     public class PhotoUploadRequest

@@ -575,6 +575,8 @@ export default function RegisterPage() {
           familyDetails: draftFamDetails,
           partnerAgeMin: draftPrefAgeMin,
           partnerAgeMax: draftPrefAgeMax,
+          partnerHeightMin: draftPrefHeightMin || "5' 0\"",
+          partnerHeightMax: draftPrefHeightMax || "6' 0\"",
           photoUrl: finalPhotoUrl,
           idProofType: draftIdProofType,
           idProofUrl: finalIdProofUrl

@@ -315,8 +315,10 @@ namespace VikanMatrimony.WebApi.Controllers
                 IsVerified = false,
                 PartnerPreferences = new PartnerPreferences
                 {
-                    AgeMin = request.PartnerAgeMin,
-                    AgeMax = request.PartnerAgeMax,
+                    AgeMin = request.PartnerAgeMin > 0 ? request.PartnerAgeMin : 21,
+                    AgeMax = request.PartnerAgeMax > 0 ? request.PartnerAgeMax : 35,
+                    HeightMin = !string.IsNullOrWhiteSpace(request.PartnerHeightMin) ? request.PartnerHeightMin.Trim() : "5' 0\"",
+                    HeightMax = !string.IsNullOrWhiteSpace(request.PartnerHeightMax) ? request.PartnerHeightMax.Trim() : "6' 2\"",
                     Religions = new List<string> { request.Religion },
                     Communities = new List<string> { request.Community }
                 }
@@ -462,6 +464,8 @@ namespace VikanMatrimony.WebApi.Controllers
         public string FamilyDetails { get; set; } = string.Empty;
         public int PartnerAgeMin { get; set; } = 21;
         public int PartnerAgeMax { get; set; } = 35;
+        public string PartnerHeightMin { get; set; } = "5' 0\"";
+        public string PartnerHeightMax { get; set; } = "6' 2\"";
         public string PhotoUrl { get; set; } = string.Empty;
         public string IdProofType { get; set; } = string.Empty;
         public string IdProofUrl { get; set; } = string.Empty;

@@ -191,6 +191,16 @@ export default function ProfileDetailPage() {
   const [editFamilyValues, setEditFamilyValues] = useState("");
   const [editFamilyDetails, setEditFamilyDetails] = useState("");
   const [editDob, setEditDob] = useState("");
+  const [editPrefAgeMin, setEditPrefAgeMin] = useState<number>(21);
+  const [editPrefAgeMax, setEditPrefAgeMax] = useState<number>(35);
+  const [editPrefHeightMin, setEditPrefHeightMin] = useState<string>("5' 0\"");
+  const [editPrefHeightMax, setEditPrefHeightMax] = useState<string>("6' 0\"");
+
+  const partnerPrefs = (profile as any)?.partnerPreferences || (profile as any)?.PartnerPreferences;
+  const displayPrefAgeMin = partnerPrefs?.ageMin ?? partnerPrefs?.AgeMin ?? 21;
+  const displayPrefAgeMax = partnerPrefs?.ageMax ?? partnerPrefs?.AgeMax ?? 35;
+  const displayPrefHeightMin = partnerPrefs?.heightMin ?? partnerPrefs?.HeightMin ?? "5' 0\"";
+  const displayPrefHeightMax = partnerPrefs?.heightMax ?? partnerPrefs?.HeightMax ?? "6' 0\"";
 
   const isOwnProfile = currentUser && profile && profile.id === currentUser.id;
   const canViewContact = isUnlocked || isOwnProfile;
@@ -299,6 +309,18 @@ export default function ProfileDetailPage() {
       setEditFamilyValues(profile.familyValues || "");
       setEditFamilyDetails(profile.familyDetails || "");
       setEditDob(profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "");
+      const pPrefs = (profile as any)?.partnerPreferences || (profile as any)?.PartnerPreferences;
+      if (pPrefs) {
+        setEditPrefAgeMin(pPrefs.ageMin ?? pPrefs.AgeMin ?? 21);
+        setEditPrefAgeMax(pPrefs.ageMax ?? pPrefs.AgeMax ?? 35);
+        setEditPrefHeightMin(pPrefs.heightMin ?? pPrefs.HeightMin ?? "5' 0\"");
+        setEditPrefHeightMax(pPrefs.heightMax ?? pPrefs.HeightMax ?? "6' 0\"");
+      } else {
+        setEditPrefAgeMin(21);
+        setEditPrefAgeMax(35);
+        setEditPrefHeightMin("5' 0\"");
+        setEditPrefHeightMax("6' 0\"");
+      }
     }
   }, [profile, isOwnProfile]);
 
@@ -520,6 +542,10 @@ export default function ProfileDetailPage() {
         horoscopeMatch: editHoroscopeMatch,
         bloodGroup: editBloodGroup,
         personalityType: editPersonalityType,
+        partnerAgeMin: Number(editPrefAgeMin),
+        partnerAgeMax: Number(editPrefAgeMax),
+        partnerHeightMin: editPrefHeightMin,
+        partnerHeightMax: editPrefHeightMax,
         dateOfBirth: editDob ? new Date(editDob).toISOString() : undefined
       }).unwrap();
 
@@ -909,7 +935,20 @@ export default function ProfileDetailPage() {
                     <span>Lifestyle</span>
                   </button>
 
-                  {/* Tab 5: More */}
+                  {/* Tab 5: Partner Preferences */}
+                  <button
+                    onClick={() => setActiveTab("preferences")}
+                    className={`flex flex-col items-center gap-1.5 pb-2 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer border-b-2 -mb-2.5 ${
+                      activeTab === "preferences"
+                        ? "text-brand-gold border-brand-gold"
+                        : "text-[#E5DCD0]/60 border-transparent hover:text-white"
+                    }`}
+                  >
+                    <Heart className="h-5 w-5" />
+                    <span>Partner Prefs</span>
+                  </button>
+
+                  {/* Tab 6: More */}
                   <button
                     onClick={() => setActiveTab("more")}
                     className={`flex flex-col items-center gap-1.5 pb-2 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer border-b-2 -mb-2.5 ${
@@ -983,10 +1022,6 @@ export default function ProfileDetailPage() {
                         <tr className="border-b border-border/5">
                           <td className="text-[#E5DCD0]/60 py-3">Height</td>
                           <td className="font-semibold py-3">{profile.height || "5 ft 6 in"}</td>
-                        </tr>
-                        <tr className="border-b border-border/5">
-                          <td className="text-[#E5DCD0]/60 py-3">Body Type</td>
-                          <td className="font-semibold py-3">{(profile as any).bodyType || "Slim"}</td>
                         </tr>
                         <tr className="border-b border-border/5">
                           <td className="text-[#E5DCD0]/60 py-3">Marital Status</td>
@@ -1119,6 +1154,37 @@ export default function ProfileDetailPage() {
                     )
                   )}
 
+                  {activeTab === "preferences" && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MIN PARTNER AGE</span>
+                          <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefAgeMin} Years</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MAX PARTNER AGE</span>
+                          <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefAgeMax} Years</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MIN PARTNER HEIGHT</span>
+                          <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefHeightMin}</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MAX PARTNER HEIGHT</span>
+                          <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefHeightMax}</p>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-brand-gold/5 border border-brand-gold/20 rounded-xl text-xs font-support text-brand-gold flex items-center gap-2">
+                        <span>★</span>
+                        <span>We will automatically match profiles that match these preferences. You can update this anytime.</span>
+                      </div>
+                    </div>
+                  )}
+
                   {activeTab === "more" && (
                     (isFree && !isOwnProfile) ? (
                       <div className="flex flex-col items-center justify-center py-10 px-4 text-center space-y-4 bg-brand-navy/60 rounded-2xl border border-brand-gold/20 backdrop-blur-sm">
@@ -1156,6 +1222,51 @@ export default function ProfileDetailPage() {
                       </table>
                     )
                   )}
+                </div>
+              </div>
+
+              {/* Partner Preferences Section Card */}
+              <div className="bg-[#051121]/40 border border-brand-gold/15 rounded-[2rem] p-6 sm:p-8 shadow-2xl relative space-y-5">
+                <div className="flex items-center justify-between pb-3 border-b border-brand-gold/20">
+                  <div className="flex items-center gap-2 text-white">
+                    <Heart className="h-5 w-5 text-brand-gold" />
+                    <h3 className="font-serif text-xl font-bold">Partner Preferences</h3>
+                  </div>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setShowEditModal(true)}
+                      className="text-xs font-semibold text-brand-gold hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      Edit Preferences
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MIN PARTNER AGE</span>
+                    <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefAgeMin}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MAX PARTNER AGE</span>
+                    <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefAgeMax}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MIN PARTNER HEIGHT</span>
+                    <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefHeightMin}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#081626]/60 border border-brand-gold/25 space-y-1">
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#E5DCD0]/60 block mb-1">MAX PARTNER HEIGHT</span>
+                    <p className="text-base sm:text-lg font-bold text-white font-serif">{displayPrefHeightMax}</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-brand-gold/5 border border-brand-gold/20 rounded-xl text-xs font-support text-brand-gold flex items-center gap-2">
+                  <span>★</span>
+                  <span>We will automatically match profiles that match these preferences. You can update this anytime.</span>
                 </div>
               </div>
 
@@ -1862,6 +1973,49 @@ export default function ProfileDetailPage() {
                   <div className="h-4 w-4 border-2 border-brand-gold border-t-transparent rounded-full animate-spin shrink-0" />
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Section 8: Partner Preferences */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Heart className="h-4 w-4" /> Partner Preferences
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Min Partner Age"
+                type="number"
+                value={editPrefAgeMin}
+                onChange={(e) => setEditPrefAgeMin(Number(e.target.value))}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Input
+                label="Max Partner Age"
+                type="number"
+                value={editPrefAgeMax}
+                onChange={(e) => setEditPrefAgeMax(Number(e.target.value))}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Min Partner Height"
+                value={editPrefHeightMin}
+                onChange={(e) => setEditPrefHeightMin(e.target.value)}
+                placeholder={'E.g. 5\' 0"'}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Input
+                label="Max Partner Height"
+                value={editPrefHeightMax}
+                onChange={(e) => setEditPrefHeightMax(e.target.value)}
+                placeholder={'E.g. 6\' 0"'}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+            <div className="p-3 bg-brand-gold/5 border border-brand-gold/20 rounded-xl text-xs font-support text-brand-gold flex items-center gap-2">
+              <span>★</span>
+              <span>We will automatically match profiles that match these preferences. You can update this anytime.</span>
             </div>
           </div>
 
