@@ -43,6 +43,9 @@ export interface Profile {
   horoscopeRequired: boolean;
   aboutMe: string;
   familyDetails: string;
+  fathersOccupation?: string;
+  mothersOccupation?: string;
+  siblings?: string;
   astroStarDetails?: string;
   horoscopeMatch?: string;
   bloodGroup?: string;

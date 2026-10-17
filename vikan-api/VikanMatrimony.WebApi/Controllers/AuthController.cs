@@ -303,6 +303,9 @@ namespace VikanMatrimony.WebApi.Controllers
                 FamilyStatus = request.FamilyStatus,
                 FamilyValues = request.FamilyValues,
                 FamilyDetails = request.FamilyDetails,
+                FathersOccupation = request.FathersOccupation?.Trim() ?? string.Empty,
+                MothersOccupation = request.MothersOccupation?.Trim() ?? string.Empty,
+                Siblings = request.Siblings?.Trim() ?? string.Empty,
                 Generation = request.Generation?.Trim() ?? string.Empty,
                 BloodGroup = !string.IsNullOrWhiteSpace(request.BloodGroup) ? request.BloodGroup.Trim() : "B+ (Positive)",
                 AstroStarDetails = !string.IsNullOrWhiteSpace(request.AstroStarDetails) ? request.AstroStarDetails.Trim() : "Nadi: Manglik (No)",
@@ -462,6 +465,9 @@ namespace VikanMatrimony.WebApi.Controllers
         public string FamilyStatus { get; set; } = string.Empty;
         public string FamilyValues { get; set; } = string.Empty;
         public string FamilyDetails { get; set; } = string.Empty;
+        public string FathersOccupation { get; set; } = string.Empty;
+        public string MothersOccupation { get; set; } = string.Empty;
+        public string Siblings { get; set; } = string.Empty;
         public int PartnerAgeMin { get; set; } = 21;
         public int PartnerAgeMax { get; set; } = 35;
         public string PartnerHeightMin { get; set; } = "5' 0\"";

@@ -204,6 +204,9 @@ using (var scope = app.Services.CreateScope())
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""ChurchDenomination"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Generation"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Caste"" text NOT NULL DEFAULT '';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""FathersOccupation"" text NOT NULL DEFAULT '';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""MothersOccupation"" text NOT NULL DEFAULT '';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Siblings"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""IdProofUrl"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""IdProofType"" text NOT NULL DEFAULT '';
         ");

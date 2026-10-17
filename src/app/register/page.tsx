@@ -305,6 +305,9 @@ export default function RegisterPage() {
   const [draftFamType, setDraftFamType] = useState(registrationDraft.familyType || "");
   const [draftFamStatus, setDraftFamStatus] = useState(registrationDraft.familyStatus || "");
   const [draftFamValues, setDraftFamValues] = useState(registrationDraft.familyValues || "");
+  const [draftFathersOcc, setDraftFathersOcc] = useState(registrationDraft.fathersOccupation || "");
+  const [draftMothersOcc, setDraftMothersOcc] = useState(registrationDraft.mothersOccupation || "");
+  const [draftSiblings, setDraftSiblings] = useState(registrationDraft.siblings || "");
   const [draftFamDetails, setDraftFamDetails] = useState(registrationDraft.familyDetails || "");
 
   // Step 5 Partner
@@ -408,6 +411,9 @@ export default function RegisterPage() {
       smoking: draftSmoking as any,
       drinking: draftDrinking as any,
       parentsNumber: draftParentsNumber,
+      fathersOccupation: draftFathersOcc,
+      mothersOccupation: draftMothersOcc,
+      siblings: draftSiblings,
       familyType: draftFamType as any,
       familyStatus: draftFamStatus as any,
       familyValues: draftFamValues as any,
@@ -569,6 +575,9 @@ export default function RegisterPage() {
           education: draftEdu,
           occupation: draftOcc,
           salary: draftSal,
+          fathersOccupation: draftFathersOcc,
+          mothersOccupation: draftMothersOcc,
+          siblings: draftSiblings,
           familyType: draftFamType,
           familyStatus: draftFamStatus,
           familyValues: draftFamValues,
@@ -1223,19 +1232,11 @@ export default function RegisterPage() {
                       onChange={(e) => setDraftOcc(e.target.value)}
                     />
 
-                    <Select
-                      label="Annual Income Level"
+                    <Input
+                      label="Annual Income"
+                      placeholder="E.g. 12 LPA or Rs. 12,00,000 / year"
                       value={draftSal}
                       onChange={(e) => setDraftSal(e.target.value)}
-                      options={[
-                        { value: "", label: "Select..." },
-                        { value: "7 LPA", label: "Under 10 LPA" },
-                        { value: "12 LPA", label: "10 - 15 LPA" },
-                        { value: "18 LPA", label: "15 - 25 LPA" },
-                        { value: "35 LPA", label: "25 - 50 LPA" },
-                        { value: "75 LPA", label: "50 LPA - 1 Crore" },
-                        { value: "1.5 Crores+", label: "1 Crore+" }
-                      ]}
                     />
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1331,6 +1332,28 @@ export default function RegisterPage() {
                         { value: "Traditional", label: "Traditional" },
                         { value: "Liberal", label: "Liberal / Modern" }
                       ]}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Father's Occupation"
+                        placeholder="E.g. Business / Retired Govt Officer"
+                        value={draftFathersOcc}
+                        onChange={(e) => setDraftFathersOcc(e.target.value)}
+                      />
+                      <Input
+                        label="Mother's Occupation"
+                        placeholder="E.g. Homemaker / Teacher"
+                        value={draftMothersOcc}
+                        onChange={(e) => setDraftMothersOcc(e.target.value)}
+                      />
+                    </div>
+
+                    <Input
+                      label="Siblings"
+                      placeholder="E.g. 1 Elder Brother (Married), 1 Younger Sister"
+                      value={draftSiblings}
+                      onChange={(e) => setDraftSiblings(e.target.value)}
                     />
 
                     <Input

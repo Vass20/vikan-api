@@ -95,6 +95,9 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.FamilyStatus = request.FamilyStatus?.Trim() ?? string.Empty;
             profile.FamilyValues = request.FamilyValues?.Trim() ?? string.Empty;
             profile.FamilyDetails = request.FamilyDetails?.Trim() ?? string.Empty;
+            profile.FathersOccupation = request.FathersOccupation?.Trim() ?? string.Empty;
+            profile.MothersOccupation = request.MothersOccupation?.Trim() ?? string.Empty;
+            profile.Siblings = request.Siblings?.Trim() ?? string.Empty;
             profile.AboutMe = request.AboutMe?.Trim() ?? string.Empty;
             profile.AstroStarDetails = request.AstroStarDetails?.Trim() ?? string.Empty;
             profile.HoroscopeMatch = request.HoroscopeMatch?.Trim() ?? string.Empty;
@@ -195,6 +198,9 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.FamilyStatus,
                 profile.FamilyValues,
                 profile.FamilyDetails,
+                profile.FathersOccupation,
+                profile.MothersOccupation,
+                profile.Siblings,
                 profile.AboutMe,
                 profile.AstroStarDetails,
                 profile.HoroscopeMatch,
@@ -810,6 +816,9 @@ namespace VikanMatrimony.WebApi.Controllers
         public string FamilyStatus { get; set; } = string.Empty;
         public string FamilyValues { get; set; } = string.Empty;
         public string FamilyDetails { get; set; } = string.Empty;
+        public string FathersOccupation { get; set; } = string.Empty;
+        public string MothersOccupation { get; set; } = string.Empty;
+        public string Siblings { get; set; } = string.Empty;
         public string AboutMe { get; set; } = string.Empty;
         public string AstroStarDetails { get; set; } = string.Empty;
         public string HoroscopeMatch { get; set; } = string.Empty;

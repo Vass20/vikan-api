@@ -189,6 +189,9 @@ export default function ProfileDetailPage() {
   const [editFamilyType, setEditFamilyType] = useState("");
   const [editFamilyStatus, setEditFamilyStatus] = useState("");
   const [editFamilyValues, setEditFamilyValues] = useState("");
+  const [editFathersOccupation, setEditFathersOccupation] = useState("");
+  const [editMothersOccupation, setEditMothersOccupation] = useState("");
+  const [editSiblings, setEditSiblings] = useState("");
   const [editFamilyDetails, setEditFamilyDetails] = useState("");
   const [editDob, setEditDob] = useState("");
   const [editPrefAgeMin, setEditPrefAgeMin] = useState<number>(21);
@@ -307,6 +310,9 @@ export default function ProfileDetailPage() {
       setEditFamilyType(profile.familyType || "");
       setEditFamilyStatus(profile.familyStatus || "");
       setEditFamilyValues(profile.familyValues || "");
+      setEditFathersOccupation((profile as any).fathersOccupation || (profile as any).FathersOccupation || "");
+      setEditMothersOccupation((profile as any).mothersOccupation || (profile as any).MothersOccupation || "");
+      setEditSiblings((profile as any).siblings || (profile as any).Siblings || "");
       setEditFamilyDetails(profile.familyDetails || "");
       setEditDob(profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "");
       const pPrefs = (profile as any)?.partnerPreferences || (profile as any)?.PartnerPreferences;
@@ -525,6 +531,9 @@ export default function ProfileDetailPage() {
         familyType: editFamilyType,
         familyStatus: editFamilyStatus,
         familyValues: editFamilyValues,
+        fathersOccupation: editFathersOccupation,
+        mothersOccupation: editMothersOccupation,
+        siblings: editSiblings,
         familyDetails: editFamilyDetails,
         maritalStatus: editMaritalStatus,
         smoking: editSmoking,
@@ -1078,15 +1087,15 @@ export default function ProfileDetailPage() {
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Father's Occupation</td>
-                            <td className="font-semibold py-3">Retired Professional</td>
+                            <td className="font-semibold py-3">{profile.fathersOccupation || (profile as any).FathersOccupation || "Not specified"}</td>
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Mother's Occupation</td>
-                            <td className="font-semibold py-3">Homemaker</td>
+                            <td className="font-semibold py-3">{profile.mothersOccupation || (profile as any).MothersOccupation || "Not specified"}</td>
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Siblings</td>
-                            <td className="font-semibold py-3">1 Brother, 1 Sister</td>
+                            <td className="font-semibold py-3">{profile.siblings || (profile as any).Siblings || "None"}</td>
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Family Details</td>
@@ -1880,6 +1889,31 @@ export default function ProfileDetailPage() {
                 { value: "Traditional", label: "Traditional" },
                 { value: "Liberal", label: "Liberal / Modern" }
               ]}
+              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Father's Occupation"
+                value={editFathersOccupation}
+                onChange={(e) => setEditFathersOccupation(e.target.value)}
+                placeholder="E.g. Business / Retired Govt Officer"
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Input
+                label="Mother's Occupation"
+                value={editMothersOccupation}
+                onChange={(e) => setEditMothersOccupation(e.target.value)}
+                placeholder="E.g. Homemaker / Teacher"
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+
+            <Input
+              label="Siblings"
+              value={editSiblings}
+              onChange={(e) => setEditSiblings(e.target.value)}
+              placeholder="E.g. 1 Elder Brother (Married), 1 Younger Sister"
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
 

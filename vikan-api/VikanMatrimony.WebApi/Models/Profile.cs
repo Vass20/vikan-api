@@ -34,6 +34,9 @@ namespace VikanMatrimony.WebApi.Models
         public string FamilyStatus { get; set; } = "Middle Class";
         public string FamilyValues { get; set; } = "Moderate";
         public string FamilyDetails { get; set; } = string.Empty;
+        public string FathersOccupation { get; set; } = string.Empty;
+        public string MothersOccupation { get; set; } = string.Empty;
+        public string Siblings { get; set; } = string.Empty;
         public string AboutMe { get; set; } = string.Empty;
 
         public string AstroStarDetails { get; set; } = "Nadi: Manglik (No)";
