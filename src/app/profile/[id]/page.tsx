@@ -595,8 +595,8 @@ export default function ProfileDetailPage() {
                     </span>
                   )}
                   {isGenZ ? (
-                    <span className="flex items-center gap-1 bg-gradient-to-r from-purple-700/95 to-pink-700/95 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-pink-400/50 shadow-sm uppercase font-support">
-                      ⚡ Gen Z
+                    <span className="flex items-center gap-1 bg-[#020914]/90 backdrop-blur-sm text-brand-gold text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-brand-gold/40 shadow-sm uppercase font-support">
+                      <span className="text-amber-400">⚡</span> Gen Z
                     </span>
                   ) : userGeneration ? (
                     <span className="bg-[#020914]/90 backdrop-blur-sm text-amber-200 text-[9px] font-bold px-2.5 py-0.5 rounded-full border border-amber-300/30 shadow-sm uppercase font-support">
@@ -637,8 +637,8 @@ export default function ProfileDetailPage() {
                       )}
                     </h1>
                     {isGenZ ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500/25 to-pink-500/25 text-pink-300 border border-pink-500/40 shadow-sm">
-                        ⚡ Gen Z {birthYear ? `(${birthYear})` : ""}
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-brand-gold/15 text-brand-gold border border-brand-gold/40 shadow-sm">
+                        <span className="text-amber-400">⚡</span> Gen Z {birthYear ? `(${birthYear})` : ""}
                       </span>
                     ) : userGeneration ? (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-brand-gold/15 text-brand-gold border border-brand-gold/30">
@@ -678,8 +678,8 @@ export default function ProfileDetailPage() {
                     )}
 
                     {isGenZ ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-300 border border-pink-500/35 shadow-sm">
-                        <span>⚡</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-[#051121]/80 text-brand-gold border border-brand-gold/30 shadow-sm">
+                        <span className="text-amber-400">⚡</span>
                         <span>Gen Z Generation</span>
                       </span>
                     ) : userGeneration ? (
@@ -896,8 +896,8 @@ export default function ProfileDetailPage() {
                           <td className="text-[#E5DCD0]/60 py-3">Generation</td>
                           <td className="font-semibold py-3">
                             {isGenZ ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-pink-300 border border-pink-500/40">
-                                ⚡ Gen Z (1997 – 2012)
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-gold/15 text-brand-gold border border-brand-gold/35">
+                                <span className="text-amber-400">⚡</span> Gen Z (1997 – 2012)
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-gold/15 text-brand-gold border border-brand-gold/30">
@@ -937,10 +937,6 @@ export default function ProfileDetailPage() {
                         <tr className="border-b border-border/5">
                           <td className="text-[#E5DCD0]/60 py-3">Body Type</td>
                           <td className="font-semibold py-3">{(profile as any).bodyType || "Slim"}</td>
-                        </tr>
-                        <tr className="border-b border-border/5">
-                          <td className="text-[#E5DCD0]/60 py-3">Complexion</td>
-                          <td className="font-semibold py-3">{(profile as any).complexion || "Wheatish"}</td>
                         </tr>
                         <tr className="border-b border-border/5">
                           <td className="text-[#E5DCD0]/60 py-3">Marital Status</td>
