@@ -53,7 +53,10 @@ import {
   MoreHorizontal,
   GraduationCap,
   ImageOff,
-  Trash2
+  Trash2,
+  Sparkles,
+  Briefcase,
+  User
 } from "lucide-react";
 import {
   GENERATION_CONFIGS,
@@ -270,7 +273,7 @@ export default function ProfileDetailPage() {
       setEditGeneration(profile.generation || (bYear ? getGenerationByYear(bYear) || "" : ""));
       setEditSmoking(profile.smoking || "");
       setEditDrinking(profile.drinking || "");
-      setEditPersonalityType(profile.personalityType || "Introverted, Deep Thinker, Family-oriented");
+      setEditPersonalityType((profile as any).personalityType || (profile as any).PersonalityType || "Introverted, Deep Thinker, Family-oriented");
       setEditParentsNumber(profile.parentsNumber || "");
       setEditFamilyType(profile.familyType || "");
       setEditFamilyStatus(profile.familyStatus || "");
@@ -1338,385 +1341,472 @@ export default function ProfileDetailPage() {
       </Dialog>
 
       {/* EDIT PROFILE MODAL */}
-      <Dialog isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Profile Details">
-        <form onSubmit={handleSaveProfile} className="space-y-4 bg-[#0B1A2F]/95 p-5 rounded-xl border border-brand-gold/30 max-h-[70vh] overflow-y-auto scrollbar-thin text-left">
-          <Input
-            label="Full Name"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            required
-            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-          />
-          <div className="flex flex-col gap-1.5 text-left">
-            <label className="text-xs font-semibold text-[#E5DCD0]/80">About Me</label>
-            <textarea
-              value={editAboutMe}
-              onChange={(e) => setEditAboutMe(e.target.value)}
-              required
-              className="w-full text-xs font-support bg-[#081626]/40 border border-brand-gold/30 rounded-xl p-3 text-white focus:outline-none focus:border-brand-gold min-h-[80px]"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+      <Dialog isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Profile Details" size="lg">
+        <form onSubmit={handleSaveProfile} className="space-y-6 text-left">
+          
+          {/* Section 1: Basic & Identity */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <User className="h-4 w-4" /> Personal & Identity Details
+            </div>
+            
             <Input
-              label="Occupation"
-              value={editOccupation}
-              onChange={(e) => setEditOccupation(e.target.value)}
+              label="Full Name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
               required
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
-            <Input
-              label="Annual Income"
-              value={editSalary}
-              onChange={(e) => setEditSalary(e.target.value)}
-              required
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="City"
-              value={editCity}
-              onChange={(e) => setEditCity(e.target.value)}
-              required
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Input
-              label="State"
-              value={editState}
-              onChange={(e) => setEditState(e.target.value)}
-              required
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
-           <Input
-            label="Diet"
-            value={editDiet}
-            onChange={(e) => setEditDiet(e.target.value)}
-            required
-            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-          />
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Date of Birth"
-              type="date"
-              value={editDob}
-              onChange={(e) => {
-                const val = e.target.value;
-                setEditDob(val);
-                const yr = getBirthYear(val);
-                if (yr) {
-                  const gen = getGenerationByYear(yr);
-                  if (gen) setEditGeneration(gen);
-                }
-              }}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Select
-              label="Marital Status"
-              value={editMaritalStatus}
-              onChange={(e) => setEditMaritalStatus(e.target.value)}
-              options={[
-                { value: "", label: "Select..." },
-                { value: "Never Married", label: "Never Married" },
-                { value: "Divorced", label: "Divorced" },
-                { value: "Widowed", label: "Widowed" }
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Mother Tongue"
-              value={editMotherTongue}
-              onChange={(e) => setEditMotherTongue(e.target.value)}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Input
-              label="Highest Education Degree"
-              value={editEducation}
-              onChange={(e) => setEditEducation(e.target.value)}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Religion"
-              value={editReligion}
-              onChange={(e) => setEditReligion(e.target.value)}
-              options={[
-                { value: "", label: "Select..." },
-                { value: "Hindu", label: "Hindu" },
-                { value: "Muslim", label: "Muslim" },
-                { value: "Christian", label: "Christian" },
-                { value: "Jain", label: "Jain" },
-                { value: "Sikh", label: "Sikh" },
-                { value: "Buddhist", label: "Buddhist" },
-                { value: "Parsi", label: "Parsi" },
-                { value: "Jewish", label: "Jewish" },
-                { value: "Other", label: "Other" }
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Select
-              label="Community"
-              value={editCommunity}
-              onChange={(e) => {
-                const val = e.target.value;
-                setEditCommunity(val);
-                if (/caste\s*no\s*bar/i.test(val)) {
-                  setEditCaste("");
-                }
-              }}
-              options={[
-                { value: "", label: "Select Community..." },
-                ...MAIN_COMMUNITY_OPTIONS,
-                ...(editCommunity && !MAIN_COMMUNITY_OPTIONS.some((o) => o.value.toLowerCase() === editCommunity.toLowerCase())
-                  ? [{ value: editCommunity, label: editCommunity }]
-                  : [])
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
-
-          <div className={`grid ${!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
-            {!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Caste / Sub-caste"
-                value={editCaste}
-                onChange={(e) => setEditCaste(e.target.value)}
-                placeholder="E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."
+                label="Date of Birth"
+                type="date"
+                value={editDob}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEditDob(val);
+                  const yr = getBirthYear(val);
+                  if (yr) {
+                    const gen = getGenerationByYear(yr);
+                    if (gen) setEditGeneration(gen);
+                  }
+                }}
                 className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
               />
-            )}
-            <Select
-              label="Generation"
-              value={editGeneration}
-              onChange={(e) => setEditGeneration(e.target.value)}
-              options={[
-                { value: "", label: "Auto-detect / Not specified" },
-                ...GENERATION_CONFIGS.map((g) => ({
-                  value: g.key,
-                  label: g.label
-                }))
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
+              <Select
+                label="Marital Status"
+                value={editMaritalStatus}
+                onChange={(e) => setEditMaritalStatus(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "Never Married", label: "Never Married" },
+                  { value: "Divorced", label: "Divorced" },
+                  { value: "Widowed", label: "Widowed" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Smoking Habit"
-              value={editSmoking}
-              onChange={(e) => setEditSmoking(e.target.value)}
-              options={[
-                { value: "", label: "Select..." },
-                { value: "No", label: "No" },
-                { value: "Yes", label: "Yes" },
-                { value: "Occasionally", label: "Occasionally" }
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Select
-              label="Drinking Habit"
-              value={editDrinking}
-              onChange={(e) => setEditDrinking(e.target.value)}
-              options={[
-                { value: "", label: "Select..." },
-                { value: "No", label: "No" },
-                { value: "Yes", label: "Yes" },
-                { value: "Occasionally", label: "Occasionally" }
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Mother Tongue"
+                value={editMotherTongue}
+                onChange={(e) => setEditMotherTongue(e.target.value)}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Input
+                label="Highest Education Degree"
+                value={editEducation}
+                onChange={(e) => setEditEducation(e.target.value)}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
 
-          <Input
-            label="Personality Type"
-            value={editPersonalityType}
-            onChange={(e) => setEditPersonalityType(e.target.value)}
-            placeholder="E.g. Introverted, Deep Thinker, Family-oriented"
-            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-          />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label="Religion"
+                value={editReligion}
+                onChange={(e) => setEditReligion(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "Hindu", label: "Hindu" },
+                  { value: "Muslim", label: "Muslim" },
+                  { value: "Christian", label: "Christian" },
+                  { value: "Jain", label: "Jain" },
+                  { value: "Sikh", label: "Sikh" },
+                  { value: "Buddhist", label: "Buddhist" },
+                  { value: "Parsi", label: "Parsi" },
+                  { value: "Jewish", label: "Jewish" },
+                  { value: "Other", label: "Other" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Select
+                label="Community"
+                value={editCommunity}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEditCommunity(val);
+                  if (/caste\s*no\s*bar/i.test(val)) {
+                    setEditCaste("");
+                  }
+                }}
+                options={[
+                  { value: "", label: "Select Community..." },
+                  ...MAIN_COMMUNITY_OPTIONS,
+                  ...(editCommunity && !MAIN_COMMUNITY_OPTIONS.some((o) => o.value.toLowerCase() === editCommunity.toLowerCase())
+                    ? [{ value: editCommunity, label: editCommunity }]
+                    : [])
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
 
-          <Input
-            label="Parents Contact Number"
-            type="tel"
-            value={editParentsNumber}
-            onChange={(e) => setEditParentsNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-          />
+            <div className={`grid ${!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"} gap-4`}>
+              {!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" && (
+                <Input
+                  label="Caste / Sub-caste"
+                  value={editCaste}
+                  onChange={(e) => setEditCaste(e.target.value)}
+                  placeholder="E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."
+                  className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+                />
+              )}
+              <Select
+                label="Generation"
+                value={editGeneration}
+                onChange={(e) => setEditGeneration(e.target.value)}
+                options={[
+                  { value: "", label: "Auto-detect / Not specified" },
+                  ...GENERATION_CONFIGS.map((g) => ({
+                    value: g.key,
+                    label: g.label
+                  }))
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Astro Star Details"
-              value={editAstroStarDetails}
-              onChange={(e) => setEditAstroStarDetails(e.target.value)}
-              placeholder="E.g. Nadi: Manglik (No)"
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Select
-              label="Horoscope Match"
-              value={editHoroscopeMatch}
-              onChange={(e) => setEditHoroscopeMatch(e.target.value)}
-              options={[
-                { value: "Not Required", label: "Not Required" },
-                { value: "Required / Kundali Available", label: "Required / Kundali Available" },
-                { value: "Must Match", label: "Must Match" }
-              ]}
+              label="Parents Contact Number"
+              type="tel"
+              value={editParentsNumber}
+              onChange={(e) => setEditParentsNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              placeholder="10-digit mobile number"
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
           </div>
 
-          <Select
-            label="Blood Group"
-            value={editBloodGroup}
-            onChange={(e) => setEditBloodGroup(e.target.value)}
-            options={[
-              { value: "", label: "Select..." },
-              { value: "A+ (Positive)", label: "A+ (Positive)" },
-              { value: "A- (Negative)", label: "A- (Negative)" },
-              { value: "B+ (Positive)", label: "B+ (Positive)" },
-              { value: "B- (Negative)", label: "B- (Negative)" },
-              { value: "O+ (Positive)", label: "O+ (Positive)" },
-              { value: "O- (Negative)", label: "O- (Negative)" },
-              { value: "AB+ (Positive)", label: "AB+ (Positive)" },
-              { value: "AB- (Negative)", label: "AB- (Negative)" }
-            ]}
-            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Family Structure Type"
-              value={editFamilyType}
-              onChange={(e) => setEditFamilyType(e.target.value)}
-              options={[
-                { value: "", label: "Select..." },
-                { value: "Nuclear", label: "Nuclear Family" },
-                { value: "Joint", label: "Joint Family" }
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
-            <Select
-              label="Family Financial Status"
-              value={editFamilyStatus}
-              onChange={(e) => setEditFamilyStatus(e.target.value)}
-              options={[
-                { value: "", label: "Select..." },
-                { value: "Middle Class", label: "Middle Class" },
-                { value: "Upper Middle Class", label: "Upper Middle Class" },
-                { value: "Rich/Affluent", label: "Rich & Affluent" },
-                { value: "Elite", label: "Elite Luxury Status" }
-              ]}
-              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-            />
+          {/* Section 2: About Me */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Smile className="h-4 w-4" /> About Me
+            </div>
+            <div className="flex flex-col gap-1.5 text-left">
+              <label className="text-xs font-semibold text-[#E5DCD0]/80">About Me Description</label>
+              <textarea
+                value={editAboutMe}
+                onChange={(e) => setEditAboutMe(e.target.value)}
+                required
+                rows={3}
+                className="w-full text-xs font-support bg-[#081626]/40 border border-brand-gold/30 rounded-xl p-3 text-white focus:outline-none focus:border-brand-gold min-h-[80px]"
+              />
+            </div>
           </div>
 
-          <Select
-            label="Family Values"
-            value={editFamilyValues}
-            onChange={(e) => setEditFamilyValues(e.target.value)}
-            options={[
-              { value: "", label: "Select..." },
-              { value: "Moderate", label: "Moderate (Mix of Modern/Traditional)" },
-              { value: "Traditional", label: "Traditional" },
-              { value: "Liberal", label: "Liberal / Modern" }
-            ]}
-            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
-          />
-
-          <div className="flex flex-col gap-1.5 text-left">
-            <label className="text-xs font-semibold text-[#E5DCD0]/80">Family Background Details</label>
-            <textarea
-              value={editFamilyDetails}
-              onChange={(e) => setEditFamilyDetails(e.target.value)}
-              className="w-full text-xs font-support bg-[#081626]/40 border border-brand-gold/30 rounded-xl p-3 text-white focus:outline-none focus:border-brand-gold min-h-[80px]"
-            />
+          {/* Section 3: Career & Location */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Briefcase className="h-4 w-4" /> Career & Location
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Occupation"
+                value={editOccupation}
+                onChange={(e) => setEditOccupation(e.target.value)}
+                required
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Input
+                label="Annual Income"
+                value={editSalary}
+                onChange={(e) => setEditSalary(e.target.value)}
+                required
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="City"
+                value={editCity}
+                onChange={(e) => setEditCity(e.target.value)}
+                required
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Input
+                label="State"
+                value={editState}
+                onChange={(e) => setEditState(e.target.value)}
+                required
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
           </div>
 
-          {profile?.photos && profile.photos.length > 0 && (
-            <div className="flex flex-col gap-2 text-left mb-2">
-              <span className="text-xs font-semibold text-[#E5DCD0]/80">Current Photos (Click to Delete)</span>
-              <div className="grid grid-cols-4 gap-3">
-                {profile.photos.map((phUrl: any, idx: number) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-brand-gold/20 bg-black/20 group">
-                    <img src={AppConst.getPhotoUrl(phUrl)} alt="Thumbnail" className="h-full w-full object-cover" />
-                    
-                    {idx === 0 ? (
-                      <div className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-brand-gold/95 text-brand-navy rounded-lg font-bold text-[8px] uppercase tracking-wider shadow-md border border-brand-gold/30 flex items-center justify-center" title="Profile Picture">
-                        ★ Primary
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await setPrimaryPhotoApi({ url: phUrl }).unwrap();
-                            showToast("Primary profile photo updated successfully", "success");
-                          } catch (err: any) {
-                            console.error(err);
-                            showToast(err?.data?.message || "Failed to update profile picture.", "error");
-                          }
-                        }}
-                        className="absolute top-1.5 left-1.5 w-6 h-6 bg-[#0B1A2F]/90 hover:bg-brand-gold hover:text-brand-navy text-[#E5DCD0]/70 rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center text-xs font-bold"
-                        title="Set as Profile Picture"
-                      >
-                        ★
-                      </button>
-                    )}
+          {/* Section 4: Lifestyle & Personality Traits */}
+          <div className="space-y-4 pt-2 p-4 rounded-xl border border-brand-gold/40 bg-brand-gold/5">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/30 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Sparkles className="h-4 w-4" /> Lifestyle & Personality Traits
+            </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setPhotoToDelete(phUrl)}
-                      className="absolute top-1.5 right-1.5 p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center"
-                      title="Delete photo"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Diet"
+                value={editDiet}
+                onChange={(e) => setEditDiet(e.target.value)}
+                required
+                placeholder="E.g. Vegetarian, Non-Vegetarian, Eggetarian"
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Select
+                label="Blood Group"
+                value={editBloodGroup}
+                onChange={(e) => setEditBloodGroup(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "A+ (Positive)", label: "A+ (Positive)" },
+                  { value: "A- (Negative)", label: "A- (Negative)" },
+                  { value: "B+ (Positive)", label: "B+ (Positive)" },
+                  { value: "B- (Negative)", label: "B- (Negative)" },
+                  { value: "O+ (Positive)", label: "O+ (Positive)" },
+                  { value: "O- (Negative)", label: "O- (Negative)" },
+                  { value: "AB+ (Positive)", label: "AB+ (Positive)" },
+                  { value: "AB- (Negative)", label: "AB- (Negative)" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label="Smoking Habit"
+                value={editSmoking}
+                onChange={(e) => setEditSmoking(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "No", label: "No" },
+                  { value: "Yes", label: "Yes" },
+                  { value: "Occasionally", label: "Occasionally" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Select
+                label="Drinking Habit"
+                value={editDrinking}
+                onChange={(e) => setEditDrinking(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "No", label: "No" },
+                  { value: "Yes", label: "Yes" },
+                  { value: "Occasionally", label: "Occasionally" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+
+            {/* Prominent Personality Type Field */}
+            <div className="flex flex-col gap-2 pt-1">
+              <Input
+                label="Personality Type"
+                value={editPersonalityType}
+                onChange={(e) => setEditPersonalityType(e.target.value)}
+                placeholder="E.g. Introverted, Deep Thinker, Family-oriented"
+                className="!bg-[#081626]/60 !border-brand-gold/60 text-white placeholder-muted-foreground/50 rounded-xl focus:!border-brand-gold shadow-inner"
+              />
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-[10px] text-[#E5DCD0]/70 font-medium">Quick suggestions:</span>
+                {[
+                  "Introverted",
+                  "Extroverted",
+                  "Ambivert",
+                  "Family-oriented",
+                  "Deep Thinker",
+                  "Ambitious",
+                  "Calm & Friendly",
+                  "Creative",
+                  "Spiritual"
+                ].map((trait) => (
+                  <button
+                    key={trait}
+                    type="button"
+                    onClick={() => {
+                      if (!editPersonalityType.trim()) {
+                        setEditPersonalityType(trait);
+                      } else if (!editPersonalityType.includes(trait)) {
+                        setEditPersonalityType(`${editPersonalityType.trim()}, ${trait}`);
+                      }
+                    }}
+                    className="text-[10px] px-2.5 py-0.5 rounded-full bg-brand-gold/15 hover:bg-brand-gold/30 border border-brand-gold/40 text-brand-gold font-medium transition-colors cursor-pointer"
+                  >
+                    + {trait}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
-
-          <div className="flex flex-col gap-1.5 text-left">
-            <label className="text-xs font-semibold text-[#E5DCD0]/80">Photos (comma-separated URLs)</label>
-            <textarea
-              value={editPhotosText}
-              onChange={(e) => setEditPhotosText(e.target.value)}
-              placeholder="E.g. https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600, https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600"
-              className="w-full text-[10px] font-mono bg-[#081626]/40 border border-brand-gold/30 rounded-xl p-3 text-white focus:outline-none focus:border-brand-gold min-h-[60px]"
-            />
           </div>
-          <div className="flex flex-col gap-1.5 text-left">
-            <label className="text-xs font-semibold text-[#E5DCD0]/80">Upload Photo File</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={isUploadingFile}
-                className="block w-full text-xs text-slate-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-xs file:font-semibold
-                  file:bg-brand-gold/10 file:text-brand-gold
-                  hover:file:bg-brand-gold/20
-                  cursor-pointer file:cursor-pointer disabled:opacity-50"
+
+          {/* Section 5: Horoscope & Astro */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Compass className="h-4 w-4" /> Horoscope & Astro Details
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Astro Star Details"
+                value={editAstroStarDetails}
+                onChange={(e) => setEditAstroStarDetails(e.target.value)}
+                placeholder="E.g. Nadi: Manglik (No)"
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
               />
-              {isUploadingFile && (
-                <div className="h-4 w-4 border-2 border-brand-gold border-t-transparent rounded-full animate-spin shrink-0" />
-              )}
+              <Select
+                label="Horoscope Match"
+                value={editHoroscopeMatch}
+                onChange={(e) => setEditHoroscopeMatch(e.target.value)}
+                options={[
+                  { value: "Not Required", label: "Not Required" },
+                  { value: "Required / Kundali Available", label: "Required / Kundali Available" },
+                  { value: "Must Match", label: "Must Match" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
             </div>
           </div>
-          <div className="flex gap-2 pt-2">
+
+          {/* Section 6: Family Details */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Users className="h-4 w-4" /> Family Details & Background
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label="Family Structure Type"
+                value={editFamilyType}
+                onChange={(e) => setEditFamilyType(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "Nuclear", label: "Nuclear Family" },
+                  { value: "Joint", label: "Joint Family" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+              <Select
+                label="Family Financial Status"
+                value={editFamilyStatus}
+                onChange={(e) => setEditFamilyStatus(e.target.value)}
+                options={[
+                  { value: "", label: "Select..." },
+                  { value: "Middle Class", label: "Middle Class" },
+                  { value: "Upper Middle Class", label: "Upper Middle Class" },
+                  { value: "Rich/Affluent", label: "Rich & Affluent" },
+                  { value: "Elite", label: "Elite Luxury Status" }
+                ]}
+                className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+              />
+            </div>
+
+            <Select
+              label="Family Values"
+              value={editFamilyValues}
+              onChange={(e) => setEditFamilyValues(e.target.value)}
+              options={[
+                { value: "", label: "Select..." },
+                { value: "Moderate", label: "Moderate (Mix of Modern/Traditional)" },
+                { value: "Traditional", label: "Traditional" },
+                { value: "Liberal", label: "Liberal / Modern" }
+              ]}
+              className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+            />
+
+            <div className="flex flex-col gap-1.5 text-left">
+              <label className="text-xs font-semibold text-[#E5DCD0]/80">Family Background Details</label>
+              <textarea
+                value={editFamilyDetails}
+                onChange={(e) => setEditFamilyDetails(e.target.value)}
+                className="w-full text-xs font-support bg-[#081626]/40 border border-brand-gold/30 rounded-xl p-3 text-white focus:outline-none focus:border-brand-gold min-h-[80px]"
+              />
+            </div>
+          </div>
+
+          {/* Section 7: Photos */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 pb-2 border-b border-brand-gold/20 text-brand-gold font-bold text-xs uppercase tracking-wider">
+              <Sparkles className="h-4 w-4" /> Photos Management
+            </div>
+
+            {profile?.photos && profile.photos.length > 0 && (
+              <div className="flex flex-col gap-2 text-left mb-2">
+                <span className="text-xs font-semibold text-[#E5DCD0]/80">Current Photos (Click to Delete)</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {profile.photos.map((phUrl: any, idx: number) => (
+                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-brand-gold/20 bg-black/20 group">
+                      <img src={AppConst.getPhotoUrl(phUrl)} alt="Thumbnail" className="h-full w-full object-cover" />
+                      
+                      {idx === 0 ? (
+                        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-brand-gold/95 text-brand-navy rounded-lg font-bold text-[8px] uppercase tracking-wider shadow-md border border-brand-gold/30 flex items-center justify-center" title="Profile Picture">
+                          ★ Primary
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await setPrimaryPhotoApi({ url: phUrl }).unwrap();
+                              showToast("Primary profile photo updated successfully", "success");
+                            } catch (err: any) {
+                              console.error(err);
+                              showToast(err?.data?.message || "Failed to update profile picture.", "error");
+                            }
+                          }}
+                          className="absolute top-1.5 left-1.5 w-6 h-6 bg-[#0B1A2F]/90 hover:bg-brand-gold hover:text-brand-navy text-[#E5DCD0]/70 rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center text-xs font-bold"
+                          title="Set as Profile Picture"
+                        >
+                          ★
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setPhotoToDelete(phUrl)}
+                        className="absolute top-1.5 right-1.5 p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer shadow-md border-none flex items-center justify-center"
+                        title="Delete photo"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1.5 text-left">
+              <label className="text-xs font-semibold text-[#E5DCD0]/80">Photos (comma-separated URLs)</label>
+              <textarea
+                value={editPhotosText}
+                onChange={(e) => setEditPhotosText(e.target.value)}
+                placeholder="E.g. https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600, https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600"
+                className="w-full text-[10px] font-mono bg-[#081626]/40 border border-brand-gold/30 rounded-xl p-3 text-white focus:outline-none focus:border-brand-gold min-h-[60px]"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 text-left">
+              <label className="text-xs font-semibold text-[#E5DCD0]/80">Upload Photo File</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={isUploadingFile}
+                  className="block w-full text-xs text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-xs file:font-semibold
+                    file:bg-brand-gold/10 file:text-brand-gold
+                    hover:file:bg-brand-gold/20
+                    cursor-pointer file:cursor-pointer disabled:opacity-50"
+                />
+                {isUploadingFile && (
+                  <div className="h-4 w-4 border-2 border-brand-gold border-t-transparent rounded-full animate-spin shrink-0" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex gap-3 pt-4 border-t border-brand-gold/20">
             <Button type="button" variant="outline" className="flex-1" onClick={() => setShowEditModal(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="secondary" className="flex-1 uppercase font-bold tracking-wider text-xs">
+            <Button type="submit" variant="secondary" className="flex-1 uppercase font-bold tracking-wider text-xs shadow-lg shadow-brand-gold/10">
               Save Profile
             </Button>
           </div>
