@@ -176,6 +176,7 @@ export default function ProfileDetailPage() {
   const [editGeneration, setEditGeneration] = useState("");
   const [editSmoking, setEditSmoking] = useState("");
   const [editDrinking, setEditDrinking] = useState("");
+  const [editPersonalityType, setEditPersonalityType] = useState("");
   const [editParentsNumber, setEditParentsNumber] = useState("");
   const [editFamilyType, setEditFamilyType] = useState("");
   const [editFamilyStatus, setEditFamilyStatus] = useState("");
@@ -269,6 +270,7 @@ export default function ProfileDetailPage() {
       setEditGeneration(profile.generation || (bYear ? getGenerationByYear(bYear) || "" : ""));
       setEditSmoking(profile.smoking || "");
       setEditDrinking(profile.drinking || "");
+      setEditPersonalityType(profile.personalityType || "Introverted, Deep Thinker, Family-oriented");
       setEditParentsNumber(profile.parentsNumber || "");
       setEditFamilyType(profile.familyType || "");
       setEditFamilyStatus(profile.familyStatus || "");
@@ -492,6 +494,7 @@ export default function ProfileDetailPage() {
         astroStarDetails: editAstroStarDetails,
         horoscopeMatch: editHoroscopeMatch,
         bloodGroup: editBloodGroup,
+        personalityType: editPersonalityType,
         dateOfBirth: editDob ? new Date(editDob).toISOString() : undefined
       }).unwrap();
 
@@ -1062,7 +1065,7 @@ export default function ProfileDetailPage() {
                           </tr>
                           <tr className="border-b border-border/5">
                             <td className="text-[#E5DCD0]/60 py-3">Personality Type</td>
-                            <td className="font-semibold py-3">Introverted, Deep Thinker, Family-oriented</td>
+                            <td className="font-semibold py-3">{(profile as any).personalityType || (profile as any).PersonalityType || "Introverted, Deep Thinker, Family-oriented"}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -1529,6 +1532,14 @@ export default function ProfileDetailPage() {
               className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
             />
           </div>
+
+          <Input
+            label="Personality Type"
+            value={editPersonalityType}
+            onChange={(e) => setEditPersonalityType(e.target.value)}
+            placeholder="E.g. Introverted, Deep Thinker, Family-oriented"
+            className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+          />
 
           <Input
             label="Parents Contact Number"

@@ -45,6 +45,7 @@ export interface Profile {
   astroStarDetails?: string;
   horoscopeMatch?: string;
   bloodGroup?: string;
+  personalityType?: string;
   photos: string[];
   isVerified: boolean;
   isPremium: boolean;

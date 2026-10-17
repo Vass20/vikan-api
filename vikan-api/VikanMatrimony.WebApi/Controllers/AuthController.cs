@@ -303,6 +303,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 FamilyValues = request.FamilyValues,
                 FamilyDetails = request.FamilyDetails,
                 Generation = request.Generation?.Trim() ?? string.Empty,
+                PersonalityType = !string.IsNullOrWhiteSpace(request.PersonalityType) ? request.PersonalityType.Trim() : "Introverted, Deep Thinker, Family-oriented",
                 IdProofUrl = request.IdProofUrl?.Trim() ?? string.Empty,
                 IdProofType = string.IsNullOrWhiteSpace(request.IdProofType) ? "Government ID" : request.IdProofType.Trim(),
                 IsApproved = false,
@@ -461,6 +462,7 @@ namespace VikanMatrimony.WebApi.Controllers
         public string IdProofType { get; set; } = string.Empty;
         public string IdProofUrl { get; set; } = string.Empty;
         public string Generation { get; set; } = string.Empty;
+        public string PersonalityType { get; set; } = "Introverted, Deep Thinker, Family-oriented";
     }
 
     public class LoginRequest
