@@ -13,6 +13,7 @@ namespace VikanMatrimony.WebApi.Models
         public string Gender { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string Religion { get; set; } = string.Empty;
+        public string ChurchDenomination { get; set; } = string.Empty;
         public string Community { get; set; } = string.Empty;
         public string Caste { get; set; } = string.Empty;
         public string MotherTongue { get; set; } = string.Empty;

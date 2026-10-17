@@ -13,7 +13,7 @@ import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2, Sh
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
-import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, MAIN_COMMUNITY_OPTIONS, MAIN_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear } from "@/lib/community-data";
+import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, MAIN_COMMUNITY_OPTIONS, MAIN_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear, CHRISTIAN_DENOMINATION_OPTIONS } from "@/lib/community-data";
 
 async function compressImage(file: File, maxDim = 1600, quality = 0.82): Promise<File> {
   if (!file.type.startsWith("image/")) {
@@ -219,6 +219,10 @@ export default function RegisterPage() {
     return "";
   });
   const [customCommunity, setCustomCommunity] = useState("");
+  const [draftChurchDenomination, setDraftChurchDenomination] = useState(
+    (registrationDraft as any).churchDenomination || ""
+  );
+  const [customChurchDenomination, setCustomChurchDenomination] = useState("");
   const [draftTongue, setDraftTongue] = useState(registrationDraft.motherTongue || "");
   const [draftMarital, setDraftMarital] = useState(registrationDraft.maritalStatus || "");
 
@@ -231,7 +235,7 @@ export default function RegisterPage() {
   }, [draftReligion]);
 
   const casteSuggestions = useMemo(() => {
-    if (!draftReligion) return [];
+    if (!draftReligion || draftReligion.toLowerCase() === "christian") return [];
     const apiList: string[] = castes?.[draftReligion] || [];
     const defaultList: string[] = DEFAULT_COMMUNITIES[draftReligion] || [];
 
@@ -248,6 +252,14 @@ export default function RegisterPage() {
 
   const isCasteNoBar = (comm: string) => /caste\s*no\s*bar/i.test(comm.trim());
   const isOtherCommunity = (comm: string) => /^(other\s*community|others?)$/i.test(comm.trim());
+
+  const getEffectiveChurchDenomination = () => {
+    if (draftReligion !== "Christian") return "";
+    if (draftChurchDenomination === "Other") {
+      return customChurchDenomination.trim() || "Other";
+    }
+    return draftChurchDenomination.trim();
+  };
 
   const getEffectiveCommunity = () => {
     let comm = draftCommunity.trim();
@@ -375,6 +387,7 @@ export default function RegisterPage() {
       email: draftEmail,
       mobile: draftMobile,
       religion: draftReligion,
+      churchDenomination: getEffectiveChurchDenomination(),
       community: finalCommunity,
       subCommunity: draftCaste.trim(),
       caste: draftCaste.trim(),
@@ -426,6 +439,13 @@ export default function RegisterPage() {
     if (registrationStep === 2) {
       if (!draftReligion.trim()) {
         stepErrors.religion = "Please select your religion.";
+      }
+      if (draftReligion === "Christian") {
+        if (!draftChurchDenomination.trim()) {
+          stepErrors.churchDenomination = "Please select your church / denomination.";
+        } else if (draftChurchDenomination === "Other" && !customChurchDenomination.trim()) {
+          stepErrors.customChurchDenomination = "Please enter your church / denomination.";
+        }
       }
       if (!draftCommunity.trim()) {
         stepErrors.community = "Please select your community.";
@@ -525,6 +545,7 @@ export default function RegisterPage() {
           dateOfBirth: draftDob,
           generation: draftGeneration,
           religion: draftReligion,
+          churchDenomination: getEffectiveChurchDenomination(),
           community: finalCommunity,
           caste: draftCaste.trim(),
           motherTongue: draftTongue,
@@ -941,13 +962,19 @@ export default function RegisterPage() {
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftReligion(val);
+                        if (val !== "Christian") {
+                          setDraftChurchDenomination("");
+                          setCustomChurchDenomination("");
+                        }
                         setDraftCommunity("");
                         setCustomCommunity("");
                         setDraftCaste("");
-                        if (errors.religion || errors.community || errors.customCommunity || errors.caste) {
+                        if (errors.religion || errors.churchDenomination || errors.customChurchDenomination || errors.community || errors.customCommunity || errors.caste) {
                           setErrors((prev) => {
                             const copy = { ...prev };
                             delete copy.religion;
+                            delete copy.churchDenomination;
+                            delete copy.customChurchDenomination;
                             delete copy.community;
                             delete copy.customCommunity;
                             delete copy.caste;
@@ -958,6 +985,63 @@ export default function RegisterPage() {
                       options={RELIGION_OPTIONS}
                       error={errors.religion}
                     />
+
+                    {draftReligion === "Christian" && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-4"
+                      >
+                        <Select
+                          label="Church / Denomination"
+                          value={draftChurchDenomination}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setDraftChurchDenomination(val);
+                            if (val !== "Other") {
+                              setCustomChurchDenomination("");
+                            }
+                            if (errors.churchDenomination || errors.customChurchDenomination) {
+                              setErrors((prev) => {
+                                const copy = { ...prev };
+                                delete copy.churchDenomination;
+                                delete copy.customChurchDenomination;
+                                return copy;
+                              });
+                            }
+                          }}
+                          options={CHRISTIAN_DENOMINATION_OPTIONS}
+                          error={errors.churchDenomination}
+                        />
+
+                        {draftChurchDenomination === "Other" && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Input
+                              label="Specify Church / Denomination"
+                              required
+                              placeholder="Enter your church / denomination name"
+                              value={customChurchDenomination}
+                              onChange={(e) => {
+                                setCustomChurchDenomination(e.target.value);
+                                if (errors.customChurchDenomination) {
+                                  setErrors((prev) => {
+                                    const copy = { ...prev };
+                                    delete copy.customChurchDenomination;
+                                    return copy;
+                                  });
+                                }
+                              }}
+                              error={errors.customChurchDenomination}
+                            />
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
 
                     {draftReligion && (
                       <motion.div
@@ -1026,8 +1110,8 @@ export default function RegisterPage() {
                           >
                             <Input
                               label="Caste"
-                              list="caste-suggestions"
-                              placeholder="Enter your caste (e.g. Kallar, Vanniyar, Brahmin, Nadar, Mudaliyar, etc.)"
+                              list={draftReligion === "Christian" ? undefined : "caste-suggestions"}
+                              placeholder={draftReligion === "Christian" ? "Enter caste (optional)" : "Enter your caste (e.g. Kallar, Vanniyar, Brahmin, Nadar, Mudaliyar, etc.)"}
                               value={draftCaste}
                               onChange={(e) => {
                                 setDraftCaste(e.target.value);
@@ -1041,11 +1125,13 @@ export default function RegisterPage() {
                               }}
                               error={errors.caste}
                             />
-                            <datalist id="caste-suggestions">
-                              {(casteSuggestions || []).map((c) => (
-                                <option key={c} value={c} />
-                              ))}
-                            </datalist>
+                            {draftReligion !== "Christian" && (
+                              <datalist id="caste-suggestions">
+                                {(casteSuggestions || []).map((c) => (
+                                  <option key={c} value={c} />
+                                ))}
+                              </datalist>
+                            )}
                           </motion.div>
                         )}
                       </motion.div>

@@ -285,6 +285,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 Gender = request.Gender,
                 DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth, DateTimeKind.Utc),
                 Religion = request.Religion,
+                ChurchDenomination = request.ChurchDenomination?.Trim() ?? string.Empty,
                 Community = request.Community,
                 Caste = !string.IsNullOrWhiteSpace(request.Caste) ? request.Caste.Trim() : (request.Community != null && request.Community.Contains(" - ") ? request.Community.Split(" - ")[1].Trim() : string.Empty),
                 MotherTongue = request.MotherTongue,
@@ -462,6 +463,7 @@ namespace VikanMatrimony.WebApi.Controllers
         public string IdProofType { get; set; } = string.Empty;
         public string IdProofUrl { get; set; } = string.Empty;
         public string Generation { get; set; } = string.Empty;
+        public string ChurchDenomination { get; set; } = string.Empty;
         public string PersonalityType { get; set; } = "Introverted, Deep Thinker, Family-oriented";
     }
 

@@ -61,6 +61,7 @@ import {
 import {
   GENERATION_CONFIGS,
   MAIN_COMMUNITY_OPTIONS,
+  CHRISTIAN_DENOMINATION_OPTIONS,
   getBirthYear,
   getGenerationByYear
 } from "@/lib/community-data";
@@ -174,6 +175,8 @@ export default function ProfileDetailPage() {
   const [editMaritalStatus, setEditMaritalStatus] = useState("");
   const [editMotherTongue, setEditMotherTongue] = useState("");
   const [editReligion, setEditReligion] = useState("");
+  const [editChurchDenomination, setEditChurchDenomination] = useState("");
+  const [editCustomChurchDenomination, setEditCustomChurchDenomination] = useState("");
   const [editCommunity, setEditCommunity] = useState("");
   const [editCaste, setEditCaste] = useState("");
   const [editGeneration, setEditGeneration] = useState("");
@@ -266,6 +269,20 @@ export default function ProfileDetailPage() {
       setEditMaritalStatus(profile.maritalStatus || "");
       setEditMotherTongue(profile.motherTongue || "");
       setEditReligion(profile.religion || "");
+      const rawDenom = (profile as any).churchDenomination || (profile as any).ChurchDenomination || "";
+      const matchDenom = CHRISTIAN_DENOMINATION_OPTIONS.find(
+        (o) => o.value && o.value.toLowerCase() === rawDenom.toLowerCase()
+      );
+      if (matchDenom) {
+        setEditChurchDenomination(matchDenom.value);
+        setEditCustomChurchDenomination("");
+      } else if (rawDenom) {
+        setEditChurchDenomination("Other");
+        setEditCustomChurchDenomination(rawDenom);
+      } else {
+        setEditChurchDenomination("");
+        setEditCustomChurchDenomination("");
+      }
       const parsedComm = parseCommunityAndCaste(profile.community, profile.caste);
       setEditCommunity(profile.community || "");
       setEditCaste(profile.caste || (parsedComm.caste !== "Not specified" ? parsedComm.caste : ""));
@@ -491,6 +508,9 @@ export default function ProfileDetailPage() {
         parentsNumber: editParentsNumber,
         motherTongue: editMotherTongue,
         religion: editReligion,
+        churchDenomination: editReligion === "Christian"
+          ? (editChurchDenomination === "Other" ? editCustomChurchDenomination.trim() || "Other" : editChurchDenomination.trim())
+          : "",
         community: editCommunity,
         caste: editCaste,
         generation: editGeneration,
@@ -657,6 +677,12 @@ export default function ProfileDetailPage() {
                     <span>{profile.dateOfBirth ? (new Date().getFullYear() - new Date(profile.dateOfBirth).getFullYear()) : 25} Years, {profile.height || "5 ft 6 in"}</span>
                     <span className="text-brand-gold/40">•</span>
                     <span>{profile.religion}</span>
+                    {Boolean((profile as any).churchDenomination || (profile as any).ChurchDenomination) && (
+                      <>
+                        <span className="text-brand-gold/40">•</span>
+                        <span className="font-semibold text-brand-gold">{(profile as any).churchDenomination || (profile as any).ChurchDenomination}</span>
+                      </>
+                    )}
                     <span className="text-brand-gold/40">•</span>
                     <span className="font-medium text-white">{commDetails.community}</span>
                     {commDetails.caste && commDetails.caste !== "Not specified" && !/caste\s*no\s*bar/i.test(commDetails.caste) && !/caste\s*no\s*bar/i.test(commDetails.community) && (
@@ -667,8 +693,16 @@ export default function ProfileDetailPage() {
                     )}
                   </p>
 
-                  {/* Highlights Pills: Community, Caste, Gen Z */}
+                  {/* Highlights Pills: Church, Community, Caste, Gen Z */}
                   <div className="flex flex-wrap items-center gap-2 mt-3">
+                    {Boolean((profile as any).churchDenomination || (profile as any).ChurchDenomination) && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-[#051121]/80 text-[#E5DCD0] border border-brand-gold/25 shadow-sm">
+                        <span className="text-brand-gold font-bold">✞</span>
+                        <span className="text-[#E5DCD0]/60 text-[11px] uppercase tracking-wide">Church:</span>
+                        <span className="font-semibold text-brand-gold">{(profile as any).churchDenomination || (profile as any).ChurchDenomination}</span>
+                      </span>
+                    )}
+
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-[#051121]/80 text-[#E5DCD0] border border-brand-gold/25 shadow-sm">
                       <Users className="h-3.5 w-3.5 text-brand-gold" />
                       <span className="text-[#E5DCD0]/60 text-[11px] uppercase tracking-wide">Community:</span>
@@ -916,6 +950,14 @@ export default function ProfileDetailPage() {
                           <td className="text-[#E5DCD0]/60 py-3">Religion</td>
                           <td className="font-semibold py-3">{profile.religion || "Not specified"}</td>
                         </tr>
+                        {Boolean((profile as any).churchDenomination || (profile as any).ChurchDenomination || profile.religion === "Christian") && (
+                          <tr className="border-b border-border/5">
+                            <td className="text-[#E5DCD0]/60 py-3">Church / Denomination</td>
+                            <td className="font-semibold py-3 text-brand-gold">
+                              {(profile as any).churchDenomination || (profile as any).ChurchDenomination || "Not specified"}
+                            </td>
+                          </tr>
+                        )}
                         <tr className="border-b border-border/5">
                           <td className="text-[#E5DCD0]/60 py-3">Community</td>
                           <td className="font-semibold py-3">{commDetails.community}</td>
@@ -1407,7 +1449,14 @@ export default function ProfileDetailPage() {
               <Select
                 label="Religion"
                 value={editReligion}
-                onChange={(e) => setEditReligion(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEditReligion(val);
+                  if (val !== "Christian") {
+                    setEditChurchDenomination("");
+                    setEditCustomChurchDenomination("");
+                  }
+                }}
                 options={[
                   { value: "", label: "Select..." },
                   { value: "Hindu", label: "Hindu" },
@@ -1443,13 +1492,40 @@ export default function ProfileDetailPage() {
               />
             </div>
 
+            {editReligion === "Christian" && (
+              <div className={`grid ${editChurchDenomination === "Other" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"} gap-4`}>
+                <Select
+                  label="Church / Denomination"
+                  value={editChurchDenomination}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEditChurchDenomination(val);
+                    if (val !== "Other") {
+                      setEditCustomChurchDenomination("");
+                    }
+                  }}
+                  options={CHRISTIAN_DENOMINATION_OPTIONS}
+                  className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+                />
+                {editChurchDenomination === "Other" && (
+                  <Input
+                    label="Specify Church / Denomination"
+                    value={editCustomChurchDenomination}
+                    onChange={(e) => setEditCustomChurchDenomination(e.target.value)}
+                    placeholder="Enter your church / denomination name"
+                    className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
+                  />
+                )}
+              </div>
+            )}
+
             <div className={`grid ${!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"} gap-4`}>
               {!/caste\s*no\s*bar/i.test(editCommunity) && editCommunity !== "Prefer Not to Say" && (
                 <Input
                   label="Caste / Sub-caste"
                   value={editCaste}
                   onChange={(e) => setEditCaste(e.target.value)}
-                  placeholder="E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."
+                  placeholder={editReligion === "Christian" ? "Enter caste (optional)" : "E.g. Kallar, Vanniyar, Brahmin, Nadar, etc."}
                   className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
                 />
               )}

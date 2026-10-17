@@ -44,6 +44,17 @@ export const MAIN_COMMUNITIES: string[] = [
   "Prefer Not to Say"
 ];
 
+export const CHRISTIAN_DENOMINATION_OPTIONS: CommunityOption[] = [
+  { value: "", label: "Select Church / Denomination..." },
+  { value: "Roman Catholic (RC)", label: "Roman Catholic (RC)" },
+  { value: "Protestant", label: "Protestant" },
+  { value: "Pentecostal", label: "Pentecostal" },
+  { value: "Church of South India (CSI)", label: "Church of South India (CSI)" },
+  { value: "Orthodox", label: "Orthodox" },
+  { value: "Mar Thoma", label: "Mar Thoma" },
+  { value: "Other", label: "Other" }
+];
+
 export const DEFAULT_COMMUNITIES: Record<string, string[]> = {
   Hindu: [
     "Adi Dravidar (SC)",
@@ -89,18 +100,7 @@ export const DEFAULT_COMMUNITIES: Record<string, string[]> = {
     "Ansari",
     "Qureshi"
   ],
-  Christian: [
-    "Roman Catholic",
-    "CSI",
-    "Pentecostal",
-    "Protestant",
-    "Latin Catholic",
-    "Nadar Christian",
-    "Scheduled Caste Christian",
-    "Syrian Catholic",
-    "Jacobite",
-    "Mar Thoma"
-  ],
+  Christian: [],
   Jain: [
     "Digambar",
     "Shwetambar",

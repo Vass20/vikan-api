@@ -201,6 +201,7 @@ using (var scope = app.Services.CreateScope())
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""HoroscopeMatch"" text NOT NULL DEFAULT 'Not Required';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""BloodGroup"" text NOT NULL DEFAULT 'B+ (Positive)';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""PersonalityType"" text NOT NULL DEFAULT 'Introverted, Deep Thinker, Family-oriented';
+            ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""ChurchDenomination"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Generation"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""Caste"" text NOT NULL DEFAULT '';
             ALTER TABLE ""Profiles"" ADD COLUMN IF NOT EXISTS ""IdProofUrl"" text NOT NULL DEFAULT '';

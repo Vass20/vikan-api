@@ -101,6 +101,7 @@ namespace VikanMatrimony.WebApi.Controllers
             profile.MaritalStatus = request.MaritalStatus?.Trim() ?? string.Empty;
             profile.MotherTongue = request.MotherTongue?.Trim() ?? string.Empty;
             profile.Religion = request.Religion?.Trim() ?? string.Empty;
+            profile.ChurchDenomination = request.ChurchDenomination?.Trim() ?? string.Empty;
             profile.Community = request.Community?.Trim() ?? string.Empty;
             if (request.Caste != null)
             {
@@ -146,6 +147,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.Gender,
                 profile.DateOfBirth,
                 profile.Religion,
+                profile.ChurchDenomination,
                 profile.Community,
                 profile.Caste,
                 profile.Generation,
@@ -518,6 +520,7 @@ namespace VikanMatrimony.WebApi.Controllers
                 profile.Gender,
                 profile.DateOfBirth,
                 profile.Religion,
+                profile.ChurchDenomination,
                 profile.Community,
                 profile.Caste,
                 profile.Generation,
@@ -772,6 +775,7 @@ namespace VikanMatrimony.WebApi.Controllers
         public string MaritalStatus { get; set; } = string.Empty;
         public string MotherTongue { get; set; } = string.Empty;
         public string Religion { get; set; } = string.Empty;
+        public string ChurchDenomination { get; set; } = string.Empty;
         public string Community { get; set; } = string.Empty;
         public string Caste { get; set; } = string.Empty;
         public string Generation { get; set; } = string.Empty;

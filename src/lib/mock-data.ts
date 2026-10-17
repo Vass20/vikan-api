@@ -19,6 +19,7 @@ export interface Profile {
   age: number;
   height: string;
   religion: string;
+  churchDenomination?: string;
   community: string;
   subCommunity: string;
   caste?: string;
