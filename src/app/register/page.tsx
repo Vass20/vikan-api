@@ -13,7 +13,7 @@ import { Check, ArrowLeft, ArrowRight, UserPlus, Image, Shield, CheckCircle2, Sh
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/lib/redux/slices/authSlice";
 import { useRegisterMutation, useLoginMutation, useUploadPhotoMutation, useGetCastesQuery, useUploadPhotoFileMutation, useUploadRegistrationPhotoMutation, useSendOtpMutation, useVerifyOtpMutation } from "@/lib/redux/api";
-import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, MAIN_COMMUNITY_OPTIONS, MAIN_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear, CHRISTIAN_DENOMINATION_OPTIONS } from "@/lib/community-data";
+import { RELIGION_OPTIONS, DEFAULT_COMMUNITIES, MAIN_COMMUNITY_OPTIONS, MAIN_COMMUNITIES, GENERATION_CONFIGS, getBirthYear, getGenerationByYear, CHRISTIAN_DENOMINATION_OPTIONS, BLOOD_GROUP_OPTIONS, HOROSCOPE_MATCH_OPTIONS } from "@/lib/community-data";
 
 async function compressImage(file: File, maxDim = 1600, quality = 0.82): Promise<File> {
   if (!file.type.startsWith("image/")) {
@@ -225,6 +225,9 @@ export default function RegisterPage() {
   const [customChurchDenomination, setCustomChurchDenomination] = useState("");
   const [draftTongue, setDraftTongue] = useState(registrationDraft.motherTongue || "");
   const [draftMarital, setDraftMarital] = useState(registrationDraft.maritalStatus || "");
+  const [draftBloodGroup, setDraftBloodGroup] = useState((registrationDraft as any).bloodGroup || "");
+  const [draftAstroStarDetails, setDraftAstroStarDetails] = useState((registrationDraft as any).astroStarDetails || "");
+  const [draftHoroscopeMatch, setDraftHoroscopeMatch] = useState((registrationDraft as any).horoscopeMatch || "Not Required");
 
   const communityOptions = useMemo(() => {
     if (!draftReligion) return [];
@@ -393,6 +396,9 @@ export default function RegisterPage() {
       caste: draftCaste.trim(),
       motherTongue: draftTongue,
       maritalStatus: draftMarital,
+      bloodGroup: draftBloodGroup,
+      astroStarDetails: draftAstroStarDetails,
+      horoscopeMatch: draftHoroscopeMatch,
       education: draftEdu,
       occupation: draftOcc,
       salary: draftSal,
@@ -550,6 +556,9 @@ export default function RegisterPage() {
           caste: draftCaste.trim(),
           motherTongue: draftTongue,
           maritalStatus: draftMarital,
+          bloodGroup: draftBloodGroup,
+          astroStarDetails: draftAstroStarDetails,
+          horoscopeMatch: draftHoroscopeMatch,
           city: draftCity,
           state: draftState,
           phoneNumber: draftMobile,
@@ -584,7 +593,7 @@ export default function RegisterPage() {
 
   const stepDetails = [
     { num: 1, title: "Basic Information" },
-    { num: 2, title: "Religious Background" },
+    { num: 2, title: "Religious & Astrological Background" },
     { num: 3, title: "Career & Education" },
     { num: 4, title: "Family Alignment" },
     { num: 5, title: "Partner Preferences" },
@@ -1137,36 +1146,61 @@ export default function RegisterPage() {
                       </motion.div>
                     )}
 
-                    <Select
-                      label="Mother Tongue"
-                      value={draftTongue}
-                      onChange={(e) => setDraftTongue(e.target.value)}
-                      options={[
-                        { value: "", label: "Select..." },
-                        { value: "Hindi", label: "Hindi" },
-                        { value: "Punjabi", label: "Punjabi" },
-                        { value: "Tamil", label: "Tamil" },
-                        { value: "Telugu", label: "Telugu" },
-                        { value: "Bengali", label: "Bengali" },
-                        { value: "Marathi", label: "Marathi" },
-                        { value: "Gujarati", label: "Gujarati" },
-                        { value: "Malayalam", label: "Malayalam" },
-                        { value: "Urdu", label: "Urdu" },
-                        { value: "English", label: "English" }
-                      ]}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Select
+                        label="Mother Tongue"
+                        value={draftTongue}
+                        onChange={(e) => setDraftTongue(e.target.value)}
+                        options={[
+                          { value: "", label: "Select..." },
+                          { value: "Tamil", label: "Tamil" },
+                          { value: "Telugu", label: "Telugu" },
+                          { value: "Hindi", label: "Hindi" },
+                          { value: "Malayalam", label: "Malayalam" },
+                          { value: "Kannada", label: "Kannada" },
+                          { value: "Punjabi", label: "Punjabi" },
+                          { value: "Bengali", label: "Bengali" },
+                          { value: "Marathi", label: "Marathi" },
+                          { value: "Gujarati", label: "Gujarati" },
+                          { value: "Urdu", label: "Urdu" },
+                          { value: "English", label: "English" }
+                        ]}
+                      />
+
+                      <Select
+                        label="Marital Status"
+                        value={draftMarital}
+                        onChange={(e) => setDraftMarital(e.target.value)}
+                        options={[
+                          { value: "", label: "Select..." },
+                          { value: "Never Married", label: "Never Married" },
+                          { value: "Divorced", label: "Divorced" },
+                          { value: "Widowed", label: "Widowed" }
+                        ]}
+                      />
+                    </div>
 
                     <Select
-                      label="Marital Status"
-                      value={draftMarital}
-                      onChange={(e) => setDraftMarital(e.target.value)}
-                      options={[
-                        { value: "", label: "Select..." },
-                        { value: "Never Married", label: "Never Married" },
-                        { value: "Divorced", label: "Divorced" },
-                        { value: "Widowed", label: "Widowed" }
-                      ]}
+                      label="Blood Group"
+                      value={draftBloodGroup}
+                      onChange={(e) => setDraftBloodGroup(e.target.value)}
+                      options={BLOOD_GROUP_OPTIONS}
                     />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input
+                        label="Astro Star Details"
+                        placeholder="E.g. Ashwini, Bharani / Nadi: Manglik (No)"
+                        value={draftAstroStarDetails}
+                        onChange={(e) => setDraftAstroStarDetails(e.target.value)}
+                      />
+                      <Select
+                        label="Horoscope Match"
+                        value={draftHoroscopeMatch}
+                        onChange={(e) => setDraftHoroscopeMatch(e.target.value)}
+                        options={HOROSCOPE_MATCH_OPTIONS}
+                      />
+                    </div>
                   </div>
                 )}
 

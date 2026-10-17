@@ -55,6 +55,25 @@ export const CHRISTIAN_DENOMINATION_OPTIONS: CommunityOption[] = [
   { value: "Other", label: "Other" }
 ];
 
+export const BLOOD_GROUP_OPTIONS: CommunityOption[] = [
+  { value: "", label: "Select Blood Group..." },
+  { value: "A+ (Positive)", label: "A+ (Positive)" },
+  { value: "A- (Negative)", label: "A- (Negative)" },
+  { value: "B+ (Positive)", label: "B+ (Positive)" },
+  { value: "B- (Negative)", label: "B- (Negative)" },
+  { value: "O+ (Positive)", label: "O+ (Positive)" },
+  { value: "O- (Negative)", label: "O- (Negative)" },
+  { value: "AB+ (Positive)", label: "AB+ (Positive)" },
+  { value: "AB- (Negative)", label: "AB- (Negative)" }
+];
+
+export const HOROSCOPE_MATCH_OPTIONS: CommunityOption[] = [
+  { value: "", label: "Select Horoscope Match..." },
+  { value: "Not Required", label: "Not Required" },
+  { value: "Required / Kundali Available", label: "Required / Kundali Available" },
+  { value: "Must Match", label: "Must Match" }
+];
+
 export const DEFAULT_COMMUNITIES: Record<string, string[]> = {
   Hindu: [
     "Adi Dravidar (SC)",

@@ -304,6 +304,9 @@ namespace VikanMatrimony.WebApi.Controllers
                 FamilyValues = request.FamilyValues,
                 FamilyDetails = request.FamilyDetails,
                 Generation = request.Generation?.Trim() ?? string.Empty,
+                BloodGroup = !string.IsNullOrWhiteSpace(request.BloodGroup) ? request.BloodGroup.Trim() : "B+ (Positive)",
+                AstroStarDetails = !string.IsNullOrWhiteSpace(request.AstroStarDetails) ? request.AstroStarDetails.Trim() : "Nadi: Manglik (No)",
+                HoroscopeMatch = !string.IsNullOrWhiteSpace(request.HoroscopeMatch) ? request.HoroscopeMatch.Trim() : "Not Required",
                 PersonalityType = !string.IsNullOrWhiteSpace(request.PersonalityType) ? request.PersonalityType.Trim() : "Introverted, Deep Thinker, Family-oriented",
                 IdProofUrl = request.IdProofUrl?.Trim() ?? string.Empty,
                 IdProofType = string.IsNullOrWhiteSpace(request.IdProofType) ? "Government ID" : request.IdProofType.Trim(),
@@ -464,6 +467,9 @@ namespace VikanMatrimony.WebApi.Controllers
         public string IdProofUrl { get; set; } = string.Empty;
         public string Generation { get; set; } = string.Empty;
         public string ChurchDenomination { get; set; } = string.Empty;
+        public string BloodGroup { get; set; } = string.Empty;
+        public string AstroStarDetails { get; set; } = string.Empty;
+        public string HoroscopeMatch { get; set; } = string.Empty;
         public string PersonalityType { get; set; } = "Introverted, Deep Thinker, Family-oriented";
     }
 

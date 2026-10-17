@@ -62,6 +62,8 @@ import {
   GENERATION_CONFIGS,
   MAIN_COMMUNITY_OPTIONS,
   CHRISTIAN_DENOMINATION_OPTIONS,
+  BLOOD_GROUP_OPTIONS,
+  HOROSCOPE_MATCH_OPTIONS,
   getBirthYear,
   getGenerationByYear
 } from "@/lib/community-data";
@@ -1629,17 +1631,7 @@ export default function ProfileDetailPage() {
                 label="Blood Group"
                 value={editBloodGroup}
                 onChange={(e) => setEditBloodGroup(e.target.value)}
-                options={[
-                  { value: "", label: "Select..." },
-                  { value: "A+ (Positive)", label: "A+ (Positive)" },
-                  { value: "A- (Negative)", label: "A- (Negative)" },
-                  { value: "B+ (Positive)", label: "B+ (Positive)" },
-                  { value: "B- (Negative)", label: "B- (Negative)" },
-                  { value: "O+ (Positive)", label: "O+ (Positive)" },
-                  { value: "O- (Negative)", label: "O- (Negative)" },
-                  { value: "AB+ (Positive)", label: "AB+ (Positive)" },
-                  { value: "AB- (Negative)", label: "AB- (Negative)" }
-                ]}
+                options={BLOOD_GROUP_OPTIONS}
                 className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
               />
             </div>
@@ -1729,11 +1721,7 @@ export default function ProfileDetailPage() {
                 label="Horoscope Match"
                 value={editHoroscopeMatch}
                 onChange={(e) => setEditHoroscopeMatch(e.target.value)}
-                options={[
-                  { value: "Not Required", label: "Not Required" },
-                  { value: "Required / Kundali Available", label: "Required / Kundali Available" },
-                  { value: "Must Match", label: "Must Match" }
-                ]}
+                options={HOROSCOPE_MATCH_OPTIONS}
                 className="!bg-[#081626]/40 !border-brand-gold/30 text-white placeholder-muted-foreground/50 rounded-xl"
               />
             </div>
